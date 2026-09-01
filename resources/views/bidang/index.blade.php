@@ -11,7 +11,7 @@
             <p class="text-[13px] text-slate-500 line-clamp-2 min-h-[2.4rem]">{{ $b->deskripsi }}</p>
             <div class="flex gap-4 mt-3.5 pt-3 border-t border-slate-100 text-xs font-semibold text-slate-500">
                 <span>👥 {{ $b->pegawais_count }} pegawai</span><span>📄 {{ $b->dokumen_count }} dokumen</span><span>📅 {{ $b->agenda_count }} agenda</span>
-                <span class="ml-auto text-teal-600 group-hover:translate-x-0.5 transition">Kelola →</span>
+                <span class="ml-auto text-teal-600 group-hover:translate-x-0.5 transition">Lihat →</span>
             </div>
         </a>
     @endforeach

@@ -19,7 +19,10 @@ class Dokumen extends Model
         if (!$user) return $this->visibility === 'publik';
         if ($user->isAdmin() || $user->id === $this->uploaded_by) return true;
         if ($this->visibility === 'publik') return true;
-        if ($this->visibility === 'bidang') return true; // arsip lintas bidang: tampil universal, terlabel bidangnya
+        if ($this->visibility === 'bidang') {
+            if (!$this->id_bidang) return true; // arsip tanpa bidang (unggalan admin) tetap terbuka
+            return (int) $user->id_bidang === (int) $this->id_bidang; // privat: hanya sebidang
+        }
         return false; // rahasia: hanya uploader & admin
     }
 }

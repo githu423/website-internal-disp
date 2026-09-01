@@ -15,14 +15,19 @@ class HakAksesTest extends TestCase
         }
     }
 
-    public function test_bidang_hanya_bisa_buka_profil_bidangnya(): void
+    public function test_semua_user_bisa_melihat_semua_profil_bidang(): void
     {
         $this->buatKerangka();
-        $u = $this->userPegawai();
+        $u = $this->userPegawai(1);
         $u->update(['role' => 'bidang']);
         $this->actingAs($u);
+        $this->get('/bidang')->assertOk()->assertSee('BIDANG PEMASARAN');
         $this->get('/bidang/1')->assertOk();
-        $this->get('/bidang/3')->assertForbidden();
+        $this->get('/bidang/3')->assertOk();
+        // kelola tetap terkunci ke anggota bidangnya
+        $this->patch('/bidang/3', ['nama' => 'Bocor'])->assertForbidden();
+        $this->patch('/bidang/1', ['nama' => 'Sekretariat Revisi', 'ketua' => 'Bu Ketua'])->assertRedirect();
+        $this->assertDatabaseHas('bidang', ['id' => 1, 'ketua' => 'Bu Ketua']);
     }
 
     public function test_pegawai_bisa_membuka_dashboard_dan_modul_publik(): void

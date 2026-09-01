@@ -17,7 +17,7 @@ class StatistikController extends Controller
     {
         $tahun = (int) ($request->query('tahun') ?: (CapaianProgram::tahunTersedia()[0] ?? now()->year));
         $baris = CapaianProgram::where('tahun', $tahun)->orderBy('urutan')->get();
-        $bulanTahun = CapaianBulanan::tahunTersedia()[0] ?? $tahun;
+        $bulanTahun = $tahun; // tren bulanan mengikuti tahun yang dipilih (dulu selalu tahun terbaru — bug)
         $bulanan = CapaianBulanan::where('tahun', $bulanTahun)->orderBy('bulan')->get();
 
         $namaBln = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];

@@ -1,13 +1,38 @@
 @extends('layouts.dashboard')
 @section('title', $b->nama)
 @section('content')
-<div class="mb-4"><a href="{{ route('bidang.index') }}" class="text-sm font-semibold text-slate-500 hover:text-teal-600">← Kembali ke daftar bidang</a></div>
+
+<div class="mb-4 flex flex-wrap items-center gap-2">
+    <a href="{{ route('bidang.index') }}" class="text-sm font-semibold text-slate-500 hover:text-teal-600">← Semua bidang</a>
+    <span class="text-slate-300">|</span>
+    @foreach ($semuaBidang as $sb)
+        <a href="{{ route('bidang.show', $sb) }}" @class(['rounded-full px-3 py-1 text-xs font-bold border transition', $sb->id === $b->id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-500 hover:border-teal-400'])>{{ $sb->kode }} · {{ $sb->nama }}</a>
+    @endforeach
+</div>
+
 <div class="card p-6 mb-4 bg-gradient-to-br from-slate-900 to-slate-800 text-white border-0">
     <div class="flex flex-wrap items-center gap-4">
         <span class="h-14 w-14 rounded-2xl bg-white/10 grid place-items-center font-black text-xl">{{ $b->kode }}</span>
-        <div class="flex-1 min-w-[220px]"><h2 class="font-extrabold text-lg leading-tight">{{ $b->nama }}</h2><p class="text-sm text-slate-300 mt-1">{{ $b->deskripsi }}</p></div>
+        <div class="flex-1 min-w-[220px]">
+            <h2 class="font-extrabold text-lg leading-tight">{{ $b->nama }}</h2>
+            <p class="text-sm text-slate-300 mt-1">{{ $b->deskripsi }}</p>
+            <p class="text-xs text-slate-400 mt-1.5">Ketua: {{ $b->ketua ?: '—' }}</p>
+        </div>
+        @if ($bolehKelola)
+            <details class="relative">
+                <summary class="cursor-pointer list-none rounded-lg bg-white/10 hover:bg-white/20 px-3 py-1.5 text-xs font-bold">✏️ Kelola halaman ▾</summary>
+                <form method="POST" action="{{ route('bidang.update', $b) }}" class="absolute right-0 top-8 z-20 w-80 rounded-xl bg-white p-3.5 text-slate-700 shadow-2xl">
+                    @csrf @method('PATCH')
+                    <label class="text-xs font-bold text-slate-500">Nama bidang<input name="nama" value="{{ $b->nama }}" required class="mt-1 mb-2 block w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"></label>
+                    <label class="text-xs font-bold text-slate-500">Ketua<input name="ketua" value="{{ $b->ketua }}" class="mt-1 mb-2 block w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm"></label>
+                    <label class="text-xs font-bold text-slate-500">Deskripsi<textarea name="deskripsi" rows="3" class="mt-1 block w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm">{{ $b->deskripsi }}</textarea></label>
+                    <button class="mt-2 w-full rounded-lg bg-slate-900 py-1.5 text-sm font-bold text-white hover:bg-slate-700">Simpan</button>
+                </form>
+            </details>
+        @endif
     </div>
 </div>
+
 <div class="grid lg:grid-cols-3 gap-4">
     <div class="card overflow-hidden lg:col-span-2">
         <h3 class="font-bold px-5 pt-4 pb-3 border-b border-slate-100">Pegawai ({{ $pegawais->count() }})</h3>
@@ -32,13 +57,34 @@
                 <p class="text-sm text-slate-400">Belum ada agenda.</p>
             @endforelse
         </div>
+
         <div class="card p-5">
-            <h3 class="font-bold mb-3">Dokumen Bidang</h3>
+            <h3 class="font-bold mb-1">Dokumen Bidang</h3>
+            <p class="text-[11px] text-slate-400 mb-3">{{ $bolehKelola ? 'Termasuk arsip privat 🔒 yang tidak terlihat bidang lain.' : 'Hanya dokumen publik milik bidang ini yang tampil untuk Anda.' }}</p>
             @forelse ($dokumens as $d)
-                <a href="{{ route('dokumen.unduh', $d) }}" class="block py-1.5 text-[13px] font-medium text-slate-600 hover:text-teal-600 truncate {{ $loop->last ? '' : 'border-b border-slate-100' }}">📄 {{ $d->judul }}</a>
+                <div class="flex items-center gap-1.5 py-1.5 {{ $loop->last ? '' : 'border-b border-slate-100' }}">
+                    <span class="text-[13px] font-medium text-slate-600 truncate flex-1">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }} {{ $d->judul }}</span>
+                    <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-teal-600 hover:underline whitespace-nowrap">Lihat</a>
+                    <a href="{{ route('dokumen.unduh', $d) }}" class="text-[11px] font-bold text-slate-500 hover:text-teal-600 whitespace-nowrap">Unduh</a>
+                    @if ($bolehKelola)
+                        <form method="POST" action="{{ route('dokumen.destroy', $d) }}" onsubmit="return confirm('Hapus dokumen beserta filenya?')">@csrf @method('DELETE')
+                            <button class="text-[11px] font-bold text-rose-500 hover:underline whitespace-nowrap">Hapus</button>
+                        </form>
+                    @endif
+                </div>
             @empty
                 <p class="text-sm text-slate-400">Belum ada dokumen.</p>
             @endforelse
+
+            @if ($bolehKelola)
+                <form method="POST" action="{{ route('bidang.dokumen', $b) }}" enctype="multipart/form-data" class="mt-3 space-y-2 rounded-xl border border-dashed border-teal-300 bg-teal-50/40 p-3">
+                    @csrf
+                    <p class="text-[11px] font-bold text-teal-700">Simpan arsip privat bidang (khusus anggota)</p>
+                    <input name="judul" placeholder="Judul dokumen *" required maxlength="180" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
+                    <input type="file" name="file" required class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-teal-600 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-white">
+                    <button class="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500 active:scale-95 transition">Unggah ke bidang ini</button>
+                </form>
+            @endif
             <a href="{{ route('dokumen.index', ['bidang' => $b->id]) }}" class="inline-block mt-3 text-xs font-bold text-teal-600 hover:underline">Semua dokumen bidang ini →</a>
         </div>
     </div>

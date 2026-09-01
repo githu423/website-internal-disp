@@ -68,6 +68,7 @@
                     <x-sb-link :href="route('admin.dashboard')" label="Ringkasan Admin" icon="admin" :active="$r('admin.dashboard')" />
                     <x-sb-link :href="route('admin.kinerja.index')" label="Kelola Kinerja" icon="kinerja" :active="$r('admin.kinerja.*')" />
                     <x-sb-link :href="route('admin.capaian.index')" label="Kelola Capaian Kinerja" icon="statistik" :active="$r('admin.capaian.*')" />
+                    <x-sb-link :href="route('admin.statistik.index')" label="Kelola Statistik" icon="statistik" :active="$r('admin.statistik.*')" />
                     <x-sb-link :href="route('admin.pad.index')" label="Kelola PAD" icon="pad" :active="$r('admin.pad.*')" />
                     <x-sb-link :href="route('admin.pegawai.index')" label="Kelola Pegawai" icon="pegawai" :active="$r('admin.pegawai.*')" />
                     <x-sb-link :href="route('admin.agenda.index')" label="Kelola Agenda" icon="agenda" :active="$r('admin.agenda.*')" />

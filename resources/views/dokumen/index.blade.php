@@ -10,7 +10,7 @@
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
     <div>
         <h2 class="text-lg font-extrabold">Perpustakaan Dokumen</h2>
-        <p class="text-sm text-slate-500">Arsip universal lintas bidang — {{ $total }} dokumen dapat dicari. Dokumen <b>rahasia</b> hanya terlihat oleh pengunggahnya.</p>
+        <p class="text-sm text-slate-500">Arsip universal lintas bidang — {{ $total }} dokumen dapat dicari. Dokumen <b>privat bidang</b> hanya terlihat oleh sebidang; <b>rahasia</b> hanya oleh pengunggahnya.</p>
     </div>
     @if ($u->isBisaUnggah())
         <button data-modal-open="modal-upload" class="rounded-lg bg-slate-900 text-white text-sm font-bold px-4 py-2.5 hover:bg-slate-700 active:scale-[.98] transition inline-flex items-center gap-2"><x-icon name="upload" class="h-4 w-4" /> Unggah Dokumen</button>
@@ -57,7 +57,7 @@
                     <p class="font-bold text-[13.5px] leading-snug line-clamp-2">{{ $d->judul }}</p>
                     <p class="text-[11px] text-slate-400 mt-0.5">{{ $d->kategori ?: 'Umum' }} · {{ $fmtSize($d->file_size) }} · dibaca {{ $d->dibaca_count }}×</p>
                 </div>
-                <span class="text-[10px] font-bold rounded-full px-2 py-0.5 shrink-0 {{ ['publik' => 'bg-emerald-50 text-emerald-600', 'bidang' => 'bg-sky-50 text-sky-600', 'rahasia' => 'bg-rose-50 text-rose-600'][$d->visibility] }}">{{ ucfirst($d->visibility) }}</span>
+                <span class="text-[10px] font-bold rounded-full px-2 py-0.5 shrink-0 {{ ['publik' => 'bg-emerald-50 text-emerald-600', 'bidang' => 'bg-sky-50 text-sky-600', 'rahasia' => 'bg-rose-50 text-rose-600'][$d->visibility] }}">@php echo $d->visibility === 'bidang' ? 'Privat bidang' : ucfirst($d->visibility); @endphp</span>
             </div>
             @if ($d->deskripsi)<p class="text-xs text-slate-500 line-clamp-2">{{ $d->deskripsi }}</p>@endif
             <div class="flex items-center gap-1.5 text-[11px] text-slate-400">
@@ -75,7 +75,7 @@
                         @csrf @method('PATCH')
                         <select name="visibility" onchange="this.form.submit()" title="Ubah akses (hanya Anda sebagai pengunggah)"
                             class="rounded-lg border border-slate-300 bg-white text-[11px] font-bold px-1.5 py-1.5 text-slate-600 cursor-pointer hover:border-teal-400 outline-none">
-                            @foreach (['publik' => '🌐 Publik', 'bidang' => '🏢 Bidang', 'rahasia' => '🔒 Rahasia'] as $vv => $lab)
+                            @foreach (['publik' => '🌐 Publik', 'bidang' => '🔏 Privat bidang', 'rahasia' => '🔒 Rahasia'] as $vv => $lab)
                                 <option value="{{ $vv }}" @selected($d->visibility === $vv)>{{ $lab }}</option>
                             @endforeach
                         </select>
@@ -112,7 +112,7 @@
                 <input name="kategori" placeholder="Kategori (mis. Laporan)" class="rounded-lg border border-slate-300 px-3 py-2.5 focus:border-teal-500 outline-none">
                 <select name="visibility" class="rounded-lg border border-slate-300 px-3 py-2.5 bg-white">
                     <option value="publik">🌐 Publik — semua pegawai</option>
-                    <option value="bidang">🏢 Arsip bidang — terlabel bidang Anda</option>
+                    <option value="bidang">🔏 Privat bidang — hanya rekan sebidang</option>
                     <option value="rahasia">🔒 Rahasia — hanya saya &amp; admin</option>
                 </select>
             </div>

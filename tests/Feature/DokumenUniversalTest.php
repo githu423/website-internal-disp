@@ -24,13 +24,19 @@ class DokumenUniversalTest extends TestCase
         return [$user, $d];
     }
 
-    public function test_dokumen_bidang_terlihat_universal_dan_boleh_diunduh_bidang_lain(): void
+    public function test_dokumen_bidang_privat_hanya_untuk_sebidang(): void
     {
         $this->buatKerangka();
         [$pemilik, $d] = $this->dok('bidang', 2);
         $orangLain = $this->userPegawai(3);
-        $this->actingAs($orangLain)->get('/dokumen')->assertOk()->assertSee('Dokumen bidang');
-        $this->actingAs($orangLain)->get(route('dokumen.unduh', $d))->assertOk();
+        $this->actingAs($orangLain)->get('/dokumen')->assertOk()->assertDontSee('Dokumen bidang');
+        $this->actingAs($orangLain)->get(route('dokumen.unduh', $d))->assertForbidden();
+        $kawan = $this->userPegawai(2, 'KAWAN-DUA');
+        $this->actingAs($kawan)->get('/dokumen')->assertOk()->assertSee('Dokumen bidang');
+        $this->actingAs($kawan)->get(route('dokumen.unduh', $d))->assertOk();
+        // sesama anggota bidang boleh menghapus arsip privat
+        $this->actingAs($kawan)->delete(route('dokumen.destroy', $d))->assertRedirect();
+        $this->assertDatabaseMissing('dokumen', ['id' => $d->id]);
     }
 
     public function test_rahasia_tersembunyi_dari_semua_kecuali_pemilik_dan_admin(): void

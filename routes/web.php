@@ -41,11 +41,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifikasi/unread', [NotifikasiController::class, 'unread'])->name('notifikasi.unread');
     Route::post('/notifikasi/baca-semua', [NotifikasiController::class, 'bacaSemua'])->name('notifikasi.bacaSemua');
 
-    // modul bidang (khusus admin / user bidang terkait)
-    Route::get('/bidang', [BidangController::class, 'index'])
-        ->middleware('role:admin,bidang')->name('bidang.index');
-    Route::get('/bidang/{bidang}', [BidangController::class, 'show'])
-        ->middleware('bidang.access')->name('bidang.show');
+    // modul bidang: profil dilihat semua user; kelola hanya anggota bidangnya / admin
+    Route::get('/bidang', [BidangController::class, 'index'])->name('bidang.index');
+    Route::get('/bidang/{bidang}', [BidangController::class, 'show'])->name('bidang.show');
+    Route::patch('/bidang/{bidang}', [BidangController::class, 'update'])->name('bidang.update');
+    Route::post('/bidang/{bidang}/dokumen', [BidangController::class, 'unggahDokumen'])->name('bidang.dokumen');
 
     // ===== ADMIN =====
     Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
@@ -80,6 +80,10 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('capaian-kinerja', [Admin\CapaianKinerjaController::class, 'index'])->name('capaian.index');
         Route::post('capaian-kinerja/import', [Admin\CapaianKinerjaController::class, 'import'])->name('capaian.import');
+
+        Route::get('statistik', [Admin\StatistikController::class, 'index'])->name('statistik.index');
+        Route::post('statistik', [Admin\StatistikController::class, 'store'])->name('statistik.store');
+        Route::post('statistik/import', [Admin\StatistikController::class, 'import'])->name('statistik.import');
         Route::post('capaian-kinerja/sasaran', [Admin\CapaianKinerjaController::class, 'storeSasaran'])->name('capaian.sasaran.store');
         Route::patch('capaian-kinerja/sasaran/{sasaran}', [Admin\CapaianKinerjaController::class, 'updateSasaran'])->name('capaian.sasaran.update');
         Route::delete('capaian-kinerja/sasaran/{sasaran}', [Admin\CapaianKinerjaController::class, 'destroySasaran'])->name('capaian.sasaran.destroy');

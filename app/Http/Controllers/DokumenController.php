@@ -17,11 +17,19 @@ class DokumenController extends Controller
     {
         $u = $request->user();
         // halaman universal: semua dokumen lintas bidang "tinggal cari";
-        // dokumen 'rahasia' hanya terlihat oleh pengunggahnya (+admin)
-        $q = Dokumen::query()->with(['bidang', 'uploader'])
-            ->where(fn ($w) => $w->where('visibility', '!=', 'rahasia')
-                ->orWhere('uploaded_by', $u->id)
-                ->when($u->isAdmin(), fn ($ww) => $ww->orWhereRaw('1=1')));
+        // 'rahasia' hanya utk pengunggah (+admin); 'bidang' = privat hanya utk sebidang (+admin)
+        $q = Dokumen::query()->with(['bidang', 'uploader']);
+        $q->where(function ($w) use ($u) {
+            $w->where('visibility', 'publik')->orWhere('uploaded_by', $u->id);
+            if ($u->id_bidang) {
+                $w->orWhere(function ($x) use ($u) {
+                    $x->where('visibility', 'bidang')->where(function ($y) use ($u) {
+                        $y->where('id_bidang', $u->id_bidang)->orWhereNull('id_bidang');
+                    });
+                });
+            }
+            if ($u->isAdmin()) $w->orWhereRaw('1=1');
+        });
 
         if ($sq = trim((string) $request->query('q'))) {
             $q->where(fn ($w) => $w->where('judul', 'like', "%$sq%")->orWhere('deskripsi', 'like', "%$sq%")->orWhere('kategori', 'like', "%$sq%")->orWhere('file_name', 'like', "%$sq%"));
@@ -114,7 +122,9 @@ class DokumenController extends Controller
 
     public function destroy(Request $request, Dokumen $dokumen): RedirectResponse
     {
-        abort_unless($request->user()->isAdmin() || $dokumen->uploaded_by === $request->user()->id, 403);
+        $u = $request->user();
+        $anggotaBidang = $dokumen->visibility === 'bidang' && $dokumen->id_bidang && $u->id_bidang === $dokumen->id_bidang;
+        abort_unless($u->isAdmin() || $dokumen->uploaded_by === $u->id || $anggotaBidang, 403, 'Hanya pengunggah, sesama anggota bidang, atau admin.');
         Storage::disk('public')->delete($dokumen->file_path);
         $dokumen->delete();
         LogAktivitas::catat('hapus dokumen', $dokumen->judul);

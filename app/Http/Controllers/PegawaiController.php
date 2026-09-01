@@ -12,7 +12,6 @@ class PegawaiController extends Controller
     {
         $u = $request->user();
         $q = Pegawai::query()->with('bidang')->cari($request->query('q'));
-        if (! $u->isAdmin()) $q->where('id_bidang', $u->id_bidang ?: -1);
         return view('pegawai.index', ['pegawai' => $q->orderBy('nama')->paginate(15)->withQueryString()]);
     }
 }
