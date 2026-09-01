@@ -42,6 +42,7 @@
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Data &amp; Kinerja</p>
                 <div class="space-y-0.5">
                     <x-sb-link :href="route('kinerja.publik')" label="Kegiatan & Kinerja" icon="kinerja" :active="$r('kinerja.publik')" />
+                    <x-sb-link :href="route('kinerja.capaian')" label="Capaian Kinerja" icon="statistik" :active="$r('kinerja.capaian')" />
                     <x-sb-link :href="route('pad.index')" label="PAD (Retribusi)" icon="pad" :active="$r('pad.*')" />
                     <x-sb-link :href="route('statistik.index')" label="Statistik Pariwisata" icon="statistik" :active="$r('statistik.*')" />
                     <x-sb-link :href="route('pegawai.index')" label="Data Pegawai" icon="pegawai" :active="$r('pegawai.*')" />
@@ -66,6 +67,7 @@
                 <div class="space-y-0.5">
                     <x-sb-link :href="route('admin.dashboard')" label="Ringkasan Admin" icon="admin" :active="$r('admin.dashboard')" />
                     <x-sb-link :href="route('admin.kinerja.index')" label="Kelola Kinerja" icon="kinerja" :active="$r('admin.kinerja.*')" />
+                    <x-sb-link :href="route('admin.capaian.index')" label="Kelola Capaian Kinerja" icon="statistik" :active="$r('admin.capaian.*')" />
                     <x-sb-link :href="route('admin.pad.index')" label="Kelola PAD" icon="pad" :active="$r('admin.pad.*')" />
                     <x-sb-link :href="route('admin.pegawai.index')" label="Kelola Pegawai" icon="pegawai" :active="$r('admin.pegawai.*')" />
                     <x-sb-link :href="route('admin.agenda.index')" label="Kelola Agenda" icon="agenda" :active="$r('admin.agenda.*')" />

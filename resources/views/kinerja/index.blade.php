@@ -7,6 +7,7 @@
         <p class="text-sm text-slate-500">Sumber: Kinerja Fisik Dinas — dikelola admin, tampil otomatis sebagai info &amp; pengingat kegiatan.</p>
     </div>
     <div class="flex items-center gap-2">
+        <a href="{{ route('kinerja.capaian') }}" class="rounded-lg border border-teal-500 bg-teal-50 px-3 py-1.5 text-sm font-bold text-teal-700 hover:bg-teal-100 active:scale-95 transition" title="Matriks target vs realisasi per indikator">Capaian Kinerja →</a>
         @foreach ($tahunList as $t)
             <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['tahun' => $t])) }}" @class(['rounded-lg px-3 py-1.5 text-sm font-bold border transition active:scale-95', $t == $tahun ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>{{ $t }}</a>
         @endforeach

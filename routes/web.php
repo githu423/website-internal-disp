@@ -32,6 +32,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
     Route::get('/kinerja', [StatistikController::class, 'kinerja'])->name('kinerja.publik');
+    Route::get('/kinerja/capaian', [StatistikController::class, 'capaian'])->name('kinerja.capaian');
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
     Route::get('/statistik/data', [StatistikController::class, 'data'])->name('statistik.data');
     Route::get('/pad', [PadController::class, 'index'])->name('pad.index');
@@ -54,6 +55,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('akun', [Admin\AkunController::class, 'store'])->name('akun.store');
         Route::patch('akun/{akun}', [Admin\AkunController::class, 'update'])->name('akun.update');
         Route::delete('akun/{akun}', [Admin\AkunController::class, 'destroy'])->name('akun.destroy');
+        Route::post('akun/sinkron-peran', [Admin\AkunController::class, 'sinkronPeran'])->name('akun.sinkron');
 
         Route::get('pegawai', [Admin\PegawaiController::class, 'index'])->name('pegawai.index');
         Route::post('pegawai', [Admin\PegawaiController::class, 'store'])->name('pegawai.store');
@@ -75,6 +77,16 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('kinerja/{kinerja}', [Admin\KinerjaController::class, 'update'])->name('kinerja.update');
         Route::delete('kinerja/{kinerja}', [Admin\KinerjaController::class, 'destroy'])->name('kinerja.destroy');
         Route::post('kinerja/import', [Admin\KinerjaController::class, 'import'])->name('kinerja.import');
+
+        Route::get('capaian-kinerja', [Admin\CapaianKinerjaController::class, 'index'])->name('capaian.index');
+        Route::post('capaian-kinerja/import', [Admin\CapaianKinerjaController::class, 'import'])->name('capaian.import');
+        Route::post('capaian-kinerja/sasaran', [Admin\CapaianKinerjaController::class, 'storeSasaran'])->name('capaian.sasaran.store');
+        Route::patch('capaian-kinerja/sasaran/{sasaran}', [Admin\CapaianKinerjaController::class, 'updateSasaran'])->name('capaian.sasaran.update');
+        Route::delete('capaian-kinerja/sasaran/{sasaran}', [Admin\CapaianKinerjaController::class, 'destroySasaran'])->name('capaian.sasaran.destroy');
+        Route::post('capaian-kinerja/indikator', [Admin\CapaianKinerjaController::class, 'storeIndikator'])->name('capaian.indikator.store');
+        Route::patch('capaian-kinerja/indikator/{indikator}', [Admin\CapaianKinerjaController::class, 'updateIndikator'])->name('capaian.indikator.update');
+        Route::delete('capaian-kinerja/indikator/{indikator}', [Admin\CapaianKinerjaController::class, 'destroyIndikator'])->name('capaian.indikator.destroy');
+        Route::post('capaian-kinerja/indikator/{indikator}/nilai', [Admin\CapaianKinerjaController::class, 'simpanNilai'])->name('capaian.nilai');
 
         Route::get('pad', [Admin\PadController::class, 'index'])->name('pad.index');
         Route::post('pad', [Admin\PadController::class, 'store'])->name('pad.store');

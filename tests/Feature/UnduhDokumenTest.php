@@ -47,6 +47,7 @@ class UnduhDokumenTest extends TestCase
     {
         $this->buatKerangka();
         $user = $this->userPegawai();
+        $user->update(['role' => 'bidang']); // unggah kini khusus bidang/admin
         $this->actingAs($user)->post('/dokumen', [
             'judul' => 'Laporan Uji', 'visibility' => 'publik',
             'file' => UploadedFile::fake()->createWithContent('laporan.txt', 'halo'),

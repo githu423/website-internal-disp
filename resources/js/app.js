@@ -99,10 +99,23 @@ document.querySelectorAll('canvas[data-chart]').forEach((cv) => {
     const data = JSON.parse(cv.dataset.chart);
     const type = cv.dataset.type || 'line';
     const ds = [];
-    if (data.target) ds.push({ label: 'Target', data: data.target, borderColor: '#94a3b8', backgroundColor: 'rgba(148,163,184,.15)', borderWidth: 2, borderDash: [6, 4], tension: .35, fill: false });
-    if (data.capaian) ds.push({ label: 'Capaian', data: data.capaian, borderColor: '#14b8a6', backgroundColor: 'rgba(20,184,166,.18)', borderWidth: 2, tension: .35, fill: true });
+    if (Array.isArray(data.datasets)) {
+        data.datasets.forEach((d) => ds.push({
+            label: d.label, data: d.data, type: d.type || undefined,
+            borderColor: d.color || '#14b8a6',
+            backgroundColor: d.type === 'bar' ? (d.color || '#14b8a6') + '55' : (d.fill ? (d.color || '#14b8a6') + '22' : 'transparent'),
+            borderWidth: 2, borderDash: d.dash ? [6, 4] : [], tension: .35, fill: !!d.fill,
+            yAxisID: d.axis || 'y',
+        }));
+    } else {
+        if (data.target) ds.push({ label: 'Target', data: data.target, borderColor: '#94a3b8', backgroundColor: 'rgba(148,163,184,.15)', borderWidth: 2, borderDash: [6, 4], tension: .35, fill: false });
+        if (data.capaian) ds.push({ label: 'Capaian', data: data.capaian, borderColor: '#14b8a6', backgroundColor: 'rgba(20,184,166,.18)', borderWidth: 2, tension: .35, fill: true });
+    }
+    const scales = { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } };
+    if (Array.isArray(data.datasets) && data.datasets.some((d) => d.axis === 'y1'))
+        scales.y1 = { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { callback: (v) => v + '%' } };
     new Chart(cv, { type, data: { labels: data.labels, datasets: ds },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } } });
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales } });
 });
 
 /* ===== form import: state saat submit ===== */

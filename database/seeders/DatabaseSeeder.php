@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             PegawaiSeeder::class,
             KinerjaSeeder::class,
+            CapaianKinerjaSeeder::class,
             PadSeeder::class,
             DemoDataSeeder::class,
         ]);
@@ -27,7 +28,7 @@ class DatabaseSeeder extends Seeder
         foreach ([database_path('source'), storage_path('app/private')] as $dir) {
             File::ensureDirectoryExists($dir);
         }
-        foreach (['PEGAWAI DISPAR.csv' => 'PEGAWAI DISPAR.csv', 'Kinerja Fisik Sedinas.csv' => 'Kinerja Fisik Sedinas.csv', 'PAD.csv' => 'PAD.csv'] as $sumber => $nama) {
+        foreach (['PEGAWAI DISPAR.csv' => 'PEGAWAI DISPAR.csv', 'Kinerja Fisik Sedinas.csv' => 'Kinerja Fisik Sedinas.csv', 'PAD.csv' => 'PAD.csv', 'CAPAIAN KINERJA.csv' => 'CAPAIAN KINERJA.csv'] as $sumber => $nama) {
             $tujuanPrivat = storage_path('app/private/'.$nama);
             $tujuanCadangan = database_path('source/'.$nama);
             if (is_file($tujuanPrivat) || is_file($tujuanCadangan)) continue;

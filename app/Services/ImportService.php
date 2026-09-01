@@ -2,8 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Bidang;
 use App\Models\CapaianBulanan;
+use App\Models\CapaianIndikator;
 use App\Models\CapaianProgram;
+use App\Models\CapaianSasaran;
+use App\Models\CapaianTahunan;
 use App\Models\Pegawai;
 use App\Models\User;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -62,14 +66,15 @@ class ImportService
 
     protected static function bidangDariTeks(string $t): ?int
     {
-        $t = mb_strtoupper($t);
-        return match (true) {
-            str_contains($t, 'PEMASARAN') => 3,
-            str_contains($t, 'DAYA TAR') || str_contains($t, 'DESTINASI') => 2,
-            str_contains($t, 'EKONOMI') || str_contains($t, 'SUMBER DAYA') || str_contains($t, 'KELEMBAGAAN') => 4,
-            str_contains($t, 'PENUNJANG') || str_contains($t, 'SEKRETARIAT') => 1,
-            default => null,
-        };
+        return Bidang::tebakDariTeks($t);
+    }
+
+    /** Pimpinan unit (eselon IV & koordinator) → peran 'bidang'; lainnya 'pegawai'. */
+    public static function peranDariJabatan(?string $j): string
+    {
+        $t = mb_strtoupper(trim((string) $j));
+        return preg_match('/\b(KABID|KEPALA\s+(BIDANG|SEKSI|SUBBAGIAN|SUB\s+BAGIAN|UPTD?)|KASI|KASUBBAG|SEKRETARIS|KOORDINATOR)\b/u', $t)
+            ? 'bidang' : 'pegawai';
     }
 
     /* ================= KINERJA FISIK (capaian program/kegiatan/sub) ================= */
@@ -271,6 +276,13 @@ class ImportService
     public static function parsePegawai(array $rows): array
     {
         $out = [];
+        // kolom UNIT KERJA dideteksi dari header; fallback kolom ke-19 (0-based 18)
+        $idxUnit = null;
+        foreach ($rows as $hr) {
+            foreach ($hr as $ci => $cv) {
+                if (mb_strtoupper(trim((string) $cv)) === 'UNIT KERJA') { $idxUnit = $ci; break 2; }
+            }
+        }
         foreach ($rows as $r) {
             $r = array_pad($r, 20, '');
             if (! is_numeric(trim($r[0]))) continue;
@@ -286,6 +298,7 @@ class ImportService
                 }
             }
             $jabatan = trim($r[10]);
+            $unit = $idxUnit !== null ? trim((string) ($r[$idxUnit] ?? '')) : trim((string) ($r[18] ?? ''));
             $pendidikan = trim($r[12]);
             if (preg_match('/^(S-\d|D-\d|SLTA|SMA|SD)/iu', $pendidikan, $m)) {
                 $pendidikan = $m[1];
@@ -297,6 +310,7 @@ class ImportService
                 'tanggal_lahir' => self::tgl($r[4]),
                 'jenis_kelamin' => $jk,
                 'jabatan' => $jabatan ?: null,
+                'unit_kerja' => $unit ?: null,
                 'pangkat_golongan' => trim($r[7]) ?: trim($r[5]) ?: null,
                 'jenis_asn' => trim($r[8]) ?: null,
                 'tmt_cpns' => self::tgl($r[6]),
@@ -304,7 +318,7 @@ class ImportService
                 'tmt_jabatan' => self::tgl($r[11]),
                 'pendidikan' => $pendidikan ?: null,
                 'status' => 'aktif',
-                'id_bidang' => self::bidangDariTeks($jabatan),
+                'id_bidang' => Bidang::tebakDariTeks(trim($jabatan . ' ' . $unit)),
             ];
         }
         return $out;
@@ -313,26 +327,185 @@ class ImportService
     public static function applyPegawai(array $rows): array
     {
         $p = self::parsePegawai($rows);
-        $dibuat = 0; $diperbarui = 0; $akunBaru = 0;
+        $dibuat = 0; $diperbarui = 0; $akunBaru = 0; $akunSinkron = 0;
         $pw = config('dispar.password_default_pegawai');
         foreach ($p as $data) {
             $exists = Pegawai::where('nip', $data['nip'])->exists();
             Pegawai::updateOrCreate(['nip' => $data['nip']], $data);
             $exists ? $diperbarui++ : $dibuat++;
 
+            $bidang = $data['id_bidang'];
+            $peran = self::peranDariJabatan($data['jabatan']);
             $user = User::where('nip', $data['nip'])->first();
             if (! $user) {
                 User::create([
                     'name' => $data['nama'],
                     'nip' => $data['nip'],
                     'password' => $pw,
-                    'role' => 'pegawai',
-                    'id_bidang' => $data['id_bidang'],
+                    'role' => $peran,
+                    'id_bidang' => $bidang,
                     'jabatan' => $data['jabatan'],
                 ]);
                 $akunBaru++;
+            } elseif ($user->role !== 'admin') {
+                $ubah = [];
+                if ($bidang && (int) $user->id_bidang !== (int) $bidang) $ubah['id_bidang'] = $bidang;
+                if ($user->role !== $peran) $ubah['role'] = $peran;
+                if ($data['jabatan'] && $user->jabatan !== $data['jabatan']) $ubah['jabatan'] = $data['jabatan'];
+                if ($ubah) { $user->update($ubah); $akunSinkron++; }
             }
         }
-        return ['dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'akun_baru' => $akunBaru];
+        return ['dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'akun_baru' => $akunBaru, 'akun_disinkron' => $akunSinkron];
+    }
+
+    /**
+     * Parse matriks Capaian Kinerja: header "No. | Sasaran | Indikator Kinerja | Satuan | <tahun...>"
+     * lalu tiap tahun punya triplet kolom Target | Realisasi | %.
+     * Sel "n/a"/kosong diperlakukan sebagai tidak ada data; sasaran menyusul tanpa nomor digabung ke atasnya.
+     */
+    public static function parseCapaian(array $rows): array
+    {
+        $g = fn (array $r, int $i): string => trim((string) ($r[$i] ?? ''));
+
+        $h = null;
+        foreach ($rows as $i => $r) {
+            if (preg_match('/^no\.?$/i', $g($r, 0))) { $h = $i; break; }
+        }
+        if ($h === null) return [];
+
+        // deteksi kolom tahun (baris setelah header), tiap tahun = awal triplet (t, t+1, t+2)
+        $years = [];
+        for ($i = $h + 1; $i <= $h + 3 && $i < count($rows); $i++) {
+            foreach ($rows[$i] as $c => $cell) {
+                if (preg_match('/^(20\d{2})$/', trim((string) $cell), $m)) {
+                    $years[(int) $m[1]] = ['t' => $c];
+                }
+            }
+            if ($years) break;
+        }
+        if (!$years) return [];
+
+        $bersih = function (string $v): ?string {
+            if ($v === '' || strcasecmp($v, 'n/a') === 0 || $v === '-') return null;
+            return $v;
+        };
+
+        $out = [];
+        $cur = -1;
+        for ($i = $h + 1; $i < count($rows); $i++) {
+            $r = array_values($rows[$i]);
+            $no = $g($r, 0); $sas = $g($r, 1); $ind = $g($r, 2); $sat = $g($r, 3);
+
+            if ($no !== '' && $sas !== '' && preg_match('/^\d+$/', $no)) {
+                $cakupan = null;
+                if (preg_match('/Sasaran\s*Tahun\s*:?\s*(.+)/i', $sas, $m)) {
+                    $cakupan = trim($m[1]);
+                    $sas = trim(preg_replace('/\n?Sasaran\s*Tahun.*/is', '', $sas));
+                }
+                $sas = trim(preg_replace('/\s*\n\s*/', ' ', $sas));
+                $out[] = ['nomor' => (int) $no, 'judul' => $sas, 'cakupan' => $cakupan ?: null, 'indikator' => []];
+                $cur = count($out) - 1;
+            }
+
+            if ($cur < 0 || $ind === '' || mb_stripos($ind, 'indikator kinerja') !== false) continue;
+
+            $nilai = [];
+            foreach ($years as $y => $pos) {
+                $t = $bersih($g($r, $pos['t']));
+                $rl = $bersih($g($r, $pos['t'] + 1));
+                $p = $bersih($g($r, $pos['t'] + 2));
+                if ($t !== null || $rl !== null || $p !== null) {
+                    $nilai[$y] = ['target' => $t, 'realisasi' => $rl, 'persen' => $p];
+                }
+            }
+            $out[$cur]['indikator'][] = ['nama' => $ind, 'satuan' => $sat ?: null, 'nilai' => $nilai];
+        }
+
+        return $out;
+    }
+
+    /** Simpan hasil parseCapaian(). Mode 'update' = gabung/upgrade otomatis tanpa duplikat (default, aman untuk file lengkap yang diunggah berulang kali); mode 'ganti' = hapus semua lalu isi ulang. */
+    public static function applyCapaian(array $data, string $mode = 'update'): array
+    {
+        $stat = ['sasaran_baru' => 0, 'indikator_baru' => 0, 'nilai_baru' => 0, 'nilai_ubah' => 0, 'nilai_sama' => 0];
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($data, $mode, &$stat) {
+            if ($mode === 'ganti') {
+                CapaianTahunan::query()->delete();
+                CapaianIndikator::query()->delete();
+                CapaianSasaran::query()->delete();
+            }
+            $slug = fn (?string $x) => mb_strtolower(trim(preg_replace('/\s+/u', ' ', (string) $x) ?: ''));
+            $semuaSasaran = $mode === 'update' ? CapaianSasaran::with('indikator')->get() : collect();
+
+            foreach (array_values($data) as $us => $s) {
+                $sasaran = null;
+                foreach ($semuaSasaran as $cand) {
+                    if ($slug($cand->judul) === $slug($s['judul']) || $cand->nomor === $s['nomor']) { $sasaran = $cand; break; }
+                }
+                if ($sasaran) {
+                    $sasaran->update(['nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'urut' => $us + 1]);
+                } else {
+                    $sasaran = CapaianSasaran::create([
+                        'nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'urut' => $us + 1,
+                    ]);
+                    $stat['sasaran_baru']++;
+                }
+                foreach (array_values($s['indikator']) as $ui => $i) {
+                    $ind = null;
+                    foreach ($sasaran->indikator as $cand) {
+                        if ($slug($cand->nama) === $slug($i['nama'])) { $ind = $cand; break; }
+                    }
+                    if ($ind) {
+                        $ind->update(['nama' => $i['nama'], 'satuan' => $i['satuan'], 'urut' => $ui + 1]);
+                    } else {
+                        $ind = CapaianIndikator::create([
+                            'sasaran_id' => $sasaran->id, 'nama' => $i['nama'], 'satuan' => $i['satuan'], 'urut' => $ui + 1,
+                        ]);
+                        $stat['indikator_baru']++;
+                    }
+                    foreach ($i['nilai'] as $tahun => $n) {
+                        $row = CapaianTahunan::firstOrNew(['indikator_id' => $ind->id, 'tahun' => (int) $tahun]);
+                        if (!$row->exists) {
+                            $row->fill(['target' => $n['target'], 'realisasi' => $n['realisasi'], 'persen' => $n['persen']])->save();
+                            $stat['nilai_baru']++;
+                            continue;
+                        }
+                        $ubah = false;
+                        foreach (['target', 'realisasi', 'persen'] as $k) {
+                            // sel kosong/n-a di file tidak menghapus nilai lama (mode merge)
+                            if ($n[$k] === null) { if ($mode === 'ganti') { $row->$k = null; $ubah = true; } continue; }
+                            if ($row->$k !== $n[$k]) { $row->$k = $n[$k]; $ubah = true; }
+                        }
+                        if ($ubah) { $row->save(); $stat['nilai_ubah']++; } else { $stat['nilai_sama']++; }
+                    }
+                }
+                $semuaSasaran->push($sasaran);
+                $sasaran->load('indikator');
+            }
+        });
+
+        return $stat;
+    }
+
+    /**
+     * Selaraskan peran & bidang seluruh akun non-admin dengan tabel pegawai.
+     * Aman dipanggil berulang (idempoten) dan tetap jalan walau kolom unit_kerja belum dimigrasi.
+     */
+    public static function sinkronAkunPegawai(): int
+    {
+        $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
+        $ubah = 0;
+        foreach (User::where('role', '!=', 'admin')->with('pegawai')->get() as $u) {
+            $p = $u->pegawai ?: Pegawai::where('nip', $u->nip)->first();
+            if (!$p) continue;
+            $d = [];
+            $bid = $p->id_bidang ?? Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
+            if ($bid && (int) $u->id_bidang !== (int) $bid) $d['id_bidang'] = $bid;
+            $peran = self::peranDariJabatan($p->jabatan);
+            if ($u->role !== $peran) $d['role'] = $peran;
+            if ($d) { $u->update($d); $ubah++; }
+        }
+        return $ubah;
     }
 }

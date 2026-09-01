@@ -40,6 +40,7 @@ class DokumenController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        abort_unless($request->user()->isBisaUnggah(), 403, 'Pengunggahan dokumen dilakukan oleh pengelola bidang / admin.');
         $data = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],

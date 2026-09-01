@@ -12,7 +12,11 @@
         <h2 class="text-lg font-extrabold">Perpustakaan Dokumen</h2>
         <p class="text-sm text-slate-500">Arsip universal lintas bidang — {{ $total }} dokumen dapat dicari. Dokumen <b>rahasia</b> hanya terlihat oleh pengunggahnya.</p>
     </div>
-    <button data-modal-open="modal-upload" class="rounded-lg bg-slate-900 text-white text-sm font-bold px-4 py-2.5 hover:bg-slate-700 active:scale-[.98] transition inline-flex items-center gap-2"><x-icon name="upload" class="h-4 w-4" /> Unggah Dokumen</button>
+    @if ($u->isBisaUnggah())
+        <button data-modal-open="modal-upload" class="rounded-lg bg-slate-900 text-white text-sm font-bold px-4 py-2.5 hover:bg-slate-700 active:scale-[.98] transition inline-flex items-center gap-2"><x-icon name="upload" class="h-4 w-4" /> Unggah Dokumen</button>
+    @else
+        <span class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500">Unggah dokumen hanya oleh pengelola bidang / admin — hubungi bidang Anda</span>
+    @endif
 </div>
 
 {{-- filter universal: chips bidang --}}
@@ -87,7 +91,7 @@
         <div class="sm:col-span-2 xl:col-span-3 card">
             <x-empty icon="dokumen" title="Tidak ada dokumen yang cocok"
                 desc="Coba kata kunci lain, kosongkan filter, atau unggah dokumen baru — semuanya dapat dicari di halaman universal ini.">
-                <button data-modal-open="modal-upload" class="mt-3 rounded-lg bg-slate-900 text-white text-sm font-bold px-4 py-2 hover:bg-slate-700 transition">Unggah sekarang</button>
+                @if ($u->isBisaUnggah())<button data-modal-open="modal-upload" class="mt-3 rounded-lg bg-slate-900 text-white text-sm font-bold px-4 py-2 hover:bg-slate-700 transition">Unggah sekarang</button>@endif
             </x-empty>
         </div>
     @endforelse
@@ -95,6 +99,7 @@
 @if ($dokumen->hasPages())<div class="mt-4">{{ $dokumen->links() }}</div>@endif
 
 {{-- modal upload --}}
+@if ($u->isBisaUnggah())
 <div id="modal-upload" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 p-4 grid place-items-center overflow-y-auto">
     <div class="card w-full max-w-lg p-6">
         <div class="flex items-center justify-between mb-4"><h3 class="font-bold text-[15px]">Unggah Dokumen Baru</h3><button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400 grid place-items-center">✕</button></div>
@@ -119,4 +124,5 @@
         </form>
     </div>
 </div>
+@endif
 @endsection

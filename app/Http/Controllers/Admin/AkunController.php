@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bidang;
+use App\Models\Pegawai;
 use App\Models\LogAktivitas;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use App\Services\ImportService;
 use Illuminate\View\View;
 
 class AkunController extends Controller
@@ -31,10 +33,20 @@ class AkunController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'nip' => ['required', 'string', 'max:40', 'unique:users,nip'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'in:admin,bidang,pegawai'],
+            'role' => ['nullable', 'in:admin,bidang,pegawai'],
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
             'jabatan' => ['nullable', 'string', 'max:120'],
         ]);
+        // peran & bidang yang dibiarkan kosong = otomatis mengikuti data pegawai (jabatan/unit kerja)
+        if (! empty($d['nip']) && (empty($d['role']) || empty($d['id_bidang']) || empty($d['jabatan']))) {
+            $peg = Pegawai::where('nip', $d['nip'])->first();
+            if ($peg) {
+                $d['id_bidang'] = ($d['id_bidang'] ?? null) ?: ($peg->id_bidang ?? Bidang::tebakDariTeks(trim(($peg->jabatan ?? '') . ' ' . ($peg->unit_kerja ?? ''))));
+                $d['role'] = ($d['role'] ?? null) ?: ImportService::peranDariJabatan($peg->jabatan);
+                $d['jabatan'] = ($d['jabatan'] ?? null) ?: $peg->jabatan;
+            }
+        }
+        $d['role'] = $d['role'] ?: 'pegawai';
         User::create($d);
         LogAktivitas::catat('buat akun', $d['nip']);
         return back()->with('sukses', 'Akun dibuat.');
@@ -64,5 +76,15 @@ class AkunController extends Controller
         $akun->delete();
         LogAktivitas::catat('hapus akun', $akun->nip);
         return back()->with('sukses', 'Akun dihapus.');
+    }
+
+    /** Satu klik: cocokkan peran & bidang seluruh akun non-admin dengan data pegawai terbaru. */
+    public function sinkronPeran(): RedirectResponse
+    {
+        $ubah = ImportService::sinkronAkunPegawai();
+        LogAktivitas::catat('sinkron peran akun', "{$ubah} akun disinkronkan");
+        return back()->with('sukses', $ubah
+            ? "{$ubah} akun disesuaikan otomatis (peran & bidang) mengikuti data pegawai."
+            : 'Semua akun sudah sesuai data pegawai — tidak ada yang diubah.');
     }
 }

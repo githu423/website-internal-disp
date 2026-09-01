@@ -9,7 +9,13 @@
         </select>
         <button class="rounded-lg bg-slate-900 text-white px-3.5 py-2 text-sm font-bold hover:bg-slate-700 active:scale-95 transition">Cari</button>
     </form>
-    <button data-modal-open="modal-akun" class="rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold px-3.5 py-2 transition inline-flex items-center gap-1.5"><x-icon name="plus" class="h-4 w-4" /> Buat akun</button>
+    <div class="flex items-center gap-2">
+        <form method="POST" action="{{ route('admin.akun.sinkron') }}">@csrf
+            <button title="Selaraskan peran & bidang semua akun non-admin dengan jabatan/unit kerja di data pegawai"
+                class="rounded-lg border border-teal-500 bg-teal-50 hover:bg-teal-100 text-teal-700 text-sm font-bold px-3 py-2 transition">⟳ Sinkronkan peran</button>
+        </form>
+        <button data-modal-open="modal-akun" class="rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold px-3.5 py-2 transition inline-flex items-center gap-1.5"><x-icon name="plus" class="h-4 w-4" /> Buat akun</button>
+    </div>
 </div>
 <div class="card overflow-hidden">
     <div class="overflow-x-auto thin-scroll">
@@ -42,7 +48,7 @@
                                 <select name="role" class="rounded-lg border border-slate-300 px-3 py-2 bg-white">@foreach (['admin','bidang','pegawai'] as $rl)<option @selected($usr->role === $rl)>{{ $rl }}</option>@endforeach</select>
                                 <select name="status" class="rounded-lg border border-slate-300 px-3 py-2 bg-white">@foreach (['aktif','nonaktif'] as $st)<option @selected($usr->status === $st)>{{ $st }}</option>@endforeach</select>
                             </div>
-                            <select name="id_bidang" class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white"><option value="">Tanpa bidang</option>@foreach ($bidangs as $b)<option value="{{ $b->id }}" @selected($usr->id_bidang == $b->id)>{{ $b->nama }}</option>@endforeach</select>
+                            <select name="id_bidang" class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white"><option value="">auto / tanpa bidang</option>@foreach ($bidangs as $b)<option value="{{ $b->id }}" @selected($usr->id_bidang == $b->id)>{{ $b->nama }}</option>@endforeach</select>
                             <input type="password" name="password" placeholder="Password baru (kosongkan jika tidak diganti)" class="w-full rounded-lg border border-slate-300 px-3 py-2">
                             <button class="w-full rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5">Simpan</button>
                         </form>
@@ -55,6 +61,7 @@
     @if ($users->hasPages())<div class="p-3">{{ $users->links() }}</div>@endif
 </div>
 
+
 <div id="modal-akun" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 p-4 grid place-items-center overflow-y-auto">
     <div class="card w-full max-w-md p-6 text-sm">
         <div class="flex justify-between mb-3"><h3 class="font-bold">Buat Akun Baru</h3><button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400">✕</button></div>
@@ -65,7 +72,7 @@
             <input name="nip" placeholder="NIP / username login *" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5">
             <input type="text" name="password" placeholder="Password min. 8 karakter" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <select name="role" class="rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option>pegawai</option><option>bidang</option><option>admin</option></select>
+                <select name="role" class="rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option value="">auto — dari jabatan</option>@foreach (['pegawai','bidang','admin'] as $rl)<option value="{{ $rl }}">{{ $rl }}</option>@endforeach</select>
                 <select name="id_bidang" class="rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option value="">Bidang…</option>@foreach ($bidangs as $b)<option value="{{ $b->id }}">{{ $b->nama }}</option>@endforeach</select>
             </div>
             <input name="jabatan" placeholder="Jabatan (opsional)" class="w-full rounded-lg border border-slate-300 px-3 py-2.5">

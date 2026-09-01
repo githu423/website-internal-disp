@@ -30,6 +30,7 @@ class ImportFileTest extends TestCase
 
     public function test_parse_kinerja_mengisi_capaian_dan_persen(): void
     {
+        $this->buatKerangka();
         $rows = array_map(fn ($l) => str_getcsv($l), explode("\n", $this->csvKinerja()));
         $p = ImportService::parseKinerja($rows);
         $this->assertCount(3, $p['rows']);

@@ -38,6 +38,9 @@ class User extends Authenticatable
     public function isBidang(): bool { return $this->role === 'bidang'; }
     public function isPegawai(): bool { return $this->role === 'pegawai'; }
 
+    /** yang boleh mengunggah dokumen/data: admin & pengelola bidang */
+    public function isBisaUnggah(): bool { return $this->isAdmin() || $this->isBidang(); }
+
     /** untuk query scope: admin lihat semua, bidang lihat bidangnya */
     public function idBidangTerfilter(): ?int
     {

@@ -60,10 +60,11 @@ class PegawaiController extends Controller
             return back()->with('gagal', 'Tidak ada baris pegawai yang dikenali. Pastikan format file sama dengan template Dinas (kolom No., NAMA LENGKAP, N I P, ...).');
         }
         NotifikasiService::broadcast('Data pegawai diperbarui',
-            "Import: {$hasil['dibuat']} baru, {$hasil['diperbarui']} diperbarui, {$hasil['akun_baru']} akun akses dibuat.",
+            "Import: {$hasil['dibuat']} baru, {$hasil['diperbarui']} diperbarui, {$hasil['akun_baru']} akun akses dibuat" . (($hasil['akun_disinkron'] ?? 0) ? ", {$hasil['akun_disinkron']} akun disinkron peran/bidangnya." : '.'),
             'import', route('pegawai.index'));
         LogAktivitas::catat('import pegawai', json_encode($hasil));
-        return back()->with('sukses', "Import selesai: {$hasil['dibuat']} pegawai baru, {$hasil['diperbarui']} diperbarui, {$hasil['akun_baru']} akun akses dibuat.");
+        return back()->with('sukses', "Import selesai: {$hasil['dibuat']} pegawai baru, {$hasil['diperbarui']} diperbarui, {$hasil['akun_baru']} akun akses dibuat"
+            . (($hasil['akun_disinkron'] ?? 0) ? ", {$hasil['akun_disinkron']} akun disinkron peran & bidangnya dari jabatan." : '.'));
     }
 
     private function validateData(Request $request, ?int $exceptId = null): array

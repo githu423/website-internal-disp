@@ -1,0 +1,26 @@
+================================================================
+  PATCH v3 — 2026-09-01  (Capaian Kinerja + Visual Statistik + Peran Otomatis)
+================================================================
+Isi paket ini MELIPUTI & MENGGANTIKAN patch "capaian" dan "peran"
+sebelumnya. Bila file dari patch lama sudah pernah diekstrak, tidak
+apa-apa — file di sini versi terbaru, cukup timpa semuanya.
+
+PASANG (PowerShell, di folder project):
+
+  1. Ekstrak zip ini ke C:\Laravel10\dispar-web  (Yes to All / timpa)
+  2. cd C:\Laravel10\dispar-web
+  3. php artisan migrate
+  4. php artisan dispar:sinkron-akun
+  5. php artisan db:seed --class=CapaianKinerjaSeeder
+  6. php artisan view:clear
+
+KENAL PASTI PATCH BARU TERPASANG:
+  - Perintah no. 3 di atas TIDAK boleh lagi "ERROR: no commands defined
+    in the dispar namespace" — harus muncul info "N akun disesuaikan".
+  - Buka /admin/akun → di kanan atas ada tombol "⟳ Sinkronkan peran".
+  - Buka /kinerja/capaian → kanan atas ada pilihan "Matriks | Statistik".
+
+CATATAN:
+  - composer / npm TIDAK perlu (aset public/build sudah ikut paket).
+  - Tidak perlu download ulang project penuh; cukup zip ini.
+================================================================
