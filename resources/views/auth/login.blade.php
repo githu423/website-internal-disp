@@ -8,7 +8,7 @@
 <body class="min-h-screen bg-slate-900 text-slate-100 grid place-items-center p-4" style="background-image: radial-gradient(60rem 30rem at 50% -10%, rgba(45,212,191,.16), transparent), radial-gradient(40rem 20rem at 90% 110%, rgba(14,165,233,.14), transparent);">
 <div class="w-full max-w-md">
     <div class="text-center mb-7">
-        <div class="mx-auto h-14 w-14 rounded-2xl bg-gradient-to-br from-teal-400 to-sky-500 grid place-items-center text-white font-black text-xl shadow-lg shadow-teal-500/20">DP</div>
+        <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo SIPARDIS" class="mx-auto h-14 w-14 rounded-2xl object-cover shadow-lg shadow-teal-500/20" />
         <h1 class="mt-3.5 text-2xl font-extrabold tracking-tight">SIPARDIS</h1>
         <p class="text-sm text-slate-400 mt-1">Sistem Informasi Pendapatan, Aparatur &amp; Rencana Dinas<br>Dinas Pariwisata Kabupaten Ciamis</p>
     </div>
