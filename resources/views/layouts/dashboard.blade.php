@@ -12,6 +12,11 @@
 @php
     $u = auth()->user();
     $r = fn (string ...$p) => collect($p)->some(fn ($x) => request()->routeIs($x));
+    // lencana = nama bidang orangnya (bukan teks "Bidang" generik); kata "BIDANG/BAGIAN" di depan dibuang biar ringkas
+    $bidangBadge = $u->bidang?->nama
+        ? \Illuminate\Support\Str::limit(trim(preg_replace('/^(BIDANG|BAGIAN)\s+/iu', '', $u->bidang->nama)), 26, '…')
+        : null;
+    $belumTertaut = !$u->isAdmin() && !$u->bidang;
 @endphp
 <body class="bg-slate-100 text-slate-800 antialiased">
 <div id="app" class="min-h-screen">
@@ -55,9 +60,7 @@
                     <x-sb-link :href="route('agenda.index')" label="Agenda & Pengingat" icon="agenda" :active="$r('agenda.*')" />
                     <x-sb-link :href="route('dokumen.index')" label="Dokumen" icon="dokumen" :active="$r('dokumen.*')" />
                     <x-sb-link :href="route('notifikasi.index')" label="Notifikasi" icon="bell" :active="$r('notifikasi.*')" :badge="$u->notifikasi()->belum()->count() ?: null" />
-                    @if ($u->isBidang())
-                        <x-sb-link :href="route('bidang.index')" label="Bidang Saya" icon="bidang" :active="$r('bidang.*')" />
-                    @endif
+                    <x-sb-link :href="route('bidang.index')" label="Halaman Bidang" icon="bidang" :active="$r('bidang.*')" />
                 </div>
             </div>
 
@@ -86,8 +89,8 @@
                 <div class="sb-hide flex-1 min-w-0">
                     <p class="text-[13px] font-semibold truncate">{{ $u->name }}</p>
                     <p class="text-[11px] text-slate-400 truncate">{{ $u->nip }} · {{ ucfirst($u->role) }}</p>
-                    <p class="text-[10.5px] font-semibold text-teal-300/90 truncate" title="{{ $u->bidang?->nama ?? 'Seluruh Dinas' }}">
-                        <span class="opacity-70">Bidang:</span> {{ $u->bidang?->nama ?? 'Seluruh Dinas' }}
+                    <p class="text-[10.5px] font-semibold {{ $belumTertaut ? 'text-orange-300' : 'text-teal-300/90' }} truncate" title="{{ $u->bidang?->nama ?? ($u->isAdmin() ? 'Seluruh Dinas' : 'Belum tertaut ke bidang tertentu') }}">
+                        <span class="opacity-70">Bidang:</span> {{ $u->bidang?->nama ?? ($u->isAdmin() ? 'Seluruh Dinas' : 'belum tertaut — tetapkan di Admin ▸ Akun') }}
                     </p>
                 </div>
                 <form method="POST" action="{{ route('logout') }}">@csrf
@@ -119,8 +122,8 @@
                 <div class="px-3.5 py-2 border-t border-slate-100"><a href="{{ route('notifikasi.bacaSemua') }}" id="notif-baca" class="text-xs text-slate-500 hover:text-teal-600">Tandai semua dibaca</a></div>
             </div>
         </div>
-        <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[230px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200') }}" title="{{ $u->bidang?->nama ?? 'Seluruh Dinas' }}">
-            {{ $u->isAdmin() ? 'Admin' : ($u->bidang?->nama ? \Illuminate\Support\Str::limit($u->bidang->nama, 26, '…') : ucfirst($u->role)) }}
+        <span class="hidden sm:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[230px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}" title="{{ $u->isAdmin() ? 'Seluruh Dinas' : ($u->bidang?->nama ?? ('Belum tertaut ke bidang tertentu' . ($u->jabatan ? ' — jabatan: ' . $u->jabatan : '') . '. Tetapkan di Admin › Akun & Akses.')) }}">
+            {{ $u->isAdmin() ? 'Admin' : ($bidangBadge ?? 'Bidang: belum tertentu') }}
         </span>
     </header>
 

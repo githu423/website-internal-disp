@@ -6,7 +6,7 @@
     <a href="{{ route('bidang.index') }}" class="text-sm font-semibold text-slate-500 hover:text-teal-600">← Semua bidang</a>
     <span class="text-slate-300">|</span>
     @foreach ($semuaBidang as $sb)
-        <a href="{{ route('bidang.show', $sb) }}" @class(['rounded-full px-3 py-1 text-xs font-bold border transition', $sb->id === $b->id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-500 hover:border-teal-400'])>{{ $sb->kode }} · {{ $sb->nama }}</a>
+        <a href="{{ route('bidang.show', $sb) }}" @class(['rounded-full px-3 py-1 text-xs font-bold border transition inline-flex items-center gap-1', $sb->id === $b->id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-500 hover:border-teal-400', $sb->id === auth()->user()->id_bidang && $sb->id !== $b->id ? 'border-emerald-400 text-emerald-700' : ''])>@if ($sb->id === auth()->user()->id_bidang)✓@endif {{ $sb->kode }} · {{ $sb->nama }}</a>
     @endforeach
 </div>
 
@@ -14,7 +14,15 @@
     <div class="flex flex-wrap items-center gap-4">
         <span class="h-14 w-14 rounded-2xl bg-white/10 grid place-items-center font-black text-xl">{{ $b->kode }}</span>
         <div class="flex-1 min-w-[220px]">
-            <h2 class="font-extrabold text-lg leading-tight">{{ $b->nama }}</h2>
+            <h2 class="font-extrabold text-lg leading-tight">{{ $b->nama }}
+                @if (auth()->user()->id_bidang === $b->id)
+                    <span class="align-middle ml-2 rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-400/40 px-2.5 py-0.5 text-[11px] font-extrabold">✓ ANDA DI BIDANG INI</span>
+                @elseif (auth()->user()->isAdmin())
+                    <span class="align-middle ml-2 rounded-full bg-amber-500/20 text-amber-200 border border-amber-400/40 px-2.5 py-0.5 text-[11px] font-extrabold">MODE ADMIN — SELURUH DINAS</span>
+                @else
+                    <span class="align-middle ml-2 rounded-full bg-white/10 text-slate-300 border border-white/20 px-2.5 py-0.5 text-[11px] font-bold">Sedang melihat bidang lain — arsip privat tidak ditampilkan</span>
+                @endif
+            </h2>
             <p class="text-sm text-slate-300 mt-1">{{ $b->deskripsi }}</p>
             <p class="text-xs text-slate-400 mt-1.5">Ketua: {{ $b->ketua ?: '—' }}</p>
         </div>
