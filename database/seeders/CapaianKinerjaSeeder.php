@@ -26,6 +26,8 @@ class CapaianKinerjaSeeder extends Seeder
             return;
         }
         $res = ImportService::applyCapaian($data, 'ganti');
-        $this->command?->info("Capaian kinerja: {$res['sasaran']} sasaran, {$res['indikator']} indikator, {$res['nilai']} nilai tahunan.");
+        $this->command?->info(
+            "Capaian kinerja: {$res['sasaran_baru']} sasaran, {$res['indikator_baru']} indikator, {$res['nilai_baru']} nilai tahunan."
+        );
     }
 }
