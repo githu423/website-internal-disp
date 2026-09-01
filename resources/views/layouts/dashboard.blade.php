@@ -60,7 +60,7 @@
                     <x-sb-link :href="route('agenda.index')" label="Agenda & Pengingat" icon="agenda" :active="$r('agenda.*')" />
                     <x-sb-link :href="route('dokumen.index')" label="Dokumen" icon="dokumen" :active="$r('dokumen.*')" />
                     <x-sb-link :href="route('notifikasi.index')" label="Notifikasi" icon="bell" :active="$r('notifikasi.*')" :badge="$u->notifikasi()->belum()->count() ?: null" />
-                    <x-sb-link :href="route('bidang.index')" label="Halaman Bidang" icon="bidang" :active="$r('bidang.*')" />
+                    <x-sb-link :href="route('bidang.index')" label="Bidang" icon="bidang" :active="$r('bidang.*')" />
                 </div>
             </div>
 
