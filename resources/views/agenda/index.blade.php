@@ -45,7 +45,7 @@
     </div>
 
     <div class="space-y-4">
-        @if ($u->isAdmin() || $u->isBidang())
+        @if ($u->isAdmin())
         <div class="card p-5">
             <h3 class="font-bold mb-3 flex items-center gap-2"><span class="h-7 w-7 rounded-lg bg-teal-50 text-teal-600 grid place-items-center"><x-icon name="plus" class="h-4 w-4" /></span> Tambah Agenda</h3>
             <form method="POST" action="{{ route('agenda.store') }}" class="space-y-2.5 text-sm">

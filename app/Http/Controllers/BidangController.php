@@ -41,9 +41,12 @@ class BidangController extends Controller
             $dq->where('visibility', 'publik');
         }
 
+        $bolehTambahAgenda = $u->isAdmin() || ($u->isBidang() && $u->id_bidang === $bidang->id);
+
         return view('bidang.show', [
             'b' => $bidang,
             'bolehKelola' => $anggota,
+            'bolehTambahAgenda' => $bolehTambahAgenda,
             'semuaBidang' => Bidang::orderBy('kode')->get(),
             'pegawais' => Pegawai::where('id_bidang', $bidang->id)->orderBy('nama')->get(),
             'dokumens' => $dq->latest()->limit(15)->get(),

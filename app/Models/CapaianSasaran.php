@@ -10,7 +10,12 @@ class CapaianSasaran extends Model
     public $timestamps = false;
 
     protected $table = 'capaian_sasaran';
-    protected $fillable = ['nomor', 'judul', 'cakupan', 'urut'];
+    protected $fillable = ['nomor', 'judul', 'cakupan', 'urut', 'id_bidang'];
+
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'id_bidang');
+    }
 
     public function indikator()
     {

@@ -29,6 +29,7 @@ class CapaianKinerjaController extends Controller
             'sasarans' => $sasarans,
             'years' => $years,
             'tambahYears' => range((int) date('Y') + 3, 2015),
+            'bidangs' => \App\Models\Bidang::orderBy('kode')->get(),
         ]);
     }
 
@@ -39,6 +40,7 @@ class CapaianKinerjaController extends Controller
             'nomor' => ['nullable', 'integer', 'min:1', 'max:999'],
             'judul' => ['required', 'string', 'max:500'],
             'cakupan' => ['nullable', 'string', 'max:160'],
+            'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);
         $d['nomor'] = $d['nomor'] ?? ((int) CapaianSasaran::max('nomor') + 1);
         $d['urut'] = (int) CapaianSasaran::max('urut') + 1;
@@ -54,6 +56,7 @@ class CapaianKinerjaController extends Controller
             'nomor' => ['nullable', 'integer', 'min:1', 'max:999'],
             'judul' => ['required', 'string', 'max:500'],
             'cakupan' => ['nullable', 'string', 'max:160'],
+            'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);
         $sasaran->update($d);
 

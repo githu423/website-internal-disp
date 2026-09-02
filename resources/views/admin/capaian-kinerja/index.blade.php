@@ -31,6 +31,7 @@
             <label class="text-xs font-bold text-slate-500">No.<input name="nomor" type="number" min="1" class="mt-1 block w-16 rounded-lg border border-slate-300 px-2 py-2 text-sm"></label>
             <label class="text-xs font-bold text-slate-500 flex-1 min-w-[180px]">Judul sasaran *<input name="judul" required maxlength="500" class="mt-1 block w-full rounded-lg border border-slate-300 px-2.5 py-2 text-sm"></label>
             <label class="text-xs font-bold text-slate-500">Cakupan tahun<input name="cakupan" maxlength="160" class="mt-1 block w-28 rounded-lg border border-slate-300 px-2.5 py-2 text-sm"></label>
+            <label class="text-xs font-bold text-slate-500">Bidang<select name="id_bidang" class="mt-1 block w-44 rounded-lg border border-slate-300 px-2 py-2 text-sm bg-white"><option value="">Lintas Dinas / Tidak spesifik</option>@foreach ($bidangs as $bb)<option value="{{ $bb->id }}">{{ $bb->nama }}</option>@endforeach</select></label>
             <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-700 active:scale-95 transition">Tambah</button>
         </form>
     </div>
@@ -41,7 +42,7 @@
     <div class="px-4 py-3 flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/60">
         <span class="grid h-7 w-7 place-items-center rounded-lg bg-slate-900 text-sm font-extrabold text-white">{{ $s->nomor }}</span>
         <div class="flex-1 min-w-[200px]">
-            <div class="font-bold leading-snug">{{ $s->judul }}</div>
+            <div class="font-bold leading-snug">{{ $s->judul }} <span class="ml-1 align-middle rounded-full px-2 py-0.5 text-[10px] font-bold {{ $s->id_bidang ? 'bg-sky-100 text-sky-700' : 'bg-slate-100 text-slate-500' }}">{{ $s->bidang?->nama ?? 'Lintas Dinas' }}</span></div>
             @if ($s->cakupan)<div class="text-[11px] text-slate-400 font-medium">Sasaran Tahun : {{ $s->cakupan }}</div>@endif
         </div>
         <details class="relative">
@@ -53,6 +54,7 @@
                     <label class="text-xs font-bold text-slate-500 flex-1">Cakupan<input name="cakupan" value="{{ $s->cakupan }}" class="mt-1 block w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"></label>
                 </div>
                 <label class="text-xs font-bold text-slate-500">Judul<input name="judul" value="{{ $s->judul }}" required class="mt-1 block w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm"></label>
+                <label class="text-xs font-bold text-slate-500 mt-2 block">Bidang<select name="id_bidang" class="mt-1 block w-full rounded-lg border border-slate-300 px-2 py-1.5 text-sm bg-white"><option value="">Lintas Dinas / Tidak spesifik</option>@foreach ($bidangs as $bb)<option value="{{ $bb->id }}" @selected($s->id_bidang === $bb->id)>{{ $bb->nama }}</option>@endforeach</select></label>
                 <button class="mt-2 w-full rounded-lg bg-slate-900 py-1.5 text-sm font-bold text-white hover:bg-slate-700">Simpan</button>
             </form>
         </details>

@@ -40,6 +40,7 @@
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Utama</p>
                 <div class="space-y-0.5">
                     <x-sb-link :href="route('dashboard')" label="Dashboard" icon="dashboard" :active="$r('dashboard')" />
+                    <x-sb-link :href="route('agenda.index')" label="Agenda & Pengingat" icon="agenda" :active="$r('agenda.*')" />
                 </div>
             </div>
 
@@ -57,7 +58,6 @@
             <div>
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Kantor</p>
                 <div class="space-y-0.5">
-                    <x-sb-link :href="route('agenda.index')" label="Agenda & Pengingat" icon="agenda" :active="$r('agenda.*')" />
                     <x-sb-link :href="route('dokumen.index')" label="Dokumen" icon="dokumen" :active="$r('dokumen.*')" />
                     <x-sb-link :href="route('notifikasi.index')" label="Notifikasi" icon="bell" :active="$r('notifikasi.*')" :badge="$u->notifikasi()->belum()->count() ?: null" />
                     <x-sb-link :href="route('bidang.index')" label="Bidang" icon="bidang" :active="$r('bidang.*')" />

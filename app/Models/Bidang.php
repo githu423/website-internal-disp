@@ -28,6 +28,21 @@ class Bidang extends Model
         foreach (static::all() as $b) {
             $kata = preg_split('/[^\p{L}]+/u', mb_strtoupper($b->nama), -1, PREG_SPLIT_NO_EMPTY) ?: [];
             $s = 0;
+
+            // —— Penanganan khusus UPTD: hanya cocokkan jika teks mengandung
+            //    "UPTD" DAN nama wilayah (kata terakhir) bersama-sama.
+            if (in_array('UPTD', $kata, true)) {
+                $wilayah = end($kata); // misal "CIAMIS", "KAWALI"
+                if (
+                    preg_match('/\bUPTD\b/u', $T)
+                    && preg_match('/\b' . preg_quote($wilayah, '/') . '\b/u', $T)
+                ) {
+                    $s += 2;
+                }
+                if ($s > 0) $skor[$b->id] = $s;
+                continue; // lewati loop kata generik untuk bidang UPTD
+            }
+
             foreach ($kata as $k) {
                 if ($k === 'SEKRETARIAT') { // istilah sekretariat punya padanan khas
                     if (preg_match('/SEKRETAR(IS|IAT)|PENUNJANG|KEPEGAWAIAN|PERENCANAAN|KEUANGAN/', $T)) $s += 2;

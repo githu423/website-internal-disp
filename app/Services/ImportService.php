@@ -403,7 +403,7 @@ class ImportService
                     $sas = trim(preg_replace('/\n?Sasaran\s*Tahun.*/is', '', $sas));
                 }
                 $sas = trim(preg_replace('/\s*\n\s*/', ' ', $sas));
-                $out[] = ['nomor' => (int) $no, 'judul' => $sas, 'cakupan' => $cakupan ?: null, 'indikator' => []];
+                $out[] = ['nomor' => (int) $no, 'judul' => $sas, 'cakupan' => $cakupan ?: null, 'id_bidang' => Bidang::tebakDariTeks($sas), 'indikator' => []];
                 $cur = count($out) - 1;
             }
 
@@ -444,10 +444,10 @@ class ImportService
                     if ($slug($cand->judul) === $slug($s['judul']) || $cand->nomor === $s['nomor']) { $sasaran = $cand; break; }
                 }
                 if ($sasaran) {
-                    $sasaran->update(['nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'urut' => $us + 1]);
+                    $sasaran->update(['nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'id_bidang' => $s['id_bidang'], 'urut' => $us + 1]);
                 } else {
                     $sasaran = CapaianSasaran::create([
-                        'nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'urut' => $us + 1,
+                        'nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'id_bidang' => $s['id_bidang'], 'urut' => $us + 1,
                     ]);
                     $stat['sasaran_baru']++;
                 }

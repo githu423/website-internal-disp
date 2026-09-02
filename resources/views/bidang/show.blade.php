@@ -64,6 +64,20 @@
             @empty
                 <p class="text-sm text-slate-400">Belum ada agenda.</p>
             @endforelse
+
+            @if ($bolehTambahAgenda)
+                <form method="POST" action="{{ route('agenda.store') }}" class="mt-3 space-y-2 rounded-xl border border-dashed border-teal-300 bg-teal-50/40 p-3">
+                    @csrf
+                    <input type="hidden" name="id_bidang" value="{{ $b->id }}">
+                    <p class="text-[11px] font-bold text-teal-700">Tambah agenda bidang ini</p>
+                    <input name="judul" placeholder="Judul kegiatan *" required maxlength="180" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="date" name="tanggal" required class="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
+                        <input type="time" name="jam_mulai" class="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
+                    </div>
+                    <button class="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500 active:scale-95 transition">Simpan Agenda</button>
+                </form>
+            @endif
         </div>
 
         <div class="card p-5">
@@ -89,7 +103,8 @@
                     @csrf
                     <p class="text-[11px] font-bold text-teal-700">Simpan arsip privat bidang (khusus anggota)</p>
                     <input name="judul" placeholder="Judul dokumen *" required maxlength="180" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
-                    <input type="file" name="file" required class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-teal-600 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-white">
+                    <input type="file" name="file" required class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-teal-600 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-white" onchange="const n=this.nextElementSibling;if(this.files[0]){n.textContent='📎 '+this.files[0].name;n.classList.remove('hidden')}else{n.classList.add('hidden')}">
+                    <p class="hidden mt-1 text-[11px] font-semibold text-teal-700 truncate"></p>
                     <button class="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500 active:scale-95 transition">Unggah ke bidang ini</button>
                 </form>
             @endif

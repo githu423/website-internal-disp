@@ -117,7 +117,8 @@
                 </select>
             </div>
             <label class="block border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition cursor-pointer bg-slate-50">
-                <input type="file" name="file" required class="block w-full text-sm text-slate-500 file:mx-auto file:mb-2 file:rounded-lg file:border-0 file:bg-teal-600 file:px-4 file:py-2 file:text-white file:font-bold file:cursor-pointer">
+                <input type="file" name="file" required class="block w-full text-sm text-slate-500 file:mx-auto file:mb-2 file:rounded-lg file:border-0 file:bg-teal-600 file:px-4 file:py-2 file:text-white file:font-bold file:cursor-pointer" onchange="const n=this.parentElement.querySelector('.file-name');if(this.files[0]){n.textContent='📎 '+this.files[0].name;n.classList.remove('hidden')}else{n.classList.add('hidden')}">
+                <p class="file-name hidden mt-2 text-xs font-semibold text-teal-700 truncate"></p>
                 <span class="text-xs text-slate-400">PDF/Word/Excel/gambar, maks 20 MB · otomatis tercatat {{ now()->format('d/m/Y H:i') }} WIB oleh bidang Anda</span>
             </label>
             <button class="w-full rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 active:scale-[.98] transition">Unggah</button>

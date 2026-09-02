@@ -89,6 +89,7 @@ class StatistikController extends Controller
                     $adaAngka = array_filter($t) !== [] || array_filter($r) !== [];
                     $charts[] = [
                         'nama' => $ind->nama, 'satuan' => $ind->satuan, 'sasaran' => $s->nomor . '. ' . $s->judul,
+                        'bidang' => $s->bidang?->nama,
                         'chart' => $adaAngka ? ['labels' => $years, 'datasets' => [
                             ['label' => 'Target', 'data' => $t, 'type' => 'bar', 'color' => '#94a3b8'],
                             ['label' => 'Realisasi', 'data' => $r, 'type' => 'bar', 'color' => '#14b8a6'],
