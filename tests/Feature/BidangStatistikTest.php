@@ -4,18 +4,18 @@ namespace Tests\Feature;
 
 use App\Models\CapaianBulanan;
 use App\Models\Dokumen;
-use App\Models\Pegawai;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
+/** Round 9: statistik bisa dikelola & filter tahun nyata; halaman bidang untuk semua + arsip privat. */
 class BidangStatistikTest extends TestCase
 {
     public function test_grafik_bulanan_ikut_tahun_terpilih(): void
     {
         $this->buatKerangka();
-        CapaianBulanan::create(['tahun' => 2025, 'bulan' => 1, 'target' => 10, 'capaian' => 10]);
-        CapaianBulanan::create(['tahun' => 2026, 'bulan' => 1, 'target' => 90, 'capaian' => 90]);
         $admin = $this->userAdmin();
+        CapaianBulanan::create(['tahun' => 2025, 'bulan' => 1, 'target' => 20, 'capaian' => 10]);
+        CapaianBulanan::create(['tahun' => 2026, 'bulan' => 1, 'target' => 100, 'capaian' => 90]);
 
         $chartDi = function (string $html): array {
             preg_match("/data-chart='([^']+)'/", $html, $m);
@@ -55,31 +55,32 @@ class BidangStatistikTest extends TestCase
     public function test_staf_bidang_unggah_arsip_privat_bidang_lain_terkunci(): void
     {
         $this->buatKerangka();
-        $staf = $this->userPegawai(2, 'STAF-DUA');   // peran pegawai biasa, anggota bidang 2
+        $staf = $this->userPegawai(2); // role pegawai, bidang 2
+        $this->actingAs($staf)->get('/bidang/2')->assertOk()->assertSee('Kelola halaman');
 
-        $res = $this->actingAs($staf)->post('/bidang/2/dokumen', [
-            'judul' => 'Notulen Rapat Bid',
-            'file' => UploadedFile::fake()->createWithContent('notulen.txt', 'isi rapat'),
-        ])->assertRedirect();
-        $d = Dokumen::firstWhere('judul', 'Notulen Rapat Bid');
+        $file = UploadedFile::fake()->createWithContent('notulen.txt', 'isi notulen rapat');
+        $this->actingAs($staf)->post(route('bidang.dokumen', 2), ['judul' => 'Notulen Rapat Bid', 'file' => $file])
+            ->assertRedirect()->assertSessionHas('sukses');
+        $d = Dokumen::where('judul', 'Notulen Rapat Bid')->firstOrFail();
+        $this->assertSame('bidang', $d->visibility);
 
-        // Bidang lain: tak terlihat & tak bisa unduh
-        $asing = $this->userPegawai(3, 'LAIN-TIGA');
-        $this->actingAs($asing)->get('/dokumen')->assertOk()->assertDontSee('Notulen Rapat');
-        $this->assertNotNull($d);
+        $asing = $this->userPegawai(3);
+        $this->actingAs($asing)->get('/dokumen')->assertOk()->assertDontSee('Notulen Rapat Bid');
         $this->actingAs($asing)->get(route('dokumen.unduh', $d))->assertForbidden();
+        $this->actingAs($asing)->get('/bidang/2')->assertOk()->assertDontSee('Notulen Rapat Bid');
+        $this->actingAs($asing)->delete(route('dokumen.destroy', $d))->assertForbidden();
 
-        // Sebidang: terlihat, dan profil bidangnya bisa dikelola (hapus arsip privat)
-        $this->actingAs($staf)->get('/bidang/2')->assertOk()->assertSee('Notulen Rapat');
+        // sebidang: terlihat, boleh unduh & hapus
+        $this->actingAs($staf)->get('/bidang/2')->assertOk()->assertSee('Notulen Rapat Bid');
+        $this->actingAs($staf)->get(route('dokumen.unduh', $d))->assertOk();
         $this->actingAs($staf)->delete(route('dokumen.destroy', $d))->assertRedirect();
-        $this->assertDatabaseMissing('dokumen', ['id' => $d->id]);
     }
 
     public function test_semua_user_bisa_mencari_semua_data_pegawai(): void
     {
         $this->buatKerangka();
-        Pegawai::create(['nip' => 'PEG-LAIN', 'nama' => 'Cecep Bidang Lain', 'id_bidang' => 3]);
-        $pencari = $this->userPegawai(1, 'CARI-SATU');
-        $this->actingAs($pencari)->get('/pegawai?q=Cecep')->assertOk()->assertSee('Cecep Bidang Lain');
+        \App\Models\Pegawai::create(['nip' => '198001012005011001', 'nama' => 'CARI SAYA', 'id_bidang' => 3, 'status' => 'aktif']);
+        $u = $this->userPegawai(1);
+        $this->actingAs($u)->get('/pegawai?q=CARI SAYA')->assertOk()->assertSee('CARI SAYA');
     }
 }

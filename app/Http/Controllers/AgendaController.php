@@ -35,7 +35,7 @@ class AgendaController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $u = $request->user();
-        abort_unless($u->isAdmin() || $u->isBidang(), 403);
+        abort_unless($u->isAdmin(), 403, 'Agenda dinas diatur oleh admin. Anggota bidang dapat menambah agenda lewat halaman bidangnya masing-masing.');
         $data = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
@@ -47,7 +47,6 @@ class AgendaController extends Controller
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);
         $data['created_by'] = $u->id;
-        if ($u->isBidang()) $data['id_bidang'] = $u->id_bidang;
         $a = Agenda::create($data);
 
         if ($request->boolean('beri_tahu')) {
@@ -62,7 +61,7 @@ class AgendaController extends Controller
     public function selesai(Request $request, Agenda $agenda): RedirectResponse
     {
         $u = $request->user();
-        abort_unless($u->isAdmin() || $u->id_bidang === $agenda->id_bidang || $u->id === $agenda->created_by, 403);
+        abort_unless($u->isAdmin() || $u->id === $agenda->created_by, 403, 'Status agenda hanya dapat diubah admin atau pembuatnya.');
         $agenda->update(['status' => $agenda->status === 'selesai' ? 'belum' : 'selesai']);
         return back()->with('sukses', 'Status agenda diperbarui.');
     }

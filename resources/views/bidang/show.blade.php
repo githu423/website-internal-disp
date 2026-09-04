@@ -58,26 +58,28 @@
     </div>
     <div class="space-y-4">
         <div class="card p-5">
-            <h3 class="font-bold mb-3">Agenda Terakhir</h3>
+            <h3 class="font-bold mb-3">Agenda Bidang</h3>
             @forelse ($agenda as $a)
-                <div class="flex gap-2.5 py-1.5 {{ $loop->last ? '' : 'border-b border-slate-100' }}"><span class="text-[11px] font-bold text-teal-600 whitespace-nowrap w-13">{{ $a->tanggal->translatedFormat('d M') }}</span><p class="text-[13px] leading-snug">{{ $a->judul }}</p></div>
+                <div class="flex gap-2.5 py-1.5 {{ $loop->last ? '' : 'border-b border-slate-100' }}"><span class="text-[11px] font-bold text-teal-600 whitespace-nowrap w-13">{{ $a->tanggal->translatedFormat('d M') }}</span><p class="text-[13px] leading-snug">{{ $a->judul }}@if ($a->jam_mulai)<span class="block text-[11px] text-slate-400">{{ $a->jam_mulai }}{{ $a->lokasi ? ' · '.$a->lokasi : '' }}</span>@endif</p></div>
             @empty
                 <p class="text-sm text-slate-400">Belum ada agenda.</p>
             @endforelse
-
-            @if ($bolehTambahAgenda)
-                <form method="POST" action="{{ route('agenda.store') }}" class="mt-3 space-y-2 rounded-xl border border-dashed border-teal-300 bg-teal-50/40 p-3">
-                    @csrf
-                    <input type="hidden" name="id_bidang" value="{{ $b->id }}">
-                    <p class="text-[11px] font-bold text-teal-700">Tambah agenda bidang ini</p>
-                    <input name="judul" placeholder="Judul kegiatan *" required maxlength="180" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="date" name="tanggal" required class="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
-                        <input type="time" name="jam_mulai" class="rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
-                    </div>
-                    <button class="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500 active:scale-95 transition">Simpan Agenda</button>
-                </form>
+            @if ($bolehKelola)
+                <details class="mt-2.5">
+                    <summary class="cursor-pointer list-none rounded-lg border border-dashed border-teal-400 bg-teal-50/50 px-2.5 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-50">➕ Tambah agenda bidang</summary>
+                    <form method="POST" action="{{ route('bidang.agenda', $b) }}" class="mt-2 space-y-1.5">
+                        @csrf
+                        <input name="judul" required maxlength="180" placeholder="Judul agenda *" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
+                        <div class="flex gap-1.5">
+                            <input type="date" name="tanggal" required class="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+                            <input type="time" name="jam_mulai" value="09:00" class="w-24 rounded-lg border border-slate-300 px-2 py-1.5 text-sm">
+                        </div>
+                        <input name="lokasi" maxlength="120" placeholder="Lokasi (opsional)" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm">
+                        <button class="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500 active:scale-95 transition">Simpan Agenda</button>
+                    </form>
+                </details>
             @endif
+            <a href="{{ route('agenda.index', ['bulan' => now()->format('Y-m')]) }}" class="inline-block mt-2.5 text-xs font-bold text-teal-600 hover:underline">Lihat agenda di kalender dinas →</a>
         </div>
 
         <div class="card p-5">
@@ -103,8 +105,7 @@
                     @csrf
                     <p class="text-[11px] font-bold text-teal-700">Simpan arsip privat bidang (khusus anggota)</p>
                     <input name="judul" placeholder="Judul dokumen *" required maxlength="180" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-sm focus:border-teal-500 outline-none">
-                    <input type="file" name="file" required class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-teal-600 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-white" onchange="const n=this.nextElementSibling;if(this.files[0]){n.textContent='📎 '+this.files[0].name;n.classList.remove('hidden')}else{n.classList.add('hidden')}">
-                    <p class="hidden mt-1 text-[11px] font-semibold text-teal-700 truncate"></p>
+                    <input type="file" name="file" required class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-md file:border-0 file:bg-teal-600 file:px-2.5 file:py-1.5 file:text-xs file:font-bold file:text-white">
                     <button class="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500 active:scale-95 transition">Unggah ke bidang ini</button>
                 </form>
             @endif

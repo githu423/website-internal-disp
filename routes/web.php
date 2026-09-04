@@ -46,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/bidang/{bidang}', [BidangController::class, 'show'])->name('bidang.show');
     Route::patch('/bidang/{bidang}', [BidangController::class, 'update'])->name('bidang.update');
     Route::post('/bidang/{bidang}/dokumen', [BidangController::class, 'unggahDokumen'])->name('bidang.dokumen');
+    Route::post('/bidang/{bidang}/agenda', [BidangController::class, 'tambahAgenda'])->name('bidang.agenda');
 
     // ===== ADMIN =====
     Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {

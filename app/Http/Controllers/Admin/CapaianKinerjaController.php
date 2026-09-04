@@ -43,6 +43,7 @@ class CapaianKinerjaController extends Controller
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);
         $d['nomor'] = $d['nomor'] ?? ((int) CapaianSasaran::max('nomor') + 1);
+        if (! isset($d['id_bidang'])) $d['id_bidang'] = \App\Models\Bidang::tebakDariTeks($d['judul']);
         $d['urut'] = (int) CapaianSasaran::max('urut') + 1;
         CapaianSasaran::create($d);
         LogAktivitas::catat('tambah sasaran kinerja', $d['judul']);

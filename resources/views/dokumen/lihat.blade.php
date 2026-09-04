@@ -6,6 +6,9 @@
     $isPdf = str_contains($mime, 'pdf');
     $isImg = str_starts_with($mime, 'image');
     $isText = str_starts_with($mime, 'text/') || in_array($mime, ['application/json', 'application/xml']);
+    $ext = strtolower(pathinfo($d->file_name, PATHINFO_EXTENSION));
+    $isSheet = in_array($ext, ['xlsx', 'xls', 'ods'], true);
+    $isDocx = $ext === 'docx';
     $src = route('dokumen.lihat', $d);
 @endphp
 <div class="max-w-5xl mx-auto">
@@ -40,10 +43,15 @@
             <div class="p-4 grid place-items-center bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:24px_24px]"><img src="{{ $src }}" alt="{{ $d->judul }}" class="max-h-[78vh] max-w-full rounded-lg shadow"></div>
         @elseif ($isText)
             <pre class="p-5 text-[13px] leading-relaxed whitespace-pre-wrap max-h-[78vh] overflow-y-auto thin-scroll font-mono text-slate-700">{{ $isiTeks }}</pre>
+        @elseif ($isSheet || $isDocx)
+            <div id="office-host" data-kind="{{ $isSheet ? 'xlsx' : 'docx' }}" data-src="{{ $src }}"
+                 class="p-5 max-h-[78vh] overflow-y-auto thin-scroll">
+                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau {{ $isSheet ? 'spreadsheet' : 'Word' }} … <span class="font-semibold">({{ number_format($d->file_size / 1024) }} KB — dirender langsung di browser, file tidak meninggalkan server)</span></p>
+            </div>
         @else
             <div class="p-10 text-center">
                 <span class="mx-auto h-14 w-14 rounded-2xl bg-slate-100 text-slate-500 grid place-items-center mb-3 text-2xl font-black">{{ strtoupper(pathinfo($d->file_name, PATHINFO_EXTENSION) ?: '?') }}</span>
-                <p class="font-bold text-slate-600">Pratinjau langsung tidak tersedia untuk format ini</p>
+                <p class="font-bold text-slate-600">Pratinjau langsung belum tersedia untuk format file lama ini (.doc/.ppt klasik)</p>
                 <p class="text-sm text-slate-400 mt-1 max-w-md mx-auto">{{ $mime }} — gunakan tombol Unduh lalu buka di aplikasi Office/reader di perangkat Anda. Setelah diunggah ulang, file akan kembali bisa dicari di halaman universal.</p>
                 <a href="{{ route('dokumen.unduh', $d) }}" class="inline-block mt-4 rounded-lg bg-slate-900 text-white text-sm font-bold px-5 py-2.5 hover:bg-slate-700 transition">Unduh {{ $d->file_name }}</a>
             </div>

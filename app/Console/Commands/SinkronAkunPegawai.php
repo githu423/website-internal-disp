@@ -18,6 +18,10 @@ class SinkronAkunPegawai extends Command
 
     public function handle(): int
     {
+        $baru = \App\Models\Bidang::pastikanUptd();
+        if ($baru) $this->info("{$baru} bidang UPTD baru ditambahkan (Ciamis & Kawali).");
+        $m = ImportService::sinkronBidangPegawai();
+        if ($m) $this->info("{$m} pegawai dikelompokkan ke bidangnya (deteksi dari jabatan/unit kerja).");
         $n = ImportService::sinkronAkunPegawai();
         $this->info($n ? "{$n} akun disesuaikan (peran & bidang)." : 'Tidak ada yang perlu diubah — semua akun sudah sesuai data pegawai.');
         if (!Schema::hasColumn('pegawai', 'unit_kerja')) {

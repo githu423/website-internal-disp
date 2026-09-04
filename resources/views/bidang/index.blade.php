@@ -1,8 +1,8 @@
 @extends('layouts.dashboard')
-@section('title', 'Profil Bidang')
+@section('title', 'Bidang Dinas')
 @section('content')
 @php $u = auth()->user(); @endphp
-<div class="mb-1 text-[13px] text-slate-500">Anda sedang melihat daftar <b>semua bidang</b> — buka salah satu untuk melihat profil, pegawai, dan dokumennya. Dokumen berlabel 🔒 privat hanya tampil untuk anggota bidangnya.</div>
+<div class="mb-1 text-[13px] text-slate-500">Semua bidang beserta unit (termasuk UPTD) dari data pegawai tampil di sini — buka salah satu untuk melihat profil, pegawai, dan dokumennya. Dokumen berlabel 🔒 privat hanya tampil untuk anggota bidangnya.</div>
 <div class="grid md:grid-cols-2 gap-4">
     @foreach ($bidangList as $b)
         <a href="{{ route('bidang.show', $b) }}" @class(['card p-5 hover:border-teal-300 hover:shadow transition group', $u->id_bidang === $b->id ? 'border-teal-400 ring-1 ring-teal-300' : ''])>

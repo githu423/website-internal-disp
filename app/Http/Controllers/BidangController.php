@@ -29,6 +29,25 @@ class BidangController extends Controller
         return view('bidang.index', ['bidangList' => $bidangList]);
     }
 
+    /**
+     * Anggota bidang = data pegawai dengan id_bidang sama, DITAMBAH pegawai
+     * yang bidangnya belum tertaut di data tapi jabatan/unit kerjanya menyebut
+     * bidang ini (fallback langsung, tanpa perlu menunggu sinkron).
+     */
+    private function anggotaBidang(Bidang $bidang)
+    {
+        $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
+        $utama = Pegawai::where('id_bidang', $bidang->id)->orderBy('nama')->get();
+        $tambahan = collect();
+        foreach (Pegawai::whereNull('id_bidang')->get() as $p) {
+            if ((int) Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : ''))) === (int) $bidang->id) {
+                $tambahan->push($p);
+            }
+        }
+        $tambahan = $tambahan->sortBy('nama');
+        return $utama->concat($tambahan)->values();
+    }
+
     public function show(Request $request, Bidang $bidang): View
     {
         $u = $request->user();
@@ -41,14 +60,11 @@ class BidangController extends Controller
             $dq->where('visibility', 'publik');
         }
 
-        $bolehTambahAgenda = $u->isAdmin() || ($u->isBidang() && $u->id_bidang === $bidang->id);
-
         return view('bidang.show', [
             'b' => $bidang,
             'bolehKelola' => $anggota,
-            'bolehTambahAgenda' => $bolehTambahAgenda,
             'semuaBidang' => Bidang::orderBy('kode')->get(),
-            'pegawais' => Pegawai::where('id_bidang', $bidang->id)->orderBy('nama')->get(),
+            'pegawais' => $this->anggotaBidang($bidang),
             'dokumens' => $dq->latest()->limit(15)->get(),
             'agenda' => Agenda::where('id_bidang', $bidang->id)->orderByDesc('tanggal')->limit(6)->get(),
         ]);
@@ -67,6 +83,24 @@ class BidangController extends Controller
         LogAktivitas::catat('ubah profil bidang', $bidang->nama);
 
         return back()->with('sukses', 'Halaman bidang diperbarui.');
+    }
+
+    /** Anggota bidang (peran apa pun) menjadwalkan agenda bidangnya sendiri dari halaman bidang. */
+    public function tambahAgenda(Request $request, Bidang $bidang): RedirectResponse
+    {
+        $u = $request->user();
+        abort_unless($u->isAdmin() || $u->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat menjadwalkan agenda di sini.');
+        $d = $request->validate([
+            'judul' => ['required', 'string', 'max:180'],
+            'tanggal' => ['required', 'date'],
+            'jam_mulai' => ['nullable', 'date_format:H:i'],
+            'lokasi' => ['nullable', 'string', 'max:120'],
+            'kategori' => ['nullable', 'in:rapat,kegiatan,kunjungan,lainnya'],
+        ]);
+        $a = Agenda::create($d + ['id_bidang' => $bidang->id, 'created_by' => $u->id, 'status' => 'belum']);
+        LogAktivitas::catat('tambah agenda bidang', $a->judul . ' (' . $bidang->nama . ')');
+
+        return back()->with('sukses', 'Agenda bidang ditambahkan dan tampil di halaman ini.');
     }
 
     /** Anggota bidang (peran apa pun, termasuk staf) menyimpan arsip privat untuk bidangnya sendiri. */

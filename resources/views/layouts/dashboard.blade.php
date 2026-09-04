@@ -24,7 +24,7 @@
     <!-- ============ SIDEBAR ============ -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-slate-100">
         <div class="flex items-center gap-2.5 px-4 h-16 border-b border-white/10 shrink-0">
-            <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo SIPARDIS" class="h-9 w-9 shrink-0 rounded-xl object-cover shadow" />
+            <span class="h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-teal-400 to-sky-500 grid place-items-center text-white font-black text-base shadow">DP</span>
             <div class="sb-hide leading-tight min-w-0">
                 <p class="font-bold text-[15px] tracking-tight truncate">SIPARDIS</p>
                 <p class="text-[10.5px] text-slate-400 truncate">Dispar Kab. Ciamis</p>
@@ -60,7 +60,7 @@
                 <div class="space-y-0.5">
                     <x-sb-link :href="route('dokumen.index')" label="Dokumen" icon="dokumen" :active="$r('dokumen.*')" />
                     <x-sb-link :href="route('notifikasi.index')" label="Notifikasi" icon="bell" :active="$r('notifikasi.*')" :badge="$u->notifikasi()->belum()->count() ?: null" />
-                    <x-sb-link :href="route('bidang.index')" label="Bidang" icon="bidang" :active="$r('bidang.*')" />
+                    <x-sb-link :href="route('bidang.index')" label="Bidang Dinas" icon="bidang" :active="$r('bidang.*')" />
                 </div>
             </div>
 

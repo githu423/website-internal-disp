@@ -14,6 +14,20 @@ class Bidang extends Model
     public function dokumen() { return $this->hasMany(Dokumen::class, 'id_bidang'); }
     public function agenda() { return $this->hasMany(Agenda::class, 'id_bidang'); }
 
+    /** Pastikan entri bidang UPTD Ciamis & Kawali ada (idempoten; dipakai ulang oleh seeder & dispar:sinkron-akun). */
+    public static function pastikanUptd(): int
+    {
+        $n = 0;
+        foreach ([['UPTD-CIA', 'UPTD CIAMIS', 'UPTD Pengelolaan Objek Wisata Wilayah Ciamis'],
+                  ['UPTD-KAW', 'UPTD KAWALI', 'UPTD Pengelolaan Objek Wisata Wilayah Kawali']] as [$kode, $nama, $display]) {
+            $row = static::where('kode', $kode)->first();
+            if (! $row) { static::create(['kode' => $kode, 'nama' => $nama, 'deskripsi' => 'Unit Pelaksana Teknis Daerah — pengelolaan objek wisata.']); $n++; continue; }
+            // sudah ada tapi dengan nama display seeder — biarkan; hanya rapikan bila nama kosong
+            if (trim((string) $row->nama) === '') { $row->update(['nama' => $nama]); }
+        }
+        return $n;
+    }
+
     /**
      * Tebak bidang dari teks jabatan/unit kerja (gabungan kata bebas urutan).
      * Skor = jumlah kata khas nama bidang yang muncul; 'PENGEMBANGAN' dsb. diabaikan
@@ -42,7 +56,6 @@ class Bidang extends Model
                 if ($s > 0) $skor[$b->id] = $s;
                 continue; // lewati loop kata generik untuk bidang UPTD
             }
-
             foreach ($kata as $k) {
                 if ($k === 'SEKRETARIAT') { // istilah sekretariat punya padanan khas
                     if (preg_match('/SEKRETAR(IS|IAT)|PENUNJANG|KEPEGAWAIAN|PERENCANAAN|KEUANGAN/', $T)) $s += 2;

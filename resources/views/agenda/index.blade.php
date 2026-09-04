@@ -29,7 +29,7 @@
                     @if ($a->deskripsi)<p class="text-xs text-slate-400 mt-1.5 line-clamp-2">{{ $a->deskripsi }}</p>@endif
                 </div>
                 <div class="flex flex-col gap-1.5 shrink-0">
-                    @if ($u->isAdmin() || $u->id_bidang === $a->id_bidang || $u->id === $a->created_by)
+                    @if ($u->isAdmin() || $u->id === $a->created_by)
                     <form method="POST" action="{{ route('agenda.status', $a) }}">@csrf @method('PATCH')
                         <button class="text-[11px] font-bold rounded-lg border px-2.5 py-1.5 transition active:scale-95 {{ $a->status === 'selesai' ? 'border-slate-200 text-slate-500 hover:bg-slate-50' : 'border-emerald-300 text-emerald-600 hover:bg-emerald-50' }}">{{ $a->status === 'selesai' ? 'Batal' : '✓ Selesai' }}</button>
                     </form>
@@ -57,7 +57,7 @@
                 </div>
                 <input name="lokasi" placeholder="Lokasi" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 outline-none">
                 <select name="kategori" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"><option value="rapat">Rapat</option><option value="kegiatan">Kegiatan</option><option value="kunjungan">Kunjungan</option><option value="lainnya">Lainnya</option></select>
-                @if ($u->isAdmin())<select name="id_bidang" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"><option value="">Seluruh dinas</option>@foreach (\App\Models\Bidang::orderBy('id')->get() as $b)<option value="{{ $b->id }}">{{ $b->nama }}</option>@endforeach</select>@endif
+                @if ($u->isAdmin())<select name="id_bidang" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white"><option value="">Seluruh dinas</option>@foreach (\App\Models\Bidang::orderBy('kode')->get() as $b)<option value="{{ $b->id }}">{{ $b->nama }}</option>@endforeach</select>@endif
                 <textarea name="deskripsi" rows="2" placeholder="Catatan (opsional)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 outline-none"></textarea>
                 <label class="flex items-center gap-2 text-[13px] text-slate-600"><input type="checkbox" name="beri_tahu" value="1" class="rounded border-slate-300 text-teal-600" checked> Kirim notifikasi ke seluruh pegawai</label>
                 <button class="w-full rounded-lg bg-teal-600 hover:bg-teal-700 active:scale-[.98] text-white font-bold py-2.5 transition">Simpan Agenda</button>

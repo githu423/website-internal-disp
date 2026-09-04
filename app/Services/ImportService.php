@@ -403,7 +403,8 @@ class ImportService
                     $sas = trim(preg_replace('/\n?Sasaran\s*Tahun.*/is', '', $sas));
                 }
                 $sas = trim(preg_replace('/\s*\n\s*/', ' ', $sas));
-                $out[] = ['nomor' => (int) $no, 'judul' => $sas, 'cakupan' => $cakupan ?: null, 'id_bidang' => Bidang::tebakDariTeks($sas), 'indikator' => []];
+                $out[] = ['nomor' => (int) $no, 'judul' => $sas, 'cakupan' => $cakupan ?: null,
+                    'id_bidang' => \App\Models\Bidang::tebakDariTeks($sas), 'indikator' => []];
                 $cur = count($out) - 1;
             }
 
@@ -444,10 +445,12 @@ class ImportService
                     if ($slug($cand->judul) === $slug($s['judul']) || $cand->nomor === $s['nomor']) { $sasaran = $cand; break; }
                 }
                 if ($sasaran) {
-                    $sasaran->update(['nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'id_bidang' => $s['id_bidang'], 'urut' => $us + 1]);
+                    $sasaran->update(['nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'],
+                        'urut' => $us + 1, 'id_bidang' => $s['id_bidang'] ?? $sasaran->id_bidang]); // impor tak menghapus pilihan manual bila judul tak terbaca
                 } else {
                     $sasaran = CapaianSasaran::create([
-                        'nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'id_bidang' => $s['id_bidang'], 'urut' => $us + 1,
+                        'nomor' => $s['nomor'], 'judul' => $s['judul'], 'cakupan' => $s['cakupan'], 'urut' => $us + 1,
+                        'id_bidang' => $s['id_bidang'] ?? null,
                     ]);
                     $stat['sasaran_baru']++;
                 }
@@ -486,6 +489,21 @@ class ImportService
         });
 
         return $stat;
+    }
+
+    /**
+     * Isi pegawai.id_bidang yang masih kosong berdasarkan jabatan/unit kerja
+     * (mis. staf UPTD yang datanya belum tertaut bidang). Idempoten.
+     */
+    public static function sinkronBidangPegawai(): int
+    {
+        $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
+        $n = 0;
+        foreach (Pegawai::whereNull('id_bidang')->get() as $p) {
+            $bid = Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
+            if ($bid) { $p->id_bidang = $bid; $p->save(); $n++; }
+        }
+        return $n;
     }
 
     /**

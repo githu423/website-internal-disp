@@ -1,6 +1,18 @@
 {
+  "node_modules/docx-preview/dist/docx-preview.mjs": {
+    "file": "assets/docx-preview-B8Y14n_B.js",
+    "name": "docx-preview",
+    "src": "node_modules/docx-preview/dist/docx-preview.mjs",
+    "isDynamicEntry": true
+  },
+  "node_modules/xlsx/xlsx.mjs": {
+    "file": "assets/xlsx-B6LBHFmH.js",
+    "name": "xlsx",
+    "src": "node_modules/xlsx/xlsx.mjs",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
-    "file": "assets/app-nYITZLIl.css",
+    "file": "assets/app-DMHitMy3.css",
     "name": "app",
     "names": [
       "app.css"
@@ -9,9 +21,13 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BIp2d3Ol.js",
+    "file": "assets/app-C6rhbShQ.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/xlsx/xlsx.mjs",
+      "node_modules/docx-preview/dist/docx-preview.mjs"
+    ]
   }
 }

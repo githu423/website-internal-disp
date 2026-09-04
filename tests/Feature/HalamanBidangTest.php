@@ -13,8 +13,8 @@ class HalamanBidangTest extends TestCase
     public function test_semua_user_melihat_menu_halaman_bidang(): void
     {
         $this->buatKerangka();
-        $this->actingAs($this->userPegawai(1))->get('/dashboard')->assertOk()->assertSee('Halaman Bidang');
-        $this->actingAs($this->userAdmin())->get('/dashboard')->assertOk()->assertSee('Halaman Bidang');
+        $this->actingAs($this->userPegawai(1))->get('/dashboard')->assertOk()->assertSee('Bidang Dinas');
+        $this->actingAs($this->userAdmin())->get('/dashboard')->assertOk()->assertSee('Bidang Dinas');
     }
 
     public function test_lencana_atas_menampilkan_nama_bidang_bukan_teks_bidang(): void
@@ -22,7 +22,7 @@ class HalamanBidangTest extends TestCase
         $this->buatKerangka();
         $u = $this->userPegawai(3);
         $u->update(['role' => 'bidang']);
-        // kerangka membuat bidang 'BIDANG PEMASARAN'; lencana membuang kata "BIDANG" di depan
+        // kerangka membuat bidang 'BIDANG PEMASARAN'; lencana membuang kata "BIDANG" di depan agar ringkas
         $this->actingAs($u)->get('/dashboard')->assertOk()->assertSee('PEMASARAN', false);
     }
 
