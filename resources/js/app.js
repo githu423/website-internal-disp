@@ -1,5 +1,7 @@
 
-import Chart from 'chart.js/auto';
+import { Chart, registerables } from 'chart.js';
+Chart.register(...registerables);
+window.Chart = Chart;
 
 /* ===== sidebar: collapse (desktop) + drawer (mobile) ===== */
 const html = document.documentElement;

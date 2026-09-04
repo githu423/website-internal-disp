@@ -20,9 +20,23 @@ class BidangController extends Controller
     public function index(Request $request): View
     {
         $u = $request->user();
+
+        // Pegawai tanpa id_bidang — hitung jumlah per bidang lewat tebakDariTeks
+        // supaya kartu UPTD (yang pegawainya belum tertaut FK) tampil jumlah benar.
+        $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
+        $tebakCounts = [];
+        foreach (Pegawai::whereNull('id_bidang')->get() as $p) {
+            $bid = Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
+            if ($bid) {
+                $tebakCounts[$bid] = ($tebakCounts[$bid] ?? 0) + 1;
+            }
+        }
+
         $bidangList = Bidang::withCount(['pegawais', 'dokumen', 'agenda'])->orderBy('kode')->get()
-            ->map(function ($b) use ($u) {
+            ->map(function ($b) use ($u, $tebakCounts) {
                 $b->boleh_kelola = $u->isAdmin() || $u->id_bidang === $b->id;
+                // Gabungkan jumlah pegawai langsung (FK) + pegawai yang ditebak dari jabatan
+                $b->pegawais_count = $b->pegawais_count + ($tebakCounts[$b->id] ?? 0);
                 return $b;
             });
 
