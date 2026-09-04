@@ -41,8 +41,17 @@
     </div>
 </div>
 
-<div class="grid lg:grid-cols-3 gap-4">
-    <div class="card overflow-hidden lg:col-span-2">
+<style>
+/* mobile-first halaman bidang: kartu Agenda & Dokumen naik ke atas, tabel Pegawai turun paling bawah
+   (dipasang inline agar tidak bergantung pada build Tailwind; ≥1024px susunan desktop seperti semula) */
+@media (max-width: 1023px) {
+    .bidang-grid { display: flex; flex-direction: column; }
+    .bidang-grid > .bidang-aksi { order: 1; }
+    .bidang-grid > .bidang-pegawai { order: 2; }
+}
+</style>
+<div class="grid lg:grid-cols-3 gap-4 bidang-grid">
+    <div class="card overflow-hidden lg:col-span-2 bidang-pegawai">
         <h3 class="font-bold px-5 pt-4 pb-3 border-b border-slate-100">Pegawai ({{ $pegawais->count() }})</h3>
         <table class="data w-full">
             <tbody>
@@ -56,7 +65,7 @@
             </tbody>
         </table>
     </div>
-    <div class="space-y-4">
+    <div class="space-y-4 bidang-aksi">
         <div class="card p-5">
             <h3 class="font-bold mb-3">Agenda Bidang</h3>
             @forelse ($agenda as $a)
@@ -85,20 +94,40 @@
         <div class="card p-5">
             <h3 class="font-bold mb-1">Dokumen Bidang</h3>
             <p class="text-[11px] text-slate-400 mb-3">{{ $bolehKelola ? 'Termasuk arsip privat 🔒 yang tidak terlihat bidang lain.' : 'Hanya dokumen publik milik bidang ini yang tampil untuk Anda.' }}</p>
+            @if ($dokumens->isNotEmpty())
+                <div class="relative mb-1.5">
+                    <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-slate-400">🔍</span>
+                    <input data-doc-q type="search" placeholder="Cari judul / file dokumen…" autocomplete="off"
+                        class="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-1.5 pl-8 pr-16 text-[13px] outline-none transition focus:border-teal-400 focus:bg-white">
+                    <button data-doc-clear type="button" hidden class="absolute right-2 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:bg-slate-100">✕</button>
+                </div>
+                <p data-doc-info class="mb-1 text-[10.5px] font-semibold text-slate-400"></p>
+            @endif
+            <div class="divide-y divide-slate-100">
             @forelse ($dokumens as $d)
-                <div class="flex items-center gap-1.5 py-1.5 {{ $loop->last ? '' : 'border-b border-slate-100' }}">
-                    <span class="text-[13px] font-medium text-slate-600 truncate flex-1">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }} {{ $d->judul }}</span>
-                    <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-teal-600 hover:underline whitespace-nowrap">Lihat</a>
-                    <a href="{{ route('dokumen.unduh', $d) }}" class="text-[11px] font-bold text-slate-500 hover:text-teal-600 whitespace-nowrap">Unduh</a>
-                    @if ($bolehKelola)
-                        <form method="POST" action="{{ route('dokumen.destroy', $d) }}" onsubmit="return confirm('Hapus dokumen beserta filenya?')">@csrf @method('DELETE')
-                            <button class="text-[11px] font-bold text-rose-500 hover:underline whitespace-nowrap">Hapus</button>
-                        </form>
-                    @endif
+                <div data-doc-item data-doc-text="{{ \Illuminate\Support\Str::lower($d->judul.' '.$d->file_name.' '.($d->kategori ?? '')) }}" class="flex items-center gap-2 py-2">
+                    <span class="shrink-0 text-[15px] leading-none">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }}</span>
+                    <span class="min-w-0 flex-1">
+                        <a href="{{ route('dokumen.show', $d) }}" class="block truncate text-[13px] font-semibold text-slate-700 hover:text-teal-600">{{ $d->judul }}</a>
+                        <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB · {{ $d->created_at?->translatedFormat('d M Y') }}@if($d->kategori) · {{ $d->kategori }}@endif</span>
+                    </span>
+                    <span class="flex shrink-0 items-center gap-2">
+                        <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-teal-600 hover:underline whitespace-nowrap">Lihat</a>
+                        <a href="{{ route('dokumen.unduh', $d) }}" class="text-[11px] font-bold text-slate-500 hover:text-teal-600 whitespace-nowrap">Unduh</a>
+                        @if ($bolehKelola)
+                            <form method="POST" action="{{ route('dokumen.destroy', $d) }}" onsubmit="return confirm('Hapus dokumen beserta filenya?')">@csrf @method('DELETE')
+                                <button class="text-[11px] font-bold text-rose-500 hover:underline whitespace-nowrap">Hapus</button>
+                            </form>
+                        @endif
+                    </span>
                 </div>
             @empty
-                <p class="text-sm text-slate-400">Belum ada dokumen.</p>
+                <p class="py-2 text-sm text-slate-400">Belum ada dokumen.</p>
             @endforelse
+            </div>
+            @if ($dokumens->isNotEmpty())
+                <p data-doc-none hidden class="py-2 text-[12px] text-slate-400">Tidak ada dokumen yang cocok.</p>
+            @endif
 
             @if ($bolehKelola)
                 <form method="POST" action="{{ route('bidang.dokumen', $b) }}" enctype="multipart/form-data" class="mt-3 space-y-2 rounded-xl border border-dashed border-teal-300 bg-teal-50/40 p-3">
@@ -113,4 +142,24 @@
         </div>
     </div>
 </div>
+
+<script>
+(function(){
+    const q=document.querySelector('[data-doc-q]'); if(!q) return;
+    const rows=[...document.querySelectorAll('[data-doc-item]')];
+    const info=document.querySelector('[data-doc-info]');
+    const none=document.querySelector('[data-doc-none]');
+    const clr=document.querySelector('[data-doc-clear]');
+    const upd=()=>{
+        const t=q.value.trim().toLowerCase();
+        let n=0; rows.forEach(r=>{const hit=!t||r.dataset.docText.includes(t); r.hidden=!hit; if(hit)n++;});
+        if(info) info.textContent = t ? ('Menampilkan '+n+' dari '+rows.length+' dokumen untuk “'+q.value.trim()+'”') : ('Total '+rows.length+' dokumen di bidang ini');
+        if(none) none.hidden = !(t && n===0);
+        if(clr) clr.hidden = !t;
+    };
+    q.addEventListener('input',upd);
+    if(clr) clr.addEventListener('click',()=>{q.value='';upd();q.focus();});
+    upd();
+})();
+</script>
 @endsection

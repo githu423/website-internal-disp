@@ -129,6 +129,28 @@ class UpdateRickyTest extends TestCase
         $this->assertStringContainsString("import('docx-preview')", $js);
     }
 
+    public function test_tata_letak_mobile_dan_pencarian_dokumen_di_halaman_bidang(): void
+    {
+        $this->buatKerangka();
+        $u = $this->userAdmin();
+        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('renja.docx', 'isi');
+        $this->actingAs($u)->post(route('bidang.dokumen', 2), ['judul' => 'Rencana Kerja Bidang', 'file' => $file])->assertRedirect();
+
+        $html = $this->actingAs($u)->get('/bidang/2')->assertOk()->getContent();
+        // mobile-first: aturan order dipasang inline (mandiri, tanpa build Tailwind) — agenda/dokumen di atas pegawai
+        $this->assertStringContainsString('.bidang-grid > .bidang-aksi { order: 1; }', $html);
+        $this->assertStringContainsString('.bidang-grid > .bidang-pegawai { order: 2; }', $html);
+        $this->assertStringContainsString('@media (max-width: 1023px)', $html);
+        // kelas penanda terpasang pada kartu yang benar
+        $this->assertMatchesRegularExpression('/<div class="card overflow-hidden lg:col-span-2 bidang-pegawai">/', $html);
+        $this->assertMatchesRegularExpression('/<div class="space-y-4 bidang-aksi">.*Agenda Bidang/s', $html);
+        // kolom pencarian + atribut baris dokumen
+        $this->assertStringContainsString('data-doc-q', $html);
+        $this->assertStringContainsString('data-doc-text="rencana kerja bidang ', $html);
+        // skrip pencarian inline ikut ter-render
+        $this->assertStringContainsString('addEventListener(\'input\',upd)', $html);
+    }
+
     public function test_pratinjau_halaman_dokumen_office_tersedia(): void
     {
         $this->buatKerangka();
