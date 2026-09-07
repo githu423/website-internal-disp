@@ -24,13 +24,36 @@ Sasaran Tahun : 2025",Indikator A,Unit,"1,000",900,90.00%,"2,000","2,100",105.00
 CSV;
     }
 
+    public function test_dashboard_menampilkan_tingkat_capaian_per_tahun_v23(): void
+    {
+        $this->buatKerangka();
+        $admin = $this->userAdmin();
+        $file = UploadedFile::fake()->createWithContent('capaian.csv', $this->csv());
+        $this->actingAs($admin)->post(route('admin.capaian.import'), ['file' => $file])->assertRedirect();
+        // csv fixture: 2024 -> Indikator A 90% (belum); 2025 -> A 105% (tercapai), B 80% (belum) => 0% & 50%
+        $res = $this->actingAs($admin)->get('/dashboard')->assertOk()
+            ->assertSee('Tingkat Capaian Keseluruhan per Tahun')
+            ->assertSee('Statistik capaian', false);
+        $html = str_replace('&quot;', '"', $res->getContent()); // json ada di atribut canvas, jangan strip_tags
+        $this->assertStringContainsString('% indikator tercapai', $html);
+        $this->assertMatchesRegularExpression('/"labels":\[2024,2025\].*"data":\[0,50\]/s', $html, 'angka dashboard harus sama dgn halaman statistik capaian');
+    }
+
+    public function test_dashboard_fallback_tanpa_data_capaian_v23(): void
+    {
+        $this->buatKerangka();
+        $this->actingAs($this->userAdmin())->get('/dashboard')->assertOk()
+            ->assertSee('Capaian Kinerja per Bulan')
+            ->assertSee('Belum ada berkas capaian', false);
+    }
+
     public function test_impor_matriks_dan_tampil_publik(): void
     {
         $this->buatKerangka();
         $admin = $this->userAdmin();
         $file = UploadedFile::fake()->createWithContent('capaian.csv', $this->csv());
 
-        $this->actingAs($admin)->post(route('admin.capaian.import'), ['berkas' => $file])->assertRedirect();
+        $this->actingAs($admin)->post(route('admin.capaian.import'), ['file' => $file])->assertRedirect();
 
         $this->assertSame(2, CapaianSasaran::count());
         $this->assertSame(3, CapaianIndikator::count());
@@ -91,7 +114,7 @@ CSV;
         $this->buatKerangka();
         $admin = $this->userAdmin();
         $kirim = fn (string $isi) => $this->actingAs($admin)->post(route('admin.capaian.import'), [
-            'berkas' => UploadedFile::fake()->createWithContent('c.csv', $isi), 'mode' => 'update',
+            'file' => UploadedFile::fake()->createWithContent('c.csv', $isi), 'mode' => 'update',
         ]);
 
         $kirim($this->csv())->assertRedirect();
@@ -111,7 +134,7 @@ CSV;
         $this->buatKerangka();
         $admin = $this->userAdmin();
         $this->actingAs($admin)->post(route('admin.capaian.import'), [
-            'berkas' => UploadedFile::fake()->createWithContent('c.csv', $this->csv()),
+            'file' => UploadedFile::fake()->createWithContent('c.csv', $this->csv()),
         ])->assertRedirect();
 
         $this->actingAs($admin)->get(route('kinerja.capaian', ['tampilan' => 'statistik']))->assertOk()

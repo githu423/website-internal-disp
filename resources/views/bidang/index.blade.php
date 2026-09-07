@@ -17,6 +17,9 @@
                 <span>👥 {{ $b->pegawais_count }} pegawai</span><span>📄 {{ $b->dokumen_count }} dokumen</span><span>📅 {{ $b->agenda_count }} agenda</span>
                 <span class="ml-auto text-teal-600 group-hover:translate-x-0.5 transition">Lihat →</span>
             </div>
+            @if ($b->rek)
+                <p class="mt-1.5 text-[11px] font-semibold text-slate-400">♂ {{ $b->rek->l }} · ♀ {{ $b->rek->p }} · PNS {{ $b->rek->pns }} · non-PNS {{ $b->pegawais_count - $b->rek->pns }}@if ($b->rek->blm > 0) · <span class="text-rose-600 font-bold">⚠ {{ $b->rek->blm }} belum lengkap</span>@endif</p>
+            @endif
         </a>
     @endforeach
 </div>

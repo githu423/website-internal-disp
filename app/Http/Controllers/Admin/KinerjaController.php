@@ -71,9 +71,11 @@ class KinerjaController extends Controller
             'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:20480'],
             'ganti_tahun' => ['nullable', 'boolean'],
         ]);
-        $path = $request->file('file')->getRealPath();
+        $f = $request->file('file');
+        $path = $f->getRealPath();
+        $namaAsli = $f->getClientOriginalName();
         try {
-            $hasil = ImportService::applyKinerja(ImportService::rowsFrom($path));
+            $hasil = ImportService::applyKinerja(ImportService::rowsFrom($path, $namaAsli), $request->boolean('ganti_tahun'));
         } catch (\Throwable $e) {
             return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
         }
@@ -81,11 +83,12 @@ class KinerjaController extends Controller
             return back()->with('gagal', 'Tidak ada data kinerja yang dikenali. Gunakan format file "Kinerja Fisik Sedinas" (baris TAHUN lalu blok PROGRAM/KEGIATAN/SUB KEGIATAN).');
         }
         $yrs = implode(', ', $hasil['years']);
-        NotifikasiService::broadcast('Data kinerja diperbarui',
-            "Import file: {$hasil['imported']} baris (tahun $yrs) berhasil dimuat ke dashboard.",
-            'import', route('admin.kinerja.index'));
-        LogAktivitas::catat('import kinerja', "rows={$hasil['imported']} years=$yrs");
-        return back()->with('sukses', "Import berhasil: {$hasil['imported']} baris untuk tahun $yrs.");
+        $ganti = $request->boolean('ganti_tahun');
+        $pesan = "Import kinerja: {$hasil['dibuat']} baru, {$hasil['diperbarui']} diperbarui (tahun $yrs)"
+            . ($ganti ? ' — data tahun tersebut diganti total.' : ' — data manual & tahun lain tetap aman.');
+        NotifikasiService::broadcast('Data kinerja diperbarui', $pesan, 'import', route('admin.kinerja.index'));
+        LogAktivitas::catat('import kinerja', "rows={$hasil['imported']} baru={$hasil['dibuat']} ubah={$hasil['diperbarui']} years=$yrs mode={$hasil['mode']}");
+        return back()->with('sukses', $pesan);
     }
 
     private function validateData(Request $request): array

@@ -18,13 +18,37 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  */
 class ImportService
 {
-    /** Baca file (.csv/.xlsx/.xls) menjadi array of array of string. */
-    public static function rowsFrom(string $path): array
+    /**
+     * Baca file (.csv/.xlsx/.xls/.ods) menjadi array of array of string.
+     *
+     * Jenis berkas spreadsheet dideteksi dari ISI file (magic bytes), BUKAN dari
+     * ekstensi: file hasil upload PHP bernama sementara "phpXXXX.tmp" tanpa .xlsx,
+     * sehingga dulu Excel selalu salah dibaca sebagai CSV (perbaikan 7 Sep 2026).
+     * $nama_asli (opsional) = nama asli file — dipakai memilih reader ods/xlsb.
+     */
+    public static function rowsFrom(string $path, ?string $nama_asli = null): array
     {
-        $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        if (in_array($ext, ['xlsx', 'xls', 'ods', 'xlsb'])) {
-            $sheet = IOFactory::load($path)->getSheet(0);
-            $rows = $sheet->toArray(null, true, false, false);
+        $magic = '';
+        if (is_readable($path) && ($bh = @fopen($path, 'rb'))) { $magic = (string) fread($bh, 8); fclose($bh); }
+        $zip = str_starts_with($magic, "PK\x03\x04");          // xlsx / xlsb / ods (semuanya container zip)
+        $ole = str_starts_with($magic, "\xD0\xCF\x11\xE0"); // xls lama
+        $ext = strtolower(pathinfo($nama_asli ?: $path, PATHINFO_EXTENSION));
+
+        if ($zip || $ole) {
+            $extSheet = in_array($ext, ['xlsx', 'xls', 'ods', 'xlsb'], true) ? $ext : ($ole ? 'xls' : 'xlsx');
+            $pathUse = $path;
+            if (strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== $extSheet) {
+                // IOFactory mengenali reader dari ekstensi jalur — beri file salinan berekstensi benar
+                $pathUse = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dispar-import-' . bin2hex(random_bytes(5)) . '.' . $extSheet;
+                copy($path, $pathUse);
+            }
+            try {
+                $rows = IOFactory::load($pathUse)->getSheet(0)->toArray(null, true, false, false);
+            } finally {
+                if ($pathUse !== $path) @unlink($pathUse);
+            }
+        } elseif (in_array($ext, ['xlsx', 'xls', 'ods', 'xlsb'], true)) {
+            $rows = IOFactory::load($path)->getSheet(0)->toArray(null, true, false, false);
         } else {
             $rows = [];
             if (($fh = fopen($path, 'r')) !== false) {
@@ -55,11 +79,22 @@ class ImportService
         return is_numeric($v) ? (float) $v : 0.0;
     }
 
+    /**
+     * Tanggal dari sel: teks dd/mm/yyyy (csv/ketik manual), yyyy-mm-dd, dd-mm-yyyy,
+     * ATAU angka serial Excel (xlsx menyimpan tanggal sebagai angka, mis. 27468).
+     */
     protected static function tgl(?string $v): ?string
     {
         if (! $v) return null;
-        if (preg_match('#(\d{1,2})/(\d{1,2})/(\d{4})#', $v, $m)) {
+        $v = trim($v);
+        if (preg_match('#^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})#', $v, $m)) {
             return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+        }
+        if (preg_match('#^(\d{4})[/.-](\d{1,2})[/.-](\d{1,2})#', $v, $m)) {
+            return sprintf('%04d-%02d-%02d', $m[1], $m[2], $m[3]);
+        }
+        if (is_numeric($v) && (float) $v > 20000 && (float) $v < 80000) { // rentang serial ~1955-2118
+            return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $v)->format('Y-m-d');
         }
         return null;
     }
@@ -177,17 +212,22 @@ class ImportService
         return ['rows' => $out, 'years' => array_keys($years), 'bulanan' => $bulanan];
     }
 
-    public static function applyKinerja(array $rows): array
+    public static function applyKinerja(array $rows, bool $gantiTahun = false): array
     {
         $p = self::parseKinerja($rows);
-        \Illuminate\Support\Facades\DB::transaction(function () use ($p) {
-            foreach ($p['years'] as $y) {
-                CapaianProgram::where('tahun', $y)->delete();
-                CapaianBulanan::where('tahun', $y)->delete();
-                $rowsY = array_values(array_filter($p['rows'], fn ($r) => (int) $r['tahun'] === (int) $y));
-                CapaianProgram::insert(array_map(fn ($r) => array_merge($r, [
-                    'created_at' => now(), 'updated_at' => now(),
-                ]), $rowsY));
+        $dibuat = 0; $diperbarui = 0;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($p, $gantiTahun, &$dibuat, &$diperbarui) {
+            if ($gantiTahun) {
+                foreach ($p['years'] as $y) {
+                    CapaianProgram::where('tahun', $y)->delete();
+                    CapaianBulanan::where('tahun', $y)->delete();
+                }
+            }
+            foreach ($p['rows'] as $r) { // v20: upsert seperti sistem pegawai — tanpa centang "ganti", data manual & tahun lain aman
+                $key = ['tahun' => $r['tahun'], 'level' => $r['level'], 'nama' => $r['nama']];
+                $sebelum = CapaianProgram::where($key)->exists();
+                CapaianProgram::updateOrCreate($key, array_diff_key($r, $key));
+                $sebelum ? $diperbarui++ : $dibuat++;
             }
             foreach ($p['bulanan'] as $y => $data) {
                 $adaCapaian = false;
@@ -204,7 +244,8 @@ class ImportService
                 }
             }
         });
-        return ['imported' => count($p['rows']), 'years' => $p['years']];
+        return ['imported' => count($p['rows']), 'years' => $p['years'],
+                'dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'mode' => $gantiTahun ? 'ganti' : 'upsert'];
     }
 
     /* ================= PAD (pendapatan retribusi daerah) ================= */
@@ -258,17 +299,18 @@ class ImportService
     {
         $p = self::parsePad($rows);
         $years = array_values(array_unique(array_column($p, 'tahun')));
-        \Illuminate\Support\Facades\DB::transaction(function () use ($p, $years) {
-            foreach ($years as $y) {
-                \App\Models\Pad::where('tahun', $y)->delete();
-            }
-            foreach ($p as $i => $row) {
-                \App\Models\Pad::insert(array_merge($row, [
-                    'created_at' => now(), 'updated_at' => now(),
-                ]));
+        $dibuat = 0; $diperbarui = 0;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($p, &$dibuat, &$diperbarui) {
+            foreach ($p as $row) { // v20: upsert seperti sistem pegawai (dulu hapus-then-insert per tahun)
+                $key = !empty($row['no_rekening'])
+                    ? ['tahun' => $row['tahun'], 'no_rekening' => $row['no_rekening']]
+                    : ['tahun' => $row['tahun'], 'objek' => $row['objek']];
+                $sebelum = \App\Models\Pad::where($key)->exists();
+                \App\Models\Pad::updateOrCreate($key, array_diff_key($row, $key));
+                $sebelum ? $diperbarui++ : $dibuat++;
             }
         });
-        return ['imported' => count($p), 'years' => $years];
+        return ['imported' => count($p), 'years' => $years, 'dibuat' => $dibuat, 'diperbarui' => $diperbarui];
     }
 
     /* ================= PEGAWAI ================= */
@@ -276,47 +318,70 @@ class ImportService
     public static function parsePegawai(array $rows): array
     {
         $out = [];
-        // kolom UNIT KERJA dideteksi dari header; fallback kolom ke-19 (0-based 18)
-        $idxUnit = null;
-        foreach ($rows as $hr) {
+        // v21: kolom dikenali dari TEKS HEADER (baris 1-3), bukan posisi tetap — susunan
+        // file user apa pun terbaca. Fallback ke posisi template Dinas lama bila header absen.
+        $hx = []; $pangkatCols = [];
+        foreach (array_slice($rows, 0, 3) as $hr) {
+            if (! is_array($hr)) continue;
             foreach ($hr as $ci => $cv) {
-                if (mb_strtoupper(trim((string) $cv)) === 'UNIT KERJA') { $idxUnit = $ci; break 2; }
+                $t = str_replace([' ', '.'], '', strtoupper(trim((string) $cv)));
+                if ($t === '') continue;
+                if (str_contains($t, 'PANGKAT') && str_contains($t, 'GOL')) { if (! in_array($ci, $pangkatCols, true)) $pangkatCols[] = $ci; continue; }
+                if (str_starts_with($t, 'ASN')) $hx['jenis_asn'] ??= $ci;
+                foreach ([
+                    'TEMPATLAHIR' => 'tempat_lahir', 'TANGGALLAHIR' => 'tanggal_lahir',
+                    'TMTCPNS' => 'tmt_cpns', 'TMTSEKARANG' => 'tmt_sekarang', 'TMTJABATAN' => 'tmt_jabatan',
+                    'JABATANSEKARANG' => 'jabatan', 'PENDIDIKANUMUM' => 'pendidikan',
+                    'DIKLATSTRUKTURAL' => 'diklat_struktural', 'DIKLATFUNGSIONAL' => 'diklat_fungsional',
+                    'DIKLATTEKNIS' => 'diklat_teknis', 'JENISKELAMIN' => 'jenis_kelamin', 'UNITKERJA' => 'unit_kerja',
+                ] as $k => $f) { if ($t === $k) $hx[$f] ??= $ci; }
             }
         }
+        $at = fn (array $r, ?int $i): string => $i === null ? '' : trim((string) ($r[$i] ?? ''));
+        $col = fn (string $f, int $lama): int => $hx[$f] ?? $lama;
+
         foreach ($rows as $r) {
+            if (! is_array($r)) continue;
             $r = array_pad($r, 20, '');
             if (! is_numeric(trim($r[0]))) continue;
             $nip = preg_replace('/\s+/', '', $r[2]);
             if (! $nip) continue;
 
             $jk = null;
-            foreach ($r as $cell) {
-                $u = strtoupper(trim($cell));
-                if (in_array($u, ['L', 'P', 'LAKI-LAKI', 'PEREMPUAN'], true)) {
-                    $jk = str_starts_with($u, 'L') ? 'L' : 'P';
-                    break;
+            $jkv = strtoupper($at($r, $col('jenis_kelamin', -1)));
+            if ($jkv !== '') $jk = str_starts_with($jkv, 'L') ? 'L' : (str_starts_with($jkv, 'P') ? 'P' : null);
+            if (! $jk) {
+                foreach ($r as $cell) {
+                    $u = strtoupper(trim((string) $cell));
+                    if (in_array($u, ['L', 'P', 'LAKI-LAKI', 'PEREMPUAN'], true)) { $jk = str_starts_with($u, 'L') ? 'L' : 'P'; break; }
                 }
             }
-            $jabatan = trim($r[10]);
-            $unit = $idxUnit !== null ? trim((string) ($r[$idxUnit] ?? '')) : trim((string) ($r[18] ?? ''));
-            $pendidikan = trim($r[12]);
-            if (preg_match('/^(S-\d|D-\d|SLTA|SMA|SD)/iu', $pendidikan, $m)) {
-                $pendidikan = $m[1];
-            }
+            // dua header "PANGKAT/GOL" -> kolom pertama = pangkat AWAL, terakhir = pangkat TERAKHIR
+            $pgAwal = count($pangkatCols) >= 2 ? $pangkatCols[0] : null;
+            $pgAkhir = $pangkatCols ? end($pangkatCols) : 7;
+            $jabatan = $at($r, $col('jabatan', 10));
+            $unit = $at($r, $col('unit_kerja', 18));
+            $pendidikan = $at($r, $col('pendidikan', 12));
+            if (preg_match('/^(S-\d|D-\d|SLTA|SMA|SD)/iu', $pendidikan, $mm)) $pendidikan = $mm[1];
+
             $out[] = [
                 'nip' => $nip,
                 'nama' => trim($r[1]),
-                'tempat_lahir' => trim($r[3]) ?: null,
-                'tanggal_lahir' => self::tgl($r[4]),
+                'tempat_lahir' => $at($r, $col('tempat_lahir', 3)) ?: null,
+                'tanggal_lahir' => self::tgl((string) ($r[$col('tanggal_lahir', 4)] ?? '')),
                 'jenis_kelamin' => $jk,
                 'jabatan' => $jabatan ?: null,
                 'unit_kerja' => $unit ?: null,
-                'pangkat_golongan' => trim($r[7]) ?: trim($r[5]) ?: null,
-                'jenis_asn' => trim($r[8]) ?: null,
-                'tmt_cpns' => self::tgl($r[6]),
-                'tmt_sekarang' => self::tgl($r[9]),
-                'tmt_jabatan' => self::tgl($r[11]),
+                'pangkat_awal' => $pgAwal !== null ? ($at($r, $pgAwal) ?: null) : (trim($r[5]) ?: null),
+                'pangkat_golongan' => $at($r, $pgAkhir) ?: trim($r[7]) ?: null,
+                'jenis_asn' => $at($r, $col('jenis_asn', 8)) ?: null,
+                'tmt_cpns' => self::tgl((string) ($r[$col('tmt_cpns', 6)] ?? '')),
+                'tmt_sekarang' => self::tgl((string) ($r[$col('tmt_sekarang', 9)] ?? '')),
+                'tmt_jabatan' => self::tgl((string) ($r[$col('tmt_jabatan', 11)] ?? '')),
                 'pendidikan' => $pendidikan ?: null,
+                'diklat_struktural' => $at($r, $col('diklat_struktural', -1)) ?: null,
+                'diklat_fungsional' => $at($r, $col('diklat_fungsional', -1)) ?: null,
+                'diklat_teknis' => $at($r, $col('diklat_teknis', -1)) ?: null,
                 'status' => 'aktif',
                 'id_bidang' => Bidang::tebakDariTeks(trim($jabatan . ' ' . $unit)),
             ];
@@ -525,5 +590,114 @@ class ImportService
             if ($d) { $u->update($d); $ubah++; }
         }
         return $ubah;
+    }
+    /* ================= STATISTIK PARIWISATA (indikator x tahun) ================= */
+
+    /**
+     * Angka dari sel spreadsheet: "1,173,275,000" & "1.173.275.000" & "22.07%" → float;
+     * "", "n/a", "-", "—" → null (BEDA dengan 0!). Heuristik: pemisah ribuan vs desimal.
+     */
+    public static function angkaSel(?string $v): ?float
+    {
+        $v = trim(str_replace(["\u{00A0}", ' '], '', (string) $v));
+        if ($v === '' || preg_match('/^(n\/?a|[-–—]+|\.+)$/iu', $v)) return null;
+        $v = rtrim(trim($v), '%');
+        $neg = str_starts_with($v, '-');
+        $v = ltrim($v, '-+');
+        $hasDot = str_contains($v, '.'); $hasCom = str_contains($v, ',');
+        if ($hasDot && $hasCom) {
+            if (strrpos($v, ',') > strrpos($v, '.')) { $v = str_replace('.', '', $v); $v = str_replace(',', '.', $v); }
+            else { $v = str_replace(',', '', $v); }
+        } elseif ($hasCom) {
+            $v = preg_match('/^\d{1,3}(,\d{3})+$/', $v) ? str_replace(',', '', $v) : str_replace(',', '.', $v);
+        } elseif ($hasDot) {
+            if (preg_match('/^\d{1,3}(\.\d{3})+$/', $v)) $v = str_replace('.', '', $v);
+        }
+        if (!is_numeric($v)) return null;
+        return $neg ? -(float) $v : (float) $v;
+    }
+
+    /**
+     * Parse matriks "DATA STATISTIK PARIWISATA": baris judul bebas di atas,
+     * satu baris header (No. | Indikator | Satuan | Tahun | ... | Keterangan),
+     * satu baris daftar tahun (boleh di header itu sendiri), lalu baris data.
+     * Kolom dipetakan dari posisi 2017..20xx — jadi geser kolom/extra spasi aman.
+     *
+     * @return array<int, array{no:?int,indikator:string,satuan:?string,keterangan:?string,nilai:array<int,float>}>
+     */
+    public static function parseStatistik(array $rows): array
+    {
+        $h = null;
+        foreach ($rows as $i => $r) {
+            foreach ($r as $cv) {
+                if (mb_strtoupper(trim((string) $cv)) === 'INDIKATOR') { $h = $i; break 2; }
+            }
+        }
+        if ($h === null) return [];
+
+        $noCol = $indCol = $satCol = $ketCol = null;
+        foreach ($rows[$h] as $c => $v) {
+            $u = mb_strtoupper(trim((string) $v));
+            if ($noCol === null && preg_match('/^NO\.?$/u', $u)) $noCol = $c;
+            elseif ($u === 'INDIKATOR') $indCol = $c;
+            elseif ($u === 'SATUAN') $satCol = $c;
+            elseif ($u === 'KETERANGAN') $ketCol = $c;
+        }
+        $noCol ??= 0; $indCol ??= $noCol + 1; $satCol ??= $indCol + 1;
+
+        // tahun = sel 4 digit di baris header / 2 baris berikutnya, di kolom kanan SATUAN
+        $tahunCols = [];
+        $cands = array_slice($rows, $h, 3);
+        $width = 0; foreach ($cands as $rr) $width = max($width, count($rr));
+        for ($c = 0; $c < $width; $c++) {
+            if ($c <= $satCol) continue;
+            foreach ($cands as $rr) {
+                if (preg_match('/^(19|20)\d{2}$/', trim((string) ($rr[$c] ?? '')), $m)) { $tahunCols[$c] = (int) $m[0]; break; }
+            }
+        }
+        if (!$tahunCols) return [];
+
+        $out = [];
+        for ($i = $h + 1; $i < count($rows); $i++) {
+            $r = $rows[$i];
+            $ind = trim((string) ($r[$indCol] ?? ''));
+            if ($ind === '' || mb_strtoupper($ind) === 'INDIKATOR') continue; // baris sub-header/tahun
+            $nilai = [];
+            foreach ($tahunCols as $c => $t) {
+                $val = self::angkaSel((string) ($r[$c] ?? ''));
+                if ($val !== null) $nilai[$t] = $val;
+            }
+            $no = trim((string) ($r[$noCol] ?? ''));
+            $out[] = [
+                'no' => ctype_digit($no) ? (int) $no : null,
+                'indikator' => preg_replace('/\s+/', ' ', $ind),
+                'satuan' => ($sat = trim((string) ($r[$satCol] ?? ''))) !== '' ? $sat : null,
+                'keterangan' => $ketCol !== null ? (trim((string) ($r[$ketCol] ?? '')) ?: null) : null,
+                'nilai' => $nilai,
+            ];
+        }
+        return $out;
+    }
+
+    /** Upsert per nama indikator (toleran besar/kecil & spasi ganda); tahun yang tidak disebut file dibiarkan. */
+    public static function applyStatistik(array $p): array
+    {
+        $dibuat = 0; $diperbarui = 0; $sel = 0;
+        foreach ($p as $baris) {
+            $key = mb_strtoupper(preg_replace('/\s+/', ' ', trim($baris['indikator'])));
+            $st = \App\Models\Statistik::whereRaw('upper(indikator) = ?', [$key])->first();
+            if ($st) { $diperbarui++; } else { $st = new \App\Models\Statistik(); $dibuat++; }
+            $st->indikator = trim($baris['indikator']);
+            $st->no_urut = $baris['no']; $st->satuan = $baris['satuan']; $st->keterangan = $baris['keterangan'];
+            $st->save();
+            foreach ($baris['nilai'] as $t => $v) {
+                \App\Models\StatistikNilai::updateOrCreate(
+                    ['id_statistik' => $st->id, 'tahun' => (int) $t],
+                    ['nilai' => $v],
+                );
+                $sel++;
+            }
+        }
+        return ['dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'sel' => $sel];
     }
 }

@@ -77,21 +77,68 @@ class ImportFileTest extends TestCase
         $this->assertSame(2024, $p[0]['tahun']);
     }
 
-    public function test_import_pad_mengganti_tahun_yang_sama(): void
+    public function test_import_pad_upsert_tanpa_menghapus_v20(): void
     {
         $this->buatKerangka();
         $this->actingAs($this->userAdmin());
         \App\Models\Pad::create(['tahun' => 2024, 'objek' => 'Lama', 'target_tahunan' => 100]);
-        $L = [
+        $csv = implode("\n", [
             $this->baris([0 => 'TAHUN 2024'], 20),
             $this->baris([0 => 'No.'], 20),
             $this->baris([0 => 'A.', 1 => 'Fasum'], 20),
             $this->baris([0 => '1', 1 => '4.1', 2 => 'OW. Baru', 3 => '5,000,000', 17 => '4,000,000', 18 => '-1,000,000', 19 => '80'], 20),
-        ];
-        $file = UploadedFile::fake()->createWithContent('pad.csv', implode("\n", $L));
-        $this->post('/admin/pad/import', ['file' => $file])->assertRedirect()->assertSessionHas('sukses');
-        $this->assertDatabaseMissing('pad', ['objek' => 'Lama']);
+        ]);
+        $file = UploadedFile::fake()->createWithContent('pad.csv', $csv);
+        $this->post('/admin/pad/import', ['file' => $file])->assertRedirect()
+            ->assertSessionHas('sukses', fn ($v) => str_contains($v, '1 objek baru'));
+        $this->assertDatabaseHas('pad', ['objek' => 'Lama']);        // v20: data manual tahun sama TETAP ada
         $this->assertDatabaseHas('pad', ['objek' => 'OW. Baru', 'persentase' => 80]);
+        $this->post('/admin/pad/import', ['file' => UploadedFile::fake()->createWithContent('pad.csv', $csv)])
+            ->assertSessionHas('sukses', fn ($v) => str_contains($v, '1 diperbarui'));
+        $this->assertSame(2, \App\Models\Pad::where('tahun', 2024)->count(), 'import ulang tidak boleh dobel');
+    }
+
+    public function test_kinerja_upsert_dan_mode_ganti_tahun_v20(): void
+    {
+        $this->buatKerangka();
+        $this->actingAs($this->userAdmin());
+        $mk = fn () => UploadedFile::fake()->createWithContent('k.csv', $this->csvKinerja());
+        $this->post('/admin/kinerja/import', ['file' => $mk()])->assertRedirect();
+        $manual = \App\Models\CapaianProgram::create(['tahun' => 2025, 'level' => 'kegiatan', 'nama' => 'MANUAL DI LUAR FILE', 'target' => 5]);
+        $this->post('/admin/kinerja/import', ['file' => $mk()])
+            ->assertSessionHas('sukses', fn ($v) => str_contains($v, '0 baru, 3 diperbarui') && str_contains($v, 'tetap aman'));
+        $this->assertDatabaseHas('capaian_program', ['nama' => 'MANUAL DI LUAR FILE']);
+        $this->assertSame(1, \App\Models\CapaianProgram::where('nama', 'Penyediaan Bahan Logistik Kantor')->count(), 'tidak dobel');
+        $this->post('/admin/kinerja/import', ['file' => $mk(), 'ganti_tahun' => '1'])
+            ->assertSessionHas('sukses', fn ($v) => str_contains($v, 'diganti total'));
+        $this->assertDatabaseMissing('capaian_program', ['nama' => 'MANUAL DI LUAR FILE']);
+        $this->assertSame(3, \App\Models\CapaianProgram::count());
+    }
+
+    public function test_parse_pegawai_peta_header_acak_v21(): void
+    {
+        // v21: kolom dikenali dari TEKS HEADER, urutan kolom bebas
+        $rows = [
+            ['No', 'NAMA', 'NIP', 'JENIS KELAMIN', 'UNIT KERJA', 'DIKLAT TEKNIS', 'DIKLAT FUNGSIONAL', 'DIKLAT STRUKTURAL', 'PENDIDIKAN UMUM', 'TMT JABATAN', 'JABATAN SEKARANG', 'TMT SEKARANG', 'ASN PNS/PPPK', 'PANGKAT/GOL. RUANG', 'TMT CPNS', 'PANGKAT/GOL. RUANG'],
+            ['1', 'UJI HEADER BARU', '198001012005011001', 'Perempuan', 'Bandungan', '', 'Diklat Online 2022', 'Latsar 2010', 'S-1', '01/01/2021', 'STAF', '01/04/2019', 'PNS', 'PENGATUR (II/c)', '01/01/2005', 'PENATA (III/c)'],
+        ];
+        $p = ImportService::parsePegawai($rows);
+        $this->assertCount(1, $p);
+        $s = $p[0];
+        $this->assertSame('PENATA (III/c)', $s['pangkat_golongan'], 'pangkat header TERAKHIR = terkini');
+        $this->assertSame('PENGATUR (II/c)', $s['pangkat_awal'], 'header PANGKAT ganda: kolom pertama = pangkat awal');
+        $this->assertSame('Diklat Online 2022', $s['diklat_fungsional']);
+        $this->assertSame('Latsar 2010', $s['diklat_struktural']);
+        $this->assertNull($s['diklat_teknis']);
+        $this->assertSame('PNS', $s['jenis_asn']);
+        $this->assertSame('2005-01-01', $s['tmt_cpns']);
+        $this->assertSame('2021-01-01', $s['tmt_jabatan']);
+        $this->assertSame('P', $s['jenis_kelamin']);
+        $this->assertSame('Bandungan', $s['unit_kerja']);
+        // simpan lalu cek kriteria kelengkapan v21
+        $this->buatKerangka();
+        \App\Models\Pegawai::updateOrCreate(['nip' => $s['nip']], array_merge($s, ['tempat_lahir' => null, 'tanggal_lahir' => null, 'id_bidang' => null, 'nama' => $s['nama'], 'status' => 'aktif', 'pendidikan' => 'S-1']));
+        $this->assertSame(['Diklat teknis'], \App\Models\Pegawai::where('nip', $s['nip'])->first()->kolomKurang());
     }
 
     public function test_file_undikenali_memberi_pesan_gagal(): void

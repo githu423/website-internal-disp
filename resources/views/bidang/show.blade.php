@@ -64,6 +64,14 @@
             @endforelse
             </tbody>
         </table>
+        <div class="px-5 py-2.5 border-t border-slate-100 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-slate-500" title="Rekap seluruh anggota bidang ini (sama dengan daftar di atas)">
+            <span class="font-extrabold text-[12.5px] text-slate-700">Rekap:</span>
+            <span><b class="text-[13.5px] text-slate-900">{{ $statistik['semua'] }}</b> semuanya</span>
+            <span class="text-sky-700">♂ <b>{{ $statistik['l'] }}</b> laki-laki</span>
+            <span class="text-pink-600">♀ <b>{{ $statistik['p'] }}</b> perempuan</span>
+            <span class="text-teal-700"><b>{{ $statistik['pns'] }}</b> PNS</span>
+            <span class="text-indigo-700"><b>{{ $statistik['nonpns'] }}</b> non-PNS (PPPK/belum terisi)</span>
+        </div>
     </div>
     <div class="space-y-4 bidang-aksi">
         <div class="card p-5">

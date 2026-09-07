@@ -17,6 +17,23 @@ class CapaianTahunan extends Model
         return $this->belongsTo(CapaianIndikator::class, 'indikator_id');
     }
 
+    /** v23: tingkat capaian keseluruhan per tahun = % indikator bernilai
+     *  yang mencapai target (>=100%). Dipakai halaman statistik capaian
+     *  DAN kartu dashboard, biar angkanya selalu sama. */
+    public static function tingkatPerTahun(): array
+    {
+        $years = self::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($t) => (int) $t)->all();
+        $pct = [];
+        foreach ($years as $y) {
+            $din = self::where('tahun', $y)->get()
+                ->filter(fn ($n) => CapaianIndikator::persenNum($n->persen) !== null);
+            $pct[] = $din->count()
+                ? round($din->filter(fn ($n) => CapaianIndikator::persenNum($n->persen) >= 100)->count() / $din->count() * 100, 1)
+                : null;
+        }
+        return [$years, $pct];
+    }
+
     public function getTercapaiAttribute(): ?bool
     {
         $p = CapaianIndikator::persenNum($this->persen);

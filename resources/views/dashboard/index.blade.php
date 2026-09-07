@@ -23,12 +23,20 @@
 <div class="grid lg:grid-cols-3 gap-4 mb-5">
     <div class="card p-5 lg:col-span-2">
         <div class="flex items-center justify-between mb-2">
-            <h3 class="font-bold">Capaian Kinerja per Bulan <span class="text-xs font-semibold text-slate-400">TA {{ $chart['tahun'] }}</span></h3>
-            <a href="{{ route('statistik.index') }}" class="text-xs font-semibold text-teal-600 hover:underline">Detail statistik →</a>
+            @if ($ringkas)
+                <h3 class="font-bold">Tingkat Capaian Keseluruhan per Tahun <span class="text-xs font-semibold text-slate-400">{{ $ringkas['labels'][0] }}–{{ $ringkas['labels'][count($ringkas['labels']) - 1] }}</span></h3>
+                <a href="{{ route('kinerja.capaian', ['tampilan' => 'statistik']) }}" class="text-xs font-semibold text-teal-600 hover:underline">Statistik capaian →</a>
+            @else
+                <h3 class="font-bold">Capaian Kinerja per Bulan <span class="text-xs font-semibold text-slate-400">TA {{ $chart['tahun'] }}</span></h3>
+                <a href="{{ route('admin.capaian.index') }}" class="text-xs font-semibold text-teal-600 hover:underline">Impor capaian →</a>
+            @endif
         </div>
-        <div class="h-64"><canvas data-chart='@json($chart)'></canvas></div>
-        @if (collect($chart['capaian'])->every(fn ($v) => $v == 0))
-            <p class="text-xs text-slate-400 mt-2 text-center">Belum ada capaian bulanan untuk TA {{ $chart['tahun'] }} — grafik menampilkan garis target.</p>
+        @if ($ringkas)
+            <p class="text-[11px] text-slate-400 mb-1">Persentase indikator yang mencapai target (≥100%) per tahun — rekap dari berkas capaian kinerja.</p>
+            <div class="h-64"><canvas data-chart='@json($ringkas)'></canvas></div>
+        @else
+            <div class="h-64"><canvas data-chart='@json($chart)'></canvas></div>
+            <p class="text-xs text-slate-400 mt-2 text-center">Belum ada berkas capaian kinerja diimpor — untuk sementara grafik garis target bulanan TA {{ $chart['tahun'] }}.</p>
         @endif
     </div>
 

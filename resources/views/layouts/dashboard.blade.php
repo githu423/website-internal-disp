@@ -24,7 +24,7 @@
     <!-- ============ SIDEBAR ============ -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 flex flex-col bg-slate-900 text-slate-100">
         <div class="flex items-center gap-2.5 px-4 h-16 border-b border-white/10 shrink-0">
-            <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo SIPARDIS" class="h-9 w-9 shrink-0 rounded-xl object-cover shadow" />
+            <span class="h-9 w-9 shrink-0 rounded-xl bg-gradient-to-br from-teal-400 to-sky-500 grid place-items-center text-white font-black text-base shadow">DP</span>
             <div class="sb-hide leading-tight min-w-0">
                 <p class="font-bold text-[15px] tracking-tight truncate">SIPARDIS</p>
                 <p class="text-[10.5px] text-slate-400 truncate">Dispar Kab. Ciamis</p>
@@ -84,7 +84,7 @@
         </nav>
 
         <div class="border-t border-white/10 p-2.5 shrink-0">
-            <div class="flex items-center gap-2.5">
+            <a href="{{ route('profil.index') }}" title="Buka profil saya" class="flex items-center gap-2.5 rounded-lg -m-1 p-1 hover:bg-white/5 transition">
                 <span class="h-9 w-9 shrink-0 rounded-full bg-teal-600 grid place-items-center text-white text-xs font-bold">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
                 <div class="sb-hide flex-1 min-w-0">
                     <p class="text-[13px] font-semibold truncate">{{ $u->name }}</p>
@@ -93,10 +93,10 @@
                         <span class="opacity-70">Bidang:</span> {{ $u->bidang?->nama ?? ($u->isAdmin() ? 'Seluruh Dinas' : 'belum tertaut — tetapkan di Admin ▸ Akun') }}
                     </p>
                 </div>
+            </a>
                 <form method="POST" action="{{ route('logout') }}">@csrf
                     <button title="Keluar" class="h-8 w-8 shrink-0 grid place-items-center rounded-lg text-slate-300 hover:bg-rose-500/20 hover:text-rose-300 active:scale-90 transition"><x-icon name="logout" class="h-4 w-4" /></button>
                 </form>
-            </div>
         </div>
     </aside>
     <div id="sb-overlay" class="fixed inset-0 z-40 bg-slate-900/50 hidden"></div>
@@ -108,6 +108,7 @@
             <h1 class="font-bold text-[15px] leading-tight truncate">@yield('title', 'Dashboard')</h1>
             <p class="text-[11px] text-slate-400 truncate">@yield('subtitle', now()->translatedFormat('l, d F Y'))</p>
         </div>
+        <a href="{{ route('profil.index') }}" title="Profil saya" class="h-10 w-10 shrink-0 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition"><x-icon name="pegawai" /></a>
         <div class="relative">
             <button id="bell-btn" class="relative h-10 w-10 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition">
                 <x-icon name="bell" />

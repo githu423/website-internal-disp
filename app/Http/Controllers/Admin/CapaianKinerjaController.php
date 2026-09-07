@@ -8,6 +8,7 @@ use App\Models\CapaianSasaran;
 use App\Models\CapaianTahunan;
 use App\Models\LogAktivitas;
 use App\Services\ImportService;
+use App\Services\NotifikasiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -149,12 +150,16 @@ class CapaianKinerjaController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $request->validate([
-            'berkas' => ['required', 'file', 'mimes:csv,xlsx,xls,ods,xlsb'],
+            'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods,xlsb', 'max:20480'],
             'mode' => ['nullable', 'in:ganti,update'],
         ]);
         $mode = $request->input('mode', 'update');
-
-        $rows = ImportService::rowsFrom($request->file('berkas')->getRealPath());
+        $f = $request->file('file');
+        try {
+            $rows = ImportService::rowsFrom($f->getRealPath(), $f->getClientOriginalName());
+        } catch (\Throwable $e) {
+            return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
+        }
         $data = ImportService::parseCapaian($rows);
         if (!$data) {
             return back()->with('gagal', 'Format tidak dikenali. Butuh baris header "No. | Sasaran | Indikator Kinerja | Satuan" dan baris tahun dengan kolom Target/Realisasi/% per tahun.');
@@ -162,8 +167,9 @@ class CapaianKinerjaController extends Controller
         $res = ImportService::applyCapaian($data, $mode);
         $pesan = $mode === 'ganti'
             ? "Data diganti seluruhnya: {$res['sasaran_baru']} sasaran, {$res['indikator_baru']} indikator, {$res['nilai_baru']} nilai tahunan."
-            : "Gabar/upgrade selesai: {$res['nilai_baru']} nilai baru, {$res['nilai_ubah']} diperbarui, {$res['nilai_sama']} sudah sama (tidak diduplikat)"
+            : "Gabungkan selesai: {$res['nilai_baru']} nilai baru, {$res['nilai_ubah']} diperbarui, {$res['nilai_sama']} sudah sama (tidak diduplikat)"
               . ($res['indikator_baru'] || $res['sasaran_baru'] ? "; {$res['sasaran_baru']} sasaran & {$res['indikator_baru']} indikator baru dibuat" : '') . '.';
+        NotifikasiService::broadcast('Data capaian kinerja diperbarui', $pesan, 'import', route('admin.capaian.index'));
         LogAktivitas::catat('impor capaian kinerja (' . $mode . ')', $pesan);
 
         return back()->with('sukses', $pesan);

@@ -20,7 +20,7 @@
         </div>
         <form method="POST" action="{{ route('admin.capaian.import') }}" enctype="multipart/form-data" class="flex flex-wrap items-center gap-2">
             @csrf
-            <input type="file" name="berkas" accept=".csv,.xlsx,.xls,.ods" required class="flex-1 min-w-[200px] text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-teal-600 file:px-3 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-teal-500">
+            <input type="file" name="file" accept=".csv,.xlsx,.xls,.ods,.xlsb,.txt" required class="flex-1 min-w-[200px] text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-teal-600 file:px-3 file:py-2 file:text-sm file:font-bold file:text-white hover:file:bg-teal-500">
             <button class="rounded-lg bg-teal-600 px-4 py-2 text-sm font-bold text-white hover:bg-teal-500 active:scale-95 transition">Impor</button>
         </form>
     </div>

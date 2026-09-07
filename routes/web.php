@@ -8,6 +8,7 @@ use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PadController;
 use App\Http\Controllers\PegawaiController;
+use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\StatistikController;
 use Illuminate\Support\Facades\Route;
 
@@ -36,6 +37,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/statistik', [StatistikController::class, 'index'])->name('statistik.index');
     Route::get('/statistik/data', [StatistikController::class, 'data'])->name('statistik.data');
     Route::get('/pad', [PadController::class, 'index'])->name('pad.index');
+
+    // profil pribadi: SEMUA user tanpa terkecuali boleh melihat & mengisi datanya sendiri
+    Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
+    Route::patch('/profil', [ProfilController::class, 'simpan'])->name('profil.simpan');
 
     Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
     Route::get('/notifikasi/unread', [NotifikasiController::class, 'unread'])->name('notifikasi.unread');
@@ -82,9 +87,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('capaian-kinerja', [Admin\CapaianKinerjaController::class, 'index'])->name('capaian.index');
         Route::post('capaian-kinerja/import', [Admin\CapaianKinerjaController::class, 'import'])->name('capaian.import');
 
+        // statistik: format file "Data Statistik Pariwisata" (indikator x tahun) — v17
         Route::get('statistik', [Admin\StatistikController::class, 'index'])->name('statistik.index');
         Route::post('statistik', [Admin\StatistikController::class, 'store'])->name('statistik.store');
         Route::post('statistik/import', [Admin\StatistikController::class, 'import'])->name('statistik.import');
+        Route::delete('statistik/{statistik}', [Admin\StatistikController::class, 'destroy'])->name('statistik.destroy');
         Route::post('capaian-kinerja/sasaran', [Admin\CapaianKinerjaController::class, 'storeSasaran'])->name('capaian.sasaran.store');
         Route::patch('capaian-kinerja/sasaran/{sasaran}', [Admin\CapaianKinerjaController::class, 'updateSasaran'])->name('capaian.sasaran.update');
         Route::delete('capaian-kinerja/sasaran/{sasaran}', [Admin\CapaianKinerjaController::class, 'destroySasaran'])->name('capaian.sasaran.destroy');

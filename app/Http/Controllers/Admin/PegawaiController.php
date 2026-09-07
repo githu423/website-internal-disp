@@ -16,12 +16,23 @@ class PegawaiController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = Pegawai::query()->with('bidang')->cari($request->query('q'));
+        // v22: kata kunci "belum lengkap" di kotak cari = saringan kelengkapan, bukan teks nama.
+        $cari = trim((string) $request->query('q', ''));
+        $kunci = strtolower(preg_replace('/\s+/', '', $cari));
+        $modeBelum = $kunci === 'belumlengkap' || (bool) $request->query('belum');
+        $q = Pegawai::query()->with('bidang');
+        if ($kunci !== 'belumlengkap') $q->cari($cari ?: null);
         if ($b = $request->query('bidang')) $q->where('id_bidang', $b);
+        if ($modeBelum) $q->belumLengkap(); // chip merah / kata kunci: hanya yang datanya bolong
+        $belumLengkap = Pegawai::belumLengkap()->count();
+        $total = Pegawai::count();
         return view('admin.pegawai.index', [
             'pegawai' => $q->orderBy('nama')->paginate(15)->withQueryString(),
             'bidangs' => Bidang::orderBy('id')->get(),
-            'total' => Pegawai::count(),
+            'total' => $total,
+            'belumLengkap' => $belumLengkap,
+            'lengkap' => $total - $belumLengkap,
+            'modeBelum' => $modeBelum,
         ]);
     }
 
@@ -50,9 +61,11 @@ class PegawaiController extends Controller
     public function import(Request $request): RedirectResponse
     {
         $request->validate(['file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:10240']]);
-        $path = $request->file('file')->getRealPath();
+        $f = $request->file('file');
+        $path = $f->getRealPath();
+        $namaAsli = $f->getClientOriginalName();
         try {
-            $hasil = ImportService::applyPegawai(ImportService::rowsFrom($path));
+            $hasil = ImportService::applyPegawai(ImportService::rowsFrom($path, $namaAsli));
         } catch (\Throwable $e) {
             return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
         }
@@ -82,6 +95,11 @@ class PegawaiController extends Controller
             'tmt_sekarang' => ['nullable', 'date'],
             'tmt_jabatan' => ['nullable', 'date'],
             'pendidikan' => ['nullable', 'string', 'max:100'],
+            'unit_kerja' => ['nullable', 'string', 'max:120'],
+            'pangkat_awal' => ['nullable', 'string', 'max:100'],
+            'diklat_struktural' => ['nullable', 'string', 'max:150'],
+            'diklat_fungsional' => ['nullable', 'string', 'max:150'],
+            'diklat_teknis' => ['nullable', 'string', 'max:150'],
             'status' => ['required', 'in:aktif,nonaktif,pensiun'],
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);

@@ -35,7 +35,15 @@ class DashboardController extends Controller
             ->first();
         $padPersen = $padSum && $padSum->target > 0 ? round($padSum->realisasi / $padSum->target * 100, 1) : null;
 
-        // grafik bulanan: tahun dengan data, fallback ke data terdekat
+        // v23: kartu utama = "Tingkat capaian keseluruhan per tahun" dari modul
+        // capaian kinerja (sama persis dgn halaman /kinerja/capaian?tampilan=statistik).
+        [$rTahun, $rPct] = \App\Models\CapaianTahunan::tingkatPerTahun();
+        $ringkas = $rTahun ? [
+            'labels' => $rTahun,
+            'datasets' => [['label' => '% indikator tercapai (≥100%)', 'data' => $rPct, 'type' => 'line', 'color' => '#0f172a', 'fill' => true]],
+        ] : null;
+
+        // grafik bulanan cadangan: tahun dengan data, fallback ke data terdekat
         $chartTahun = CapaianBulanan::tahunTersedia()[0] ?? $kinerjaTahun;
         $bulanan = CapaianBulanan::where('tahun', $chartTahun)->orderBy('bulan')->get();
         $bulanNama = [1=>'Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -56,7 +64,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', compact(
             'jumlahPegawai', 'jumlahDokumen', 'agendaMendatang', 'agendaTerlewat',
-            'padTahun', 'padSum', 'padPersen', 'chart', 'kinerja', 'kinerjaTotal',
+            'padTahun', 'padSum', 'padPersen', 'chart', 'ringkas', 'kinerja', 'kinerjaTotal',
             'kinerjaSelesai', 'kinerjaTahun'
         ));
     }

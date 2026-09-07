@@ -20,23 +20,23 @@ class BidangController extends Controller
     public function index(Request $request): View
     {
         $u = $request->user();
-
-        // Pegawai tanpa id_bidang — hitung jumlah per bidang lewat tebakDariTeks
-        // supaya kartu UPTD (yang pegawainya belum tertaut FK) tampil jumlah benar.
-        $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
-        $tebakCounts = [];
-        foreach (Pegawai::whereNull('id_bidang')->get() as $p) {
-            $bid = Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
-            if ($bid) {
-                $tebakCounts[$bid] = ($tebakCounts[$bid] ?? 0) + 1;
-            }
-        }
+        // rekap kecil per kartu bidang: satu query agregat (portabel MySQL & sqlite)
+        $rek = \Illuminate\Support\Facades\DB::table('pegawai')->selectRaw(
+            "id_bidang,
+             SUM(CASE WHEN jenis_kelamin='L' THEN 1 ELSE 0 END) l,
+             SUM(CASE WHEN jenis_kelamin='P' THEN 1 ELSE 0 END) p,
+             SUM(CASE WHEN jenis_asn='PNS' THEN 1 ELSE 0 END) pns,
+             SUM(CASE WHEN tempat_lahir IS NULL OR tempat_lahir='' OR tanggal_lahir IS NULL
+                       OR jenis_kelamin IS NULL OR jenis_kelamin='' OR pangkat_golongan IS NULL OR pangkat_golongan=''
+                       OR pendidikan IS NULL OR pendidikan='' OR unit_kerja IS NULL OR unit_kerja=''
+                       OR tmt_cpns IS NULL OR tmt_sekarang IS NULL OR tmt_jabatan IS NULL
+                      THEN 1 ELSE 0 END) blm")
+            ->whereNotNull('id_bidang')->groupBy('id_bidang')->get()->keyBy('id_bidang');
 
         $bidangList = Bidang::withCount(['pegawais', 'dokumen', 'agenda'])->orderBy('kode')->get()
-            ->map(function ($b) use ($u, $tebakCounts) {
+            ->map(function ($b) use ($u, $rek) {
                 $b->boleh_kelola = $u->isAdmin() || $u->id_bidang === $b->id;
-                // Gabungkan jumlah pegawai langsung (FK) + pegawai yang ditebak dari jabatan
-                $b->pegawais_count = $b->pegawais_count + ($tebakCounts[$b->id] ?? 0);
+                $b->rek = $rek->get($b->id);
                 return $b;
             });
 
@@ -74,11 +74,23 @@ class BidangController extends Controller
             $dq->where('visibility', 'publik');
         }
 
+        // daftar anggota dulu; rekap jumlah dihitung dari kumpulan yang SAMA
+        // (termasuk anggota fallback tebak-jabatan), jadi angkanya tidak mungkin beda dengan tabelnya
+        $pegawais = $this->anggotaBidang($bidang);
+        $statistik = [
+            'semua'  => $pegawais->count(),
+            'l'      => $pegawais->where('jenis_kelamin', 'L')->count(),
+            'p'      => $pegawais->where('jenis_kelamin', 'P')->count(),
+            'pns'    => $pegawais->where('jenis_asn', 'PNS')->count(),
+            'nonpns' => $pegawais->filter(fn ($x) => $x->jenis_asn !== 'PNS')->count(),
+        ];
+
         return view('bidang.show', [
             'b' => $bidang,
             'bolehKelola' => $anggota,
             'semuaBidang' => Bidang::orderBy('kode')->get(),
-            'pegawais' => $this->anggotaBidang($bidang),
+            'pegawais' => $pegawais,
+            'statistik' => $statistik,
             'dokumens' => $dq->latest()->limit(15)->get(),
             'agenda' => Agenda::where('id_bidang', $bidang->id)->orderByDesc('tanggal')->limit(6)->get(),
         ]);

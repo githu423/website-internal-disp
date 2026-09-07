@@ -2,29 +2,29 @@
 
 namespace Tests\Feature;
 
-use App\Models\CapaianBulanan;
 use App\Models\Dokumen;
+use App\Models\Statistik;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 /** Round 9: statistik bisa dikelola & filter tahun nyata; halaman bidang untuk semua + arsip privat. */
 class BidangStatistikTest extends TestCase
 {
-    public function test_grafik_bulanan_ikut_tahun_terpilih(): void
+    // --- v17: modul Statistik diganti ke format "indikator x tahun" (file Data Statistik) ---
+
+    public function test_grafik_publik_memakai_tahun_dari_file_statistik(): void
     {
         $this->buatKerangka();
         $admin = $this->userAdmin();
-        CapaianBulanan::create(['tahun' => 2025, 'bulan' => 1, 'target' => 20, 'capaian' => 10]);
-        CapaianBulanan::create(['tahun' => 2026, 'bulan' => 1, 'target' => 100, 'capaian' => 90]);
+        $csv = "DATA STATISTIK PARIWISATA,,\n\nNo,Indikator,Satuan,Tahun,,,,,Keterangan\n,,,2017,2018,2019,2020,2021,,,,\n1,Jumlah Kunjungan,Orang,10,20,30,40,50,,,,\n";
+        $this->actingAs($admin)->post(route('admin.statistik.import'), [
+            'file' => UploadedFile::fake()->createWithContent('s.csv', $csv),
+        ])->assertRedirect()->assertSessionHas('sukses');
 
-        $chartDi = function (string $html): array {
-            preg_match("/data-chart='([^']+)'/", $html, $m);
-            return json_decode($m[1] ?? 'null', true) ?? [];
-        };
-        $c25 = $chartDi($this->actingAs($admin)->get('/statistik?tahun=2025')->assertOk()->getContent());
-        $c26 = $chartDi($this->actingAs($admin)->get('/statistik?tahun=2026')->assertOk()->getContent());
-        $this->assertSame(10.0, (float) ($c25['capaian'][0] ?? -1), 'Januari 2025 harus 10');
-        $this->assertSame(90.0, (float) ($c26['capaian'][0] ?? -1), 'Januari 2026 harus 90 — bukan data tahun lain');
+        preg_match("/data-chart='([^']+)'/", $this->actingAs($admin)->get('/statistik')->assertOk()->getContent(), $m);
+        $chart = json_decode($m[1] ?? 'null', true) ?? [];
+        $this->assertSame(['2017', '2018', '2019', '2020', '2021'], $chart['labels'], 'label grafik = tahun dari file, bukan bulan');
+        $this->assertSame([10.0, 20.0, 30.0, 40.0, 50.0], array_map('floatval', $chart['datasets'][0]['data']));
     }
 
     public function test_kelola_statistik_manual_dan_impor(): void
@@ -32,24 +32,27 @@ class BidangStatistikTest extends TestCase
         $this->buatKerangka();
         $admin = $this->userAdmin();
 
-        $nilai = [];
-        for ($b = 1; $b <= 12; $b++) $nilai[$b] = ['target' => '', 'capaian' => ''];
-        $nilai[3] = ['target' => '5', 'capaian' => '6'];
-        $this->actingAs($admin)->post(route('admin.statistik.store'), ['tahun' => 2027, 'nilai' => $nilai])->assertRedirect();
-        $this->assertDatabaseHas('capaian_bulanan', ['tahun' => 2027, 'bulan' => 3, 'target' => 5, 'capaian' => 6]);
-
-        $csv = "1,100,80\n2,\"120,5\",90\nJul,7,7\n";
-        $this->actingAs($admin)->post(route('admin.statistik.import'), [
-            'tahun' => 2027,
-            'berkas' => UploadedFile::fake()->createWithContent('stat.csv', $csv),
+        // grid manual: ribuan gaya Indonesia & persen dikenali
+        $this->actingAs($admin)->post(route('admin.statistik.store'), [
+            'tahunList' => [2024, 2025],
+            'rows' => [['no_urut' => '1', 'indikator' => 'UJI STATISTIK BARU', 'satuan' => 'Persen',
+                        'keterangan' => 'catatan', 'nilai' => [2024 => '1.250.000', 2025 => '12.5%']]],
         ])->assertRedirect()->assertSessionHas('sukses');
+        $st = Statistik::where('indikator', 'UJI STATISTIK BARU')->firstOrFail();
+        $this->assertSame(1250000.0, (float) $st->nilais->firstWhere('tahun', 2024)->nilai);
+        $this->assertSame(12.5, (float) $st->nilais->firstWhere('tahun', 2025)->nilai);
+        $this->assertSame('Persen', $st->satuan);
 
-        $this->assertDatabaseHas('capaian_bulanan', ['tahun' => 2027, 'bulan' => 1, 'target' => 100, 'capaian' => 80]);
-        $this->assertDatabaseHas('capaian_bulanan', ['tahun' => 2027, 'bulan' => 2, 'target' => 120.5, 'capaian' => 90]);
-        // impor tidak menghapus bulan yang tidak disebut (bulan 3 tetap)
-        $this->assertDatabaseHas('capaian_bulanan', ['tahun' => 2027, 'bulan' => 3, 'target' => 5]);
-        // nama bulan alias ("Jul") dikenali sebagai bulan 7
-        $this->assertDatabaseHas('capaian_bulanan', ['tahun' => 2027, 'bulan' => 7, 'target' => 7, 'capaian' => 7]);
+        // import indikator sama -> membarui (upsert by nama), tahun yang tidak disebut file dibiarkan
+        $csv = "No,Indikator,Satuan,Tahun,,Keterangan\n,,,2024,2025,\n1,UJI STATISTIK BARU,Orang,999,,\n";
+        $this->actingAs($admin)->post(route('admin.statistik.import'), [
+            'file' => UploadedFile::fake()->createWithContent('s.csv', $csv),
+        ])->assertRedirect()->assertSessionHas('sukses');
+        $st->refresh();
+        $this->assertCount(2, $st->nilais);
+        $this->assertSame(999.0, (float) $st->nilais->firstWhere('tahun', 2024)->nilai);
+        $this->assertSame('Orang', $st->satuan);
+        $this->assertSame(12.5, (float) $st->nilais->firstWhere('tahun', 2025)->nilai, '2025 tidak disebut file -> tetap 12.5');
     }
 
     public function test_staf_bidang_unggah_arsip_privat_bidang_lain_terkunci(): void

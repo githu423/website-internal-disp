@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CapaianBulanan;
+use App\Models\Statistik;
+use App\Models\StatistikNilai;
 use App\Models\CapaianIndikator;
 use App\Models\CapaianProgram;
 use App\Models\CapaianSasaran;
@@ -13,29 +14,37 @@ use Illuminate\View\View;
 
 class StatistikController extends Controller
 {
+    /**
+     * Halaman Statistik (v17): tabel indikator x tahun + grafik tren per indikator,
+     * bersumber dari modul Admin > Statistik (import file "Data Statistik Pariwisata").
+     */
     public function index(Request $request): View
     {
-        $tahun = (int) ($request->query('tahun') ?: (CapaianProgram::tahunTersedia()[0] ?? now()->year));
-        $baris = CapaianProgram::where('tahun', $tahun)->orderBy('urutan')->get();
-        $bulanTahun = $tahun; // tren bulanan mengikuti tahun yang dipilih (dulu selalu tahun terbaru — bug)
-        $bulanan = CapaianBulanan::where('tahun', $bulanTahun)->orderBy('bulan')->get();
+        $q = Statistik::with('nilais')->orderByRaw('COALESCE(no_urut, 99999)')->orderBy('indikator');
+        if ($s = trim((string) $request->query('q'))) $q->where('indikator', 'like', '%' . $s . '%');
+        $rows = $q->get();
+        $tahunList = StatistikNilai::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($t) => (int) $t)->all();
 
-        $namaBln = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-        $statChart = [
-            'labels' => array_map(fn ($m) => $namaBln[$m], range(1, 12)),
-            'target' => array_map(fn ($m) => (float) ($bulanan->firstWhere('bulan', $m)?->target ?? 0), range(1, 12)),
-            'capaian' => array_map(fn ($m) => (float) ($bulanan->firstWhere('bulan', $m)?->capaian ?? 0), range(1, 12)),
-        ];
+        $selected = $rows->firstWhere('id', (int) $request->query('ind')) ?: $rows->first();
+        $chart = null;
+        if ($selected && $tahunList) {
+            $byT = $selected->nilais->keyBy('tahun');
+            $chart = [
+                'labels' => array_map('strval', $tahunList),
+                'datasets' => [[
+                    'label' => $selected->indikator . ($selected->satuan ? ' (' . $selected->satuan . ')' : ''),
+                    'data' => array_map(fn ($t) => $byT->get($t)?->nilai !== null ? (float) $byT->get($t)->nilai : null, $tahunList),
+                    'type' => 'line', 'color' => '#0d9488', 'fill' => true,
+                ]],
+            ];
+        }
 
         return view('statistik.index', [
-            'statChart' => $statChart,
-            'tahun' => $tahun,
-            'tahunList' => CapaianProgram::tahunTersedia(),
-            'programs' => $baris->where('level', 'program'),
-            'kegiatan' => $baris->where('level', 'kegiatan')->count(),
-            'subs' => $baris->where('level', 'sub_kegiatan'),
-            'bulanan' => $bulanan,
-            'bulanTahun' => $bulanTahun,
+            'rows' => $rows,
+            'tahunList' => $tahunList,
+            'selected' => $selected,
+            'chart' => $chart,
+            'totalSemua' => Statistik::count(),
         ]);
     }
 
@@ -88,8 +97,7 @@ class StatistikController extends Controller
                     }
                     $adaAngka = array_filter($t) !== [] || array_filter($r) !== [];
                     $charts[] = [
-                        'nama' => $ind->nama, 'satuan' => $ind->satuan, 'sasaran' => $s->nomor . '. ' . $s->judul,
-                        'bidang' => optional($s->bidang)->nama,
+                        'nama' => $ind->nama, 'satuan' => $ind->satuan, 'sasaran' => $s->nomor . '. ' . $s->judul, 'bidang' => $s->bidang?->nama,
                         'chart' => $adaAngka ? ['labels' => $years, 'datasets' => [
                             ['label' => 'Target', 'data' => $t, 'type' => 'bar', 'color' => '#94a3b8'],
                             ['label' => 'Realisasi', 'data' => $r, 'type' => 'bar', 'color' => '#14b8a6'],
@@ -99,13 +107,8 @@ class StatistikController extends Controller
                     ];
                 }
             }
-            $pct = [];
-            foreach ($years as $y) {
-                $rows = CapaianTahunan::where('tahun', $y)->get();
-                $din = $rows->filter(fn ($n) => CapaianIndikator::persenNum($n->persen) !== null);
-                $pct[] = $din->count() ? round($din->filter(fn ($n) => CapaianIndikator::persenNum($n->persen) >= 100)->count() / $din->count() * 100, 1) : null;
-            }
-            $ringkasChart = ['labels' => $years, 'datasets' => [
+            [$yearsRingkas, $pct] = CapaianTahunan::tingkatPerTahun();
+            $ringkasChart = ['labels' => $yearsRingkas, 'datasets' => [
                 ['label' => '% indikator tercapai (≥100%)', 'data' => $pct, 'type' => 'line', 'color' => '#0f172a', 'fill' => true],
             ]];
         }
@@ -113,15 +116,16 @@ class StatistikController extends Controller
         return view('kinerja.capaian', compact('sasarans', 'years', 'last', 'tercapai', 'dinilai', 'tampilan', 'charts', 'ringkasChart'));
     }
 
+    /** JSON seluruh indikator + nilai per tahun (dipakai utk grafik/ekspor pihak ketiga). */
     public function data(Request $request): JsonResponse
     {
-        $tahun = (int) $request->query('tahun', now()->year);
-        $rows = CapaianBulanan::where('tahun', $tahun)->orderBy('bulan')->get();
-        $nama = [1 => 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $rows = Statistik::with('nilais')->orderByRaw('COALESCE(no_urut, 99999)')->get();
         return response()->json([
-            'labels' => array_map(fn ($m) => $nama[$m], range(1, 12)),
-            'target' => array_map(fn ($m) => (float) ($rows->firstWhere('bulan', $m)?->target ?? 0), range(1, 12)),
-            'capaian' => array_map(fn ($m) => (float) ($rows->firstWhere('bulan', $m)?->capaian ?? 0), range(1, 12)),
+            'tahun' => StatistikNilai::distinct()->orderBy('tahun')->pluck('tahun'),
+            'rows' => $rows->map(fn ($r) => [
+                'id' => $r->id, 'indikator' => $r->indikator, 'satuan' => $r->satuan,
+                'keterangan' => $r->keterangan, 'nilai' => $r->nilais->pluck('nilai', 'tahun'),
+            ]),
         ]);
     }
 }

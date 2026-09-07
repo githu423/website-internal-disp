@@ -47,9 +47,11 @@ $tahunList = Pad::tahunTersedia();
     public function import(Request $request): RedirectResponse
     {
         $request->validate(['file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:20480']]);
-        $path = $request->file('file')->getRealPath();
+        $f = $request->file('file');
+        $path = $f->getRealPath();
+        $namaAsli = $f->getClientOriginalName();
         try {
-            $hasil = ImportService::applyPad(ImportService::rowsFrom($path));
+            $hasil = ImportService::applyPad(ImportService::rowsFrom($path, $namaAsli));
         } catch (\Throwable $e) {
             return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
         }
@@ -57,9 +59,10 @@ $tahunList = Pad::tahunTersedia();
             return back()->with('gagal', 'Tidak ada data PAD yang dikenali. Gunakan format file PAD (blok TAHUN + kolom No., No. Rekening, Uraian, Target, Realisasi Jan-Des, Jumlah, Sisa, %).');
         }
         $yrs = implode(', ', $hasil['years']);
-        NotifikasiService::broadcast('Data PAD diperbarui', "Import file PAD: {$hasil['imported']} objek pendapatan (tahun $yrs).", 'import', route('pad.index'));
-        LogAktivitas::catat('import PAD', "rows={$hasil['imported']} years=$yrs");
-        return back()->with('sukses', "Import PAD berhasil: {$hasil['imported']} baris untuk tahun $yrs.");
+        $pesan = "Import PAD: {$hasil['dibuat']} objek baru, {$hasil['diperbarui']} diperbarui (tahun $yrs) — koreksi manual & data bulan lalu tetap aman.";
+        NotifikasiService::broadcast('Data PAD diperbarui', $pesan, 'import', route('pad.index'));
+        LogAktivitas::catat('import PAD', "rows={$hasil['imported']} baru={$hasil['dibuat']} ubah={$hasil['diperbarui']} years=$yrs");
+        return back()->with('sukses', $pesan);
     }
 
     private function validateData(Request $request): array
