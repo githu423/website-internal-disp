@@ -4,7 +4,7 @@
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
     <h2 class="text-lg font-extrabold">Aparatur Dinas Pariwisata</h2>
     <form method="GET" class="flex gap-2">
-        <input name="q" value="{{ request('q') }}" placeholder="Cari nama / NIP / jabatan… atau ketik: belum lengkap" class="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 outline-none">
+        <input name="q" value="{{ request('q') }}" placeholder="{{ $bolehKelengkapan ? 'Cari nama / NIP / jabatan… atau ketik: belum lengkap' : 'Cari nama / NIP / jabatan…' }}" class="w-64 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 outline-none">
         <button class="rounded-lg bg-slate-900 text-white px-3.5 py-2 text-sm font-bold hover:bg-slate-700 active:scale-95 transition">Cari</button>
     </form>
 </div>
@@ -44,10 +44,12 @@
     <span class="text-pink-600">♀ <b>{{ $statistik['p'] }}</b> perempuan</span>
     <span class="text-teal-700"><b>{{ $statistik['pns'] }}</b> PNS</span>
     <span class="text-indigo-700"><b>{{ $statistik['nonpns'] }}</b> non-PNS (PPPK/belum terisi)</span>
-    <span class="text-emerald-700 font-bold">✓ <b>{{ $statistik['lengkap'] }}</b> sudah lengkap</span>
-    @if ($statistik['belum'] > 0 || request('belum'))
-        <a href="{{ request()->fullUrlWithQuery(['belum' => request('belum') ? null : 1]) }}"
-           class="ml-auto inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11.5px] font-bold transition {{ request('belum') ? 'bg-rose-600 text-white border-rose-600' : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' }}">⚠ {{ $statistik['belum'] }} pegawai belum lengkap datanya — {{ request('belum') ? 'tampilkan semua' : 'saring' }}</a>
+    @if ($bolehKelengkapan)
+        <span class="text-emerald-700 font-bold">✓ <b>{{ $statistik['lengkap'] }}</b> sudah lengkap</span>
+        @if ($statistik['belum'] > 0 || request('belum'))
+            <a href="{{ request()->fullUrlWithQuery(['belum' => request('belum') ? null : 1]) }}"
+               class="ml-auto inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11.5px] font-bold transition {{ request('belum') ? 'bg-rose-600 text-white border-rose-600' : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' }}">⚠ {{ $statistik['belum'] }} pegawai belum lengkap datanya — {{ request('belum') ? 'tampilkan semua' : 'saring' }}</a>
+        @endif
     @endif
 </div>
 

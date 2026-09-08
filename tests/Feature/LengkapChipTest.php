@@ -39,22 +39,27 @@ class LengkapChipTest extends TestCase
         $this->assertContains('LC3', $belum);
     }
 
-    public function test_chip_merah_dan_saring_di_halaman_pegawai_user(): void
+    public function test_penanda_kelengkapan_khusus_admin_v24(): void
     {
         $this->buatKerangka();
         $this->pegawaiLengkap('LC1', 'UJI LENGKAP SATU');
         Pegawai::create(['nip' => 'LC2', 'nama' => 'UJI BOLONG SATU', 'status' => 'aktif']);
 
+        // user biasa: TIDAK ada chip, tidak ada 'sudah lengkap', filter ?belum diabaikan
         $u = $this->userPegawai(2, 'LC-U1');
         $this->actingAs($u)->get('/pegawai')->assertOk()
-            ->assertSee('belum lengkap')->assertSee('saring')
-            ->assertSee('sudah lengkap')
-            ->assertDontSee('belum lengkap: ', false);
+            ->assertDontSee('saring')->assertDontSee('sudah lengkap')
+            ->assertDontSee('belum lengkap: ', false)
+            ->assertSee('UJI LENGKAP SATU');
         $this->actingAs($u)->get('/pegawai?belum=1')->assertOk()
+            ->assertSee('UJI LENGKAP SATU')->assertSee('UJI BOLONG SATU');
+        // admin di halaman yg sama: chip + saring + catatan lengkap
+        $a = $this->userAdmin();
+        $this->actingAs($a)->get('/pegawai')->assertOk()
+            ->assertSee('belum lengkap datanya')->assertSee('saring')->assertSee('sudah lengkap');
+        $this->actingAs($a)->get('/pegawai?belum=1')->assertOk()
             ->assertSee('UJI BOLONG SATU')->assertDontSee('UJI LENGKAP SATU')
-            ->assertSee('tampilkan semua')
-            ->assertSee('belum lengkap: ', false)
-            ->assertDontSee('Perlu ditindaklanjuti');
+            ->assertSee('belum lengkap: ', false);
     }
 
     public function test_chip_merah_dan_saring_di_halaman_admin(): void
@@ -128,12 +133,12 @@ class LengkapChipTest extends TestCase
         $this->actingAs($u)->get('/admin/pegawai?belum=1')->assertOk()
             ->assertSee('UJI BOLONG SATU')->assertDontSee('UJI LENGKAP SATU')
             ->assertSee('belum lengkap: Pangkat/golongan awal, TMT CPNS, Pangkat/golongan terakhir', false);
-        // kata kunci di kotak cari = saringan yang sama, utk semua user
-        $pu = $this->userPegawai(2, 'LC-U2');
-        $this->actingAs($pu)->get('/pegawai?q=belum+lengkap')->assertOk()
+        // kata kunci di kotak cari = saringan yang sama — khusus admin (v24)
+        $this->actingAs($u)->get('/pegawai?q=belum+lengkap')->assertOk()
             ->assertSee('UJI BOLONG SATU')->assertDontSee('UJI LENGKAP SATU')
             ->assertSee('belum lengkap: ', false);
-        // cari nama biasa tetap normal
+        // cari nama biasa tetap normal utk semua user
+        $pu = $this->userPegawai(2, 'LC-U2');
         $this->actingAs($pu)->get('/pegawai?q=UJI+LENGKAP')->assertOk()->assertSee('UJI LENGKAP SATU');
     }
 

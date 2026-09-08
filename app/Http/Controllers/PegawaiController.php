@@ -10,10 +10,12 @@ class PegawaiController extends Controller
 {
     public function index(Request $request): View
     {
+        // v24: penanda & saringan "belum lengkap" KHUSUS admin (permintaan 7 Sep).
+        $bolehKelengkapan = (bool) optional($request->user())->isAdmin();
         // v22: "belum lengkap" adalah FILTER, bukan teks cari biasa — dikenali juga dari kotak cari.
         $cari = trim((string) $request->query('q', ''));
         $kunci = strtolower(preg_replace('/\s+/', '', $cari));
-        $modeBelum = $kunci === 'belumlengkap' || (bool) $request->query('belum');
+        $modeBelum = $bolehKelengkapan && ($kunci === 'belumlengkap' || (bool) $request->query('belum'));
         $q = Pegawai::query()->with('bidang');
         if ($kunci !== 'belumlengkap') $q->cari($cari ?: null);
         if ($modeBelum) $q->belumLengkap(); // chip merah / kata kunci: hanya yang datanya bolong
@@ -36,6 +38,7 @@ class PegawaiController extends Controller
             'pegawai' => $q->orderBy('nama')->paginate(15)->withQueryString(),
             'statistik' => $statistik,
             'modeBelum' => $modeBelum,
+            'bolehKelengkapan' => $bolehKelengkapan,
         ]);
     }
 }

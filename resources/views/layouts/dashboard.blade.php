@@ -108,7 +108,10 @@
             <h1 class="font-bold text-[15px] leading-tight truncate">@yield('title', 'Dashboard')</h1>
             <p class="text-[11px] text-slate-400 truncate">@yield('subtitle', now()->translatedFormat('l, d F Y'))</p>
         </div>
-        <a href="{{ route('profil.index') }}" title="Profil saya" class="h-10 w-10 shrink-0 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition"><x-icon name="pegawai" /></a>
+        <a href="{{ route('profil.index') }}" title="Profil saya" class="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-br from-teal-600 to-emerald-500 py-1 pl-1 pr-3 text-white shadow-sm hover:brightness-110 hover:-translate-y-px active:scale-95 transition">
+            <span class="h-7 w-7 grid place-items-center rounded-full bg-white/25"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.2 3.6-6.6 8-6.6s8 2.4 8 6.6"/></svg></span>
+            <span class="text-[12.5px] font-extrabold tracking-wide">Profil</span>
+        </a>
         <div class="relative">
             <button id="bell-btn" class="relative h-10 w-10 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition">
                 <x-icon name="bell" />
