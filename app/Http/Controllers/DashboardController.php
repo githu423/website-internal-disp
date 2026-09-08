@@ -25,7 +25,7 @@ class DashboardController extends Controller
         $padTahun = (int) (in_array(now()->year, $padList) ? now()->year : ($padList[0] ?? now()->year));
 
         // kartu statistik
-        $jumlahPegawai = $scope(Pegawai::query())->where('status', 'aktif')->count();
+        $jumlahPegawai = Pegawai::where('status', 'aktif')->count();
         $jumlahDokumen = $scope(Dokumen::query())->count();
         $agendaMendatang = $scope(Agenda::query())->terdekat()->limit(5)->get();
         $agendaTerlewat = $scope(Agenda::query())->terlewat()->count();
