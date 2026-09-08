@@ -63,8 +63,9 @@ class StatistikController extends Controller
         }
         if ($s = trim((string) $request->query('q'))) $q->where('nama', 'like', "%$s%");
         $items = $q->paginate(20)->withQueryString();
-        $ringkas = CapaianProgram::where('tahun', $tahun)->where('level', 'sub_kegiatan')
-            ->selectRaw("COUNT(*) total, SUM(CASE WHEN persentase>=100 THEN 1 ELSE 0 END) tuntas, SUM(CASE WHEN persentase>=60 AND persentase<100 THEN 1 ELSE 0 END) berjalan, SUM(CASE WHEN persentase<60 THEN 1 ELSE 0 END) lambat")->first();
+        $ringkasQuery = CapaianProgram::where('tahun', $tahun)->where('level', 'sub_kegiatan');
+        if (! $u->isAdmin() && $u->id_bidang) $ringkasQuery->where('id_bidang', $u->id_bidang);
+        $ringkas = $ringkasQuery->selectRaw("COUNT(*) total, SUM(CASE WHEN persentase>=100 THEN 1 ELSE 0 END) tuntas, SUM(CASE WHEN persentase>=60 AND persentase<100 THEN 1 ELSE 0 END) berjalan, SUM(CASE WHEN persentase<60 THEN 1 ELSE 0 END) lambat")->first();
 
         return view('kinerja.index', compact('items', 'tahun', 'tahunList', 'ringkas'));
     }
