@@ -50,7 +50,7 @@ class PrestasiController extends Controller
         $path = $f->getRealPath();
         $namaAsli = $f->getClientOriginalName();
         try {
-            $rows = ImportService::parsePrestasi(ImportService::rowsFrom($path, $namaAsli));
+            $rows = ImportService::rowsFrom($path, $namaAsli);
             $hasil = ImportService::applyPrestasi($rows);
         } catch (\Throwable $e) {
             return back()->with('gagal', 'File gagal dibaca: ' . $e->getMessage());
