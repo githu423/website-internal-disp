@@ -77,6 +77,7 @@
                     <x-sb-link :href="route('admin.agenda.index')" label="Kelola Agenda" icon="agenda" :active="$r('admin.agenda.*')" />
                     <x-sb-link :href="route('admin.dokumen.index')" label="Kelola Dokumen" icon="dokumen" :active="$r('admin.dokumen.*')" />
                     <x-sb-link :href="route('admin.akun.index')" label="Akun & Akses" icon="akun" :active="$r('admin.akun.*')" />
+                    <x-sb-link :href="route('admin.prestasi.index')" label="Kelola Prestasi" icon="kinerja" :active="$r('admin.prestasi.*')" />
                     <x-sb-link :href="route('admin.log.index')" label="Log Aktivitas" icon="log" :active="$r('admin.log.*')" />
                 </div>
             </div>

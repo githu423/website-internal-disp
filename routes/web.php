@@ -106,6 +106,12 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('pad/{pad}', [Admin\PadController::class, 'destroy'])->name('pad.destroy');
         Route::post('pad/import', [Admin\PadController::class, 'import'])->name('pad.import');
 
+        Route::get('prestasi', [Admin\PrestasiController::class, 'index'])->name('prestasi.index');
+        Route::post('prestasi/import', [Admin\PrestasiController::class, 'import'])->name('prestasi.import');
+        Route::post('prestasi/{prestasi}/toggle-featured', [Admin\PrestasiController::class, 'toggleFeatured'])->name('prestasi.toggleFeatured');
+        Route::post('prestasi/reset-featured', [Admin\PrestasiController::class, 'resetFeatured'])->name('prestasi.resetFeatured');
+        Route::delete('prestasi/{prestasi}', [Admin\PrestasiController::class, 'destroy'])->name('prestasi.destroy');
+
         Route::get('log', [Admin\LogController::class, 'index'])->name('log.index');
     });
 });

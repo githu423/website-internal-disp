@@ -27,18 +27,18 @@ $pct = $totalTarget > 0 ? round($totalRealisasi / $totalTarget * 100, 2) : 0;
 <div class="card overflow-hidden">
     <div class="overflow-x-auto thin-scroll">
         <table class="data w-full min-w-[860px]">
-            <thead><tr><th>Retribusi / Objek</th><th class="text-right">Target</th><th class="text-right">Realisasi Nov</th><th class="text-right">Realisasi Des</th><th class="text-right">Kumulatif</th><th class="text-right">Sisa Target</th><th class="min-w-[170px]">%</th></tr></thead>
+            <thead><tr><th>Retribusi / Objek</th><th class="text-right">Target</th><th class="text-right">Realisasi {{ now()->subMonth()->translatedFormat('M') }}</th><th class="text-right">Realisasi {{ now()->translatedFormat('M') }}</th><th class="text-right">Kumulatif</th><th class="text-right">Sisa Target</th><th class="min-w-[170px]">%</th></tr></thead>
             <tbody>
             @forelse ($rows->groupBy('kategori') as $kat => $grup)
                 <tr class="bg-slate-50"><td colspan="7" class="font-bold text-[12.5px] uppercase tracking-wide text-slate-600">{{ $kat ?: 'Tanpa Kategori' }}</td></tr>
                 @foreach ($grup as $r)
                     <tr>
                         <td><p class="font-semibold text-[13px]">{{ $r->objek }}</p><p class="text-[11px] text-slate-400">Rek. {{ $r->no_rekening ?: '—' }}</p></td>
-                        <td class="text-right text-xs tabular-nums">{{ number_format($r->target_tahunan, 0, ',', '.') }}@if ($r->target_perubahan > 0)<br><span class="text-[10px] text-sky-600 font-bold">perubahan {{ number_format($r->target_perubahan, 0, ',', '.') }}</span>@endif</td>
-                        <td class="text-right text-xs tabular-nums text-slate-500">{{ number_format($r->realisasi_bulan_lalu, 0, ',', '.') }}</td>
-                        <td class="text-right text-xs tabular-nums text-slate-500">{{ number_format($r->realisasi_bulan_ini, 0, ',', '.') }}</td>
-                        <td class="text-right text-xs tabular-nums font-bold">{{ number_format($r->kumulatif, 0, ',', '.') }}</td>
-                        <td class="text-right text-xs tabular-nums {{ $r->sisa_target < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold' }}">{{ number_format($r->sisa_target, 0, ',', '.') }}</td>
+                        <td class="text-right text-xs tabular-nums">Rp {{ number_format($r->target_tahunan, 0, ',', '.') }}@if ($r->target_perubahan > 0)<br><span class="text-[10px] text-sky-600 font-bold">perubahan Rp {{ number_format($r->target_perubahan, 0, ',', '.') }}</span>@endif</td>
+                        <td class="text-right text-xs tabular-nums text-slate-500">Rp {{ number_format($r->realisasi_bulan_lalu, 0, ',', '.') }}</td>
+                        <td class="text-right text-xs tabular-nums text-slate-500">Rp {{ number_format($r->realisasi_bulan_ini, 0, ',', '.') }}</td>
+                        <td class="text-right text-xs tabular-nums font-bold">Rp {{ number_format($r->kumulatif, 0, ',', '.') }}</td>
+                        <td class="text-right text-xs tabular-nums {{ $r->sisa_target < 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold' }}">Rp {{ number_format($r->sisa_target, 0, ',', '.') }}</td>
                         <td><x-prog :persen="$r->persentase" /></td>
                     </tr>
                 @endforeach
@@ -46,9 +46,9 @@ $pct = $totalTarget > 0 ? round($totalRealisasi / $totalTarget * 100, 2) : 0;
                 @if ($g)
                 <tr class="border-t border-slate-200 font-bold bg-slate-50/60">
                     <td class="text-[12px] text-slate-500">Jumlah {{ $kat }}</td>
-                    <td class="text-right text-xs tabular-nums">{{ number_format($g['target'], 0, ',', '.') }}</td><td></td><td></td>
-                    <td class="text-right text-xs tabular-nums">{{ number_format($g['realisasi'], 0, ',', '.') }}</td>
-                    <td class="text-right text-xs tabular-nums {{ $g['realisasi'] - $g['target'] < 0 ? 'text-rose-600' : 'text-emerald-600' }}">{{ number_format($g['realisasi'] - $g['target'], 0, ',', '.') }}</td>
+                    <td class="text-right text-xs tabular-nums">Rp {{ number_format($g['target'], 0, ',', '.') }}</td><td></td><td></td>
+                    <td class="text-right text-xs tabular-nums">Rp {{ number_format($g['realisasi'], 0, ',', '.') }}</td>
+                    <td class="text-right text-xs tabular-nums {{ $g['realisasi'] - $g['target'] < 0 ? 'text-rose-600' : 'text-emerald-600' }}">Rp {{ number_format($g['realisasi'] - $g['target'], 0, ',', '.') }}</td>
                     <td><x-prog :persen="$g['target'] > 0 ? round($g['realisasi'] / $g['target'] * 100, 2) : 0" /></td>
                 </tr>
                 @endif

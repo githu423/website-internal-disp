@@ -13,6 +13,129 @@
     @endif
 </div>
 
+@if ($prestasiTerbaru->isNotEmpty())
+    <!-- ============ SLIDER PRESTASI & PENGHARGAAN DINAS (TOP SHOWCASE) ============ -->
+    <div class="mb-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-5 sm:p-6 shadow-xl border border-amber-500/20 relative overflow-hidden" id="prestasi-slider-box">
+        <!-- Ambient Decorative Glow -->
+        <div class="absolute -right-16 -top-16 w-60 h-60 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -left-16 -bottom-16 w-60 h-60 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Slider Header -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 relative z-10">
+            <div class="flex items-center gap-3">
+                <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 flex items-center justify-center text-2xl shadow-lg shadow-amber-500/30 shrink-0 select-none">
+                    🏆
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-amber-400">Prestasi &amp; Penghargaan Dinas</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                            {{ $prestasiTerbaru->count() }} Terkini
+                        </span>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                        Galeri Prestasi &amp; Capaian Unggulan
+                    </h3>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 ml-auto">
+                @if ($u->isAdmin())
+                    <a href="{{ route('admin.prestasi.index') }}" class="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-amber-400 hover:text-amber-300 hover:underline mr-1.5 transition">
+                        Kelola Prestasi →
+                    </a>
+                @endif
+
+                <span id="prestasi-page-indicator" class="text-xs font-bold text-amber-200 bg-white/10 px-2.5 py-1 rounded-lg border border-white/10 select-none">
+                    1 / {{ $prestasiTerbaru->count() }}
+                </span>
+
+                <div class="flex items-center gap-1">
+                    <button type="button" id="prestasi-prev-btn" title="Sebelumnya" aria-label="Prestasi Sebelumnya"
+                        class="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center transition border border-white/10 disabled:opacity-30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <button type="button" id="prestasi-next-btn" title="Selanjutnya" aria-label="Prestasi Selanjutnya"
+                        class="h-8 w-8 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white flex items-center justify-center transition border border-white/10 disabled:opacity-30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slider Content / Cards Track -->
+        <div class="relative z-10 overflow-hidden">
+            <div id="prestasi-track" class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-1 select-none" style="scrollbar-width: none; -ms-overflow-style: none;">
+                @foreach ($prestasiTerbaru as $index => $p)
+                    <div class="prestasi-slide-item snap-start shrink-0 w-full flex flex-col justify-between rounded-xl bg-white/[0.06] hover:bg-white/[0.10] border border-white/10 hover:border-amber-400/40 p-4 sm:p-5 transition-all duration-300 relative group min-h-[175px]">
+                        <div>
+                            <!-- Badges -->
+                            <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                        <span>📅</span> TA {{ $p->tahun }}
+                                    </span>
+                                    @if ($p->is_featured)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold bg-amber-400 text-slate-900 shadow-sm">
+                                            ⭐ Pilihan Hari Ini
+                                        </span>
+                                    @endif
+                                </div>
+                                @if ($p->tingkat)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-indigo-400/20 text-indigo-200 border border-indigo-400/30">
+                                        🏛️ {{ $p->tingkat }}
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-slate-400 bg-white/5">
+                                        Kab. Ciamis
+                                    </span>
+                                @endif
+                            </div>
+
+                            <!-- Nama Penghargaan -->
+                            <h4 class="text-[13.5px] sm:text-sm font-bold text-white group-hover:text-amber-200 transition-colors leading-snug line-clamp-2 mb-3" title="{{ $p->nama_penghargaan }}">
+                                {{ $p->nama_penghargaan }}
+                            </h4>
+                        </div>
+
+                        <!-- Penerima & Pemberi Penghargaan -->
+                        <div class="pt-2.5 border-t border-white/10 space-y-1.5 text-xs">
+                            <div class="flex items-start gap-2">
+                                <span class="text-amber-400 shrink-0 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </span>
+                                <div class="min-w-0">
+                                    <span class="text-[9.5px] uppercase font-bold text-slate-400 block leading-tight">Penerima</span>
+                                    <p class="font-medium text-slate-200 truncate" title="{{ $p->nama_penerima ?: '—' }}">
+                                        {{ $p->nama_penerima ?: '—' }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            @if ($p->pemberi_penghargaan)
+                            <div class="flex items-start gap-2">
+                                <span class="text-teal-400 shrink-0 mt-0.5">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </span>
+                                <div class="min-w-0">
+                                    <span class="text-[9.5px] uppercase font-bold text-slate-400 block leading-tight">Pemberi Penghargaan</span>
+                                    <p class="font-medium text-slate-200 truncate" title="{{ $p->pemberi_penghargaan }}">
+                                        {{ $p->pemberi_penghargaan }}
+                                    </p>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- Dot Indicators -->
+        <div class="flex items-center justify-center gap-1.5 mt-3.5 relative z-10" id="prestasi-dots"></div>
+    </div>
+@endif
+
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
     <x-stat label="Pegawai Aktif" :value="$jumlahPegawai" sub="NSPK & non-NSPK" tone="sky" icon="pegawai" :href="route('pegawai.index')" />
     <x-stat label="Dokumen" :value="$jumlahDokumen" sub="tersimpan terpusat" tone="violet" icon="dokumen" :href="route('dokumen.index')" />
@@ -106,4 +229,129 @@
         </x-empty>
     @endif
 </div>
+
+<style>
+#prestasi-track::-webkit-scrollbar { display: none; }
+</style>
+
+<script>
+(function() {
+    function initPrestasiSlider() {
+        const track = document.getElementById('prestasi-track');
+        if (!track) return;
+
+        const prevBtn = document.getElementById('prestasi-prev-btn');
+        const nextBtn = document.getElementById('prestasi-next-btn');
+        const indicator = document.getElementById('prestasi-page-indicator');
+        const dotsContainer = document.getElementById('prestasi-dots');
+        const items = track.querySelectorAll('.prestasi-slide-item');
+        const total = items.length;
+        if (total <= 1) return;
+
+        let currentIndex = 0;
+
+        // Render dots
+        if (dotsContainer) {
+            dotsContainer.innerHTML = '';
+            items.forEach((_, idx) => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'h-1.5 rounded-full transition-all duration-300 ' + (idx === 0 ? 'w-6 bg-amber-400' : 'w-2 bg-white/20 hover:bg-white/40');
+                dot.setAttribute('aria-label', 'Slide ' + (idx + 1));
+                dot.addEventListener('click', () => goToSlide(idx));
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function getCardStep() {
+            if (!items[0]) return track.clientWidth;
+            const gap = parseFloat(window.getComputedStyle(track).gap) || 16;
+            return items[0].offsetWidth + gap;
+        }
+
+        function updateUI() {
+            if (indicator) {
+                indicator.textContent = (currentIndex + 1) + ' / ' + total;
+            }
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('button');
+                dots.forEach((d, i) => {
+                    if (i === currentIndex) {
+                        d.className = 'h-1.5 rounded-full transition-all duration-300 w-6 bg-amber-400';
+                    } else {
+                        d.className = 'h-1.5 rounded-full transition-all duration-300 w-2 bg-white/20 hover:bg-white/40';
+                    }
+                });
+            }
+        }
+
+        function goToSlide(idx) {
+            currentIndex = (idx + total) % total;
+            const step = getCardStep();
+            track.scrollTo({ left: currentIndex * step, behavior: 'smooth' });
+            updateUI();
+        }
+
+        prevBtn?.addEventListener('click', () => {
+            goToSlide(currentIndex - 1);
+            restartAuto();
+        });
+
+        nextBtn?.addEventListener('click', () => {
+            goToSlide(currentIndex + 1);
+            restartAuto();
+        });
+
+        let scrollTimeout;
+        track.addEventListener('scroll', () => {
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                const step = getCardStep();
+                if (step > 0) {
+                    currentIndex = Math.min(total - 1, Math.max(0, Math.round(track.scrollLeft / step)));
+                    updateUI();
+                }
+            }, 80);
+        }, { passive: true });
+
+        // Auto slide
+        let autoTimer = null;
+        function startAuto() {
+            stopAuto();
+            autoTimer = setInterval(() => {
+                goToSlide(currentIndex + 1);
+            }, 5000);
+        }
+
+        function stopAuto() {
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+            }
+        }
+
+        function restartAuto() {
+            stopAuto();
+            startAuto();
+        }
+
+        const box = document.getElementById('prestasi-slider-box');
+        if (box) {
+            box.addEventListener('mouseenter', stopAuto);
+            box.addEventListener('mouseleave', startAuto);
+            box.addEventListener('touchstart', stopAuto, { passive: true });
+            box.addEventListener('touchend', () => setTimeout(startAuto, 2000), { passive: true });
+        }
+
+        startAuto();
+        updateUI();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPrestasiSlider);
+    } else {
+        initPrestasiSlider();
+    }
+})();
+</script>
 @endsection

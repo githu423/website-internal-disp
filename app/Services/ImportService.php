@@ -278,18 +278,21 @@ class ImportService
             if (! is_numeric($c0) || trim($r[2]) === '') continue;
 
             $months = array_map(fn ($i) => self::num($r[5 + $i]), range(0, 11));
+            $bulanIni     = now()->month;                                   // 1-12
+            $idxBulanIni  = $bulanIni - 1;                                  // 0-based index array
+            $idxBulanLalu = $idxBulanIni - 1 >= 0 ? $idxBulanIni - 1 : 11; // Desember tahun lalu jika Januari
             $out[] = [
-                'tahun' => $tahun,
-                'kategori' => $kategori,
-                'no_rekening' => trim($r[1]) ?: null,
-                'objek' => trim($r[2]),
-                'target_tahunan' => self::num($r[3]),
-                'target_perubahan' => self::num($r[4]),
-                'realisasi_bulan_lalu' => $months[10],
-                'realisasi_bulan_ini' => $months[11],
-                'kumulatif' => self::num($r[17]) ?: array_sum($months),
-                'persentase' => self::num($r[19]),
-                'sisa_target' => self::num($r[18]),
+                'tahun'                => $tahun,
+                'kategori'             => $kategori,
+                'no_rekening'          => trim($r[1]) ?: null,
+                'objek'                => trim($r[2]),
+                'target_tahunan'       => self::num($r[3]),
+                'target_perubahan'     => self::num($r[4]),
+                'realisasi_bulan_lalu' => $months[$idxBulanLalu] ?? 0,
+                'realisasi_bulan_ini'  => $months[$idxBulanIni]  ?? 0,
+                'kumulatif'            => self::num($r[17]) ?: array_sum($months),
+                'persentase'           => self::num($r[19]),
+                'sisa_target'          => self::num($r[18]),
             ];
         }
         return $out;
@@ -591,6 +594,8 @@ class ImportService
         }
         return $ubah;
     }
+
+    
     /* ================= STATISTIK PARIWISATA (indikator x tahun) ================= */
 
     /**
@@ -699,5 +704,100 @@ class ImportService
             }
         }
         return ['dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'sel' => $sel];
+    }
+
+    /* ================= PRESTASI ================= */
+
+    /**
+     * Parsing file Daftar Penghargaan / Prestasi Dinas.
+     *
+     * Format file: blok berulang diawali baris "TAHUN 2021" (atau tahun lain),
+     * lalu baris header kolom, lalu baris data bernomor (angka di kolom 0).
+     * Kolom "Tingkat" kadang tidak ada di blok tahun lama — ditangani dengan
+     * deteksi jumlah kolom dan posisi header yang dinamis.
+     *
+     * Kolom yang diharapkan (0-based):
+     *   0 = No
+     *   1 = Nama Penghargaan
+     *   2 = Nama Penerima
+     *   3 = Pemberi Penghargaan
+     *   4 = Tahun Penghargaan
+     *   5 = Perangkat Daerah Leading Sektor (dilewati)
+     *   6 = Tingkat  (opsional — mungkin tidak ada)
+     */
+    public static function parsePrestasi(array $rows): array
+    {
+        $out = [];
+        $tahun = null;
+        $colNo = $colNama = $colPenerima = $colPemberi = $colTahun = $colTingkat = null;
+
+        foreach ($rows as $r) {
+            $rowStr = mb_strtolower(implode(' ', array_map('strval', $r)));
+
+            if (preg_match('/tahun\s*(\d{4})/i', $rowStr, $m) && ! str_contains($rowStr, 'penghargaan')) {
+                $tahun = (int) $m[1];
+                continue;
+            }
+
+            if (str_contains($rowStr, 'penghargaan') && str_contains($rowStr, 'penerima')) {
+                $colNo = $colNama = $colPenerima = $colPemberi = $colTahun = $colTingkat = null;
+                foreach ($r as $ci => $cv) {
+                    $u = mb_strtolower(trim((string) $cv));
+                    if ($u === 'no') $colNo = $ci;
+                    elseif ($u === 'nama penghargaan') $colNama = $ci;
+                    elseif ($u === 'nama penerima') $colPenerima = $ci;
+                    elseif ($u === 'pemberi penghargaan') $colPemberi = $ci;
+                    elseif (str_starts_with($u, 'tahun')) $colTahun = $ci;
+                    elseif ($u === 'tingkat') $colTingkat = $ci;
+                }
+                continue;
+            }
+
+            if (! $tahun || $colNo === null || $colNama === null) continue;
+
+            $noVal = trim((string) ($r[$colNo] ?? ''));
+            if (! is_numeric($noVal)) continue;
+
+            $namaPenghargaan = trim((string) ($r[$colNama] ?? ''));
+            if ($namaPenghargaan === '') continue;
+
+            $tahunPenghargaan = $colTahun !== null && is_numeric(trim((string) ($r[$colTahun] ?? '')))
+                ? (int) trim((string) $r[$colTahun]) : $tahun;
+
+            $out[] = [
+                'nama_penghargaan' => $namaPenghargaan,
+                'nama_penerima' => $colPenerima !== null ? (trim((string) ($r[$colPenerima] ?? '')) ?: null) : null,
+                'pemberi_penghargaan' => $colPemberi !== null ? (trim((string) ($r[$colPemberi] ?? '')) ?: null) : null,
+                'tahun' => $tahunPenghargaan,
+                'tingkat' => $colTingkat !== null ? (trim((string) ($r[$colTingkat] ?? '')) ?: null) : null,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Hapus data prestasi per tahun yang terlibat, lalu insert ulang.
+     * Menerima array data yang sudah di-parse maupun raw baris spreadsheet.
+     */
+    public static function applyPrestasi(array $rows): array
+    {
+        // Jika belum di-parse (masih raw baris spreadsheet), jalankan parsePrestasi
+        $p = (!empty($rows) && isset($rows[0]['nama_penghargaan']))
+            ? $rows
+            : self::parsePrestasi($rows);
+
+        $years = array_values(array_unique(array_column($p, 'tahun')));
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($p, $years) {
+            // hapus semua baris untuk tahun-tahun yang terlibat
+            \App\Models\Prestasi::whereIn('tahun', $years)->delete();
+            // insert baru
+            foreach ($p as $row) {
+                \App\Models\Prestasi::create($row);
+            }
+        });
+
+        return ['imported' => count($p), 'years' => $years];
     }
 }

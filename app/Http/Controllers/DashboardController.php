@@ -26,6 +26,7 @@ class DashboardController extends Controller
 
         // kartu statistik
         $jumlahPegawai = Pegawai::where('status', 'aktif')->count();
+        $prestasiTerbaru = \App\Models\Prestasi::untukDashboard(10);
         $jumlahDokumen = $scope(Dokumen::query())->count();
         $agendaMendatang = $scope(Agenda::query())->terdekat()->limit(5)->get();
         $agendaTerlewat = $scope(Agenda::query())->terlewat()->count();
@@ -64,7 +65,7 @@ class DashboardController extends Controller
 
         return view('dashboard.index', compact(
             'jumlahPegawai', 'jumlahDokumen', 'agendaMendatang', 'agendaTerlewat',
-            'padTahun', 'padSum', 'padPersen', 'chart', 'ringkas', 'kinerja', 'kinerjaTotal',
+            'padTahun', 'padSum', 'padPersen', 'prestasiTerbaru','chart', 'ringkas', 'kinerja', 'kinerjaTotal',
             'kinerjaSelesai', 'kinerjaTahun'
         ));
     }
