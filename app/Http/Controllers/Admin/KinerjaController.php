@@ -52,9 +52,21 @@ class KinerjaController extends Controller
 
     public function update(Request $request, CapaianProgram $kinerja): RedirectResponse
     {
+        // 9 Sep 2026: dulu form edit modal hanya mengirim nama/target/satuan/capaian/persen/pagu/catatan,
+        // padahal validasi menuntut "tahun" & "level" — update SELALU gagal validasi tanpa pesan (bug).
+        // Sekarang: kolom yang tidak ikut dikirim otomatis diambil dari data lama.
+        $request->mergeIfMissing([
+            'tahun' => $kinerja->tahun,
+            'level' => $kinerja->level,
+            'sumber_dana' => $kinerja->sumber_dana,
+            'indikator' => $kinerja->indikator,
+            'satuan' => $kinerja->satuan,
+            'id_bidang' => $kinerja->id_bidang,
+        ]);
         $d = $this->validateData($request, $kinerja->id);
         $kinerja->update($d);
-        return back()->with('sukses', 'Data diperbarui.');
+        LogAktivitas::catat('ubah kinerja', $d['nama']);
+        return back()->with('sukses', 'Data kinerja «'.$d['nama'].'» diperbarui.');
     }
 
     public function destroy(CapaianProgram $kinerja): RedirectResponse
@@ -75,12 +87,15 @@ class KinerjaController extends Controller
         $path = $f->getRealPath();
         $namaAsli = $f->getClientOriginalName();
         try {
-            $hasil = ImportService::applyKinerja(ImportService::rowsFrom($path, $namaAsli), $request->boolean('ganti_tahun'));
+            $rows = ImportService::rowsFrom($path, $namaAsli);
+            $hasil = ImportService::applyKinerja($rows, $request->boolean('ganti_tahun'));
         } catch (\Throwable $e) {
             return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
         }
         if ($hasil['imported'] === 0) {
-            return back()->with('gagal', 'Tidak ada data kinerja yang dikenali. Gunakan format file "Kinerja Fisik Sedinas" (baris TAHUN lalu blok PROGRAM/KEGIATAN/SUB KEGIATAN).');
+            return back()->with('gagal', 'Tidak ada data kinerja yang dikenali (file terbaca '.count($rows).' baris). '
+                .'Pastikan file memuat baris "TAHUN <tahun>" (boleh "TAHUN ANGGARAN <tahun>" / rata tengah seperti di Excel), '
+                .'lalu baris data dengan kolom PROGRAM / KEGIATAN / SUB KEGIATAN, Sumber Dana, Pagu, Target, Satuan, dan Total Capaian.');
         }
         $yrs = implode(', ', $hasil['years']);
         $ganti = $request->boolean('ganti_tahun');

@@ -15,7 +15,7 @@
                 {{ $slot }}
                 <button type="submit" class="rounded-lg bg-slate-900 hover:bg-slate-700 active:scale-[.98] disabled:opacity-50 text-white text-sm font-bold px-4 py-2.5 transition whitespace-nowrap">Proses file</button>
             </form>
-            @error('file', 'import_' . md5($action))<p class="text-xs text-rose-600 mt-1.5">{{ $message }}</p>@enderror
+            @error('file')<p class="text-xs font-semibold text-rose-600 mt-1.5">{{ $message }}</p>@enderror
         </div>
     </div>
 </div>

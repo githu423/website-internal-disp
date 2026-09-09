@@ -43,7 +43,17 @@ class ImportService
                 copy($path, $pathUse);
             }
             try {
-                $rows = IOFactory::load($pathUse)->getSheet(0)->toArray(null, true, false, false);
+                $ss = IOFactory::load($pathUse);
+                // 9 Sep 2026: sheet 0 kadang berupa sampul kosong — pakai sheet pertama yang benar-benar berisi data
+                $sheet = null;
+                for ($i = 0; $i < $ss->getSheetCount(); $i++) {
+                    $cand = $ss->getSheet($i);
+                    foreach ($cand->toArray(null, true, false, false) as $rr) {
+                        if (is_array($rr) && trim(implode('', array_map(fn ($x) => (string) $x, $rr))) !== '') { $sheet = $cand; break 2; }
+                    }
+                }
+                $rows = ($sheet ?? $ss->getSheet(0))->toArray(null, true, false, false);
+                $ss->disconnectWorksheets();
             } finally {
                 if ($pathUse !== $path) @unlink($pathUse);
             }
@@ -151,11 +161,27 @@ class ImportService
 
         foreach ($rows as $r) {
             $r = array_pad($r, 31, '');
-            if (preg_match('/^TAHUN\s*(\d{4})/i', trim($r[0]), $m)) {
+            // 9 Sep 2026: baris "TAHUN <tahun>" bisa saja rata-tengah (merged cell) sehingga tidak lagi
+            // persis di kolom 0, atau ditulis "TAHUN ANGGARAN 2026" — cek kolom 0 dulu (format lama),
+            // lalu toleran: baris nyaris kosong yang mengandung pola TAHUN <tahun> di sel mana pun.
+            if (preg_match('/^TAHUN\s*(?:ANGGARAN\s*)?(\d{4})/i', trim($r[0]), $m)) {
                 $tahun = (int) $m[1];
                 $years[$tahun] = true;
                 $layoutB = false; $idb = null; $urutan = 0;
                 continue;
+            }
+            $isiSel = array_filter(array_slice($r, 0, 8), fn ($c) => trim((string) $c) !== '');
+            if (count($isiSel) <= 2) {
+                $ketemuTahun = false;
+                foreach ($isiSel as $cell) {
+                    if (preg_match('/^TAHUN\s*(?:ANGGARAN\s*)?(\d{4})/i', trim((string) $cell), $m)) { $ketemuTahun = true; break; }
+                }
+                if ($ketemuTahun) {
+                    $tahun = (int) $m[1];
+                    $years[$tahun] = true;
+                    $layoutB = false; $idb = null; $urutan = 0;
+                    continue;
+                }
             }
             if (! $tahun) continue;
             $jml = strtoupper(trim($r[0]));
@@ -163,7 +189,7 @@ class ImportService
             // header? kenali dari kata SUMBER DANA / Indikator
             $joined = mb_strtoupper(implode('|', $r));
             if (str_contains($joined, 'SUMBER DANA')) { $layoutB = str_contains($joined, 'INDIKATOR'); continue; }
-            if (str_contains($joined, ' JAN ') || preg_match('/\bJan\b/u', $joined)) continue;
+            if (str_contains($joined, ' JAN ') || preg_match('/\bJan(uari)?\b/u', $joined)) continue;
 
             $level = null; $nama = null;
             if (trim($r[1]) !== '') { $level = 'program'; $nama = trim($r[1]); $idb = self::bidangDariTeks($nama); }

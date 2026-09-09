@@ -1,0 +1,33 @@
+name: Verify (Arena)
+
+on:
+  push:
+    branches: ['arena/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHPUnit (SQLite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: sqlite3, pdo_sqlite, zip, gd, dom, xml, iconv, mbstring, fileinfo, curl
+          coverage: none
+
+      - name: Install dependencies Composer
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Siapkan environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Jalankan test suite
+        run: vendor/bin/phpunit --no-progress

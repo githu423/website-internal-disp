@@ -107,6 +107,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('pad/import', [Admin\PadController::class, 'import'])->name('pad.import');
 
         Route::get('prestasi', [Admin\PrestasiController::class, 'index'])->name('prestasi.index');
+        Route::post('prestasi', [Admin\PrestasiController::class, 'store'])->name('prestasi.store');
+        Route::patch('prestasi/{prestasi}', [Admin\PrestasiController::class, 'update'])->name('prestasi.update');
         Route::post('prestasi/import', [Admin\PrestasiController::class, 'import'])->name('prestasi.import');
         Route::post('prestasi/{prestasi}/toggle-featured', [Admin\PrestasiController::class, 'toggleFeatured'])->name('prestasi.toggleFeatured');
         Route::post('prestasi/reset-featured', [Admin\PrestasiController::class, 'resetFeatured'])->name('prestasi.resetFeatured');
