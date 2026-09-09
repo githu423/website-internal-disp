@@ -112,11 +112,19 @@
 
     <div class="space-y-4">
         <div class="card p-5">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="h-11 w-11 rounded-full bg-teal-600 grid place-items-center text-white text-sm font-bold">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
-                <div class="min-w-0">
-                    <p class="font-bold truncate">{{ $u->name }}</p>
-                    <p class="text-[11.5px] text-slate-400">{{ $u->nip ?: 'tanpa NIP' }} · {{ ucfirst($u->role) }}</p>
+            <div class="flex items-center gap-3.5 mb-4 pb-4 border-b border-slate-100">
+                <div class="relative shrink-0">
+                    <span class="h-14 w-14 rounded-2xl bg-gradient-to-tr from-teal-700 via-teal-600 to-emerald-500 grid place-items-center text-white text-base font-extrabold tracking-tight shadow-md shadow-teal-700/20 ring-4 ring-teal-50">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
+                    <span class="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-emerald-500 text-white grid place-items-center ring-2 ring-white shadow-xs" title="Akun Aktif">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                    </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <p class="font-bold text-[15px] text-slate-800 truncate">{{ $u->name }}</p>
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider {{ $u->isAdmin() ? 'bg-amber-100 text-amber-800' : 'bg-teal-100 text-teal-800' }}">{{ $u->role }}</span>
+                    </div>
+                    <p class="text-[11.5px] text-slate-400 font-mono mt-0.5">{{ $u->nip ?: 'tanpa NIP' }}</p>
                 </div>
             </div>
             <dl class="text-[12.5px] space-y-2">
