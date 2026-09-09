@@ -51,20 +51,30 @@
                         </tr>
                         {{-- modal edit --}}
                         <div id="edit-{{ $k->id }}" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 p-4 grid place-items-center overflow-y-auto">
-                            <div class="card w-full max-w-lg p-6 text-sm">
-                                <div class="flex justify-between items-center mb-3"><h3 class="font-bold">Edit #{{ $k->id }}</h3><button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400">✕</button></div>
-                                <form method="POST" action="{{ route('admin.kinerja.update', $k) }}" class="space-y-2.5">
+                            <div class="card w-full max-w-xl p-6 text-sm">
+                                <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-[15px]">Edit Kegiatan #{{ $k->id }}</h3><button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400">✕</button></div>
+                                @if ($errors->any())<div class="mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-rose-700 text-[13px]">{{ $errors->first() }}</div>@endif
+                                <form method="POST" action="{{ route('admin.kinerja.update', $k) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     @csrf @method('PATCH')
-                                    <input name="nama" value="{{ $k->nama }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2">
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                        <label class="text-xs text-slate-500">Target <input type="number" step="any" name="target" value="{{ (float) $k->target }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                        <label class="text-xs text-slate-500">Satuan <input name="satuan" value="{{ $k->satuan }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                        <label class="text-xs text-slate-500">Capaian <input type="number" step="any" name="capaian" value="{{ (float) $k->capaian }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                        <label class="text-xs text-slate-500">Persentase % <input type="number" step="any" name="persentase" value="{{ (float) $k->persentase }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                        <label class="text-xs text-slate-500 col-span-2">Pagu anggaran <input type="number" step="1" name="pagu_anggaran" value="{{ (float) $k->pagu_anggaran }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                    </div>
-                                    <textarea name="catatan" rows="2" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Catatan / permasalahan">{{ $k->catatan }}</textarea>
-                                    <button class="w-full rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 transition">Simpan</button>
+                                    <div class="col-span-2"><label class="text-xs text-slate-500">Nama kegiatan *</label><input name="nama" value="{{ $k->nama }}" required class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></div>
+                                    <label class="text-xs text-slate-500">Tahun Anggaran
+                                        <select name="tahun" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white">@foreach (range(now()->year + 1, now()->year - 4) as $ty)<option value="{{ $ty }}" @selected($ty == $k->tahun)>TA {{ $ty }}</option>@endforeach</select>
+                                    </label>
+                                    <label class="text-xs text-slate-500">Level
+                                        <select name="level" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white">
+                                            @foreach (['sub_kegiatan' => 'Sub Kegiatan', 'kegiatan' => 'Kegiatan', 'program' => 'Program'] as $lvv => $lvl)<option value="{{ $lvv }}" @selected($lvv === $k->level)>{{ $lvl }}</option>@endforeach
+                                        </select>
+                                    </label>
+                                    <label class="text-xs text-slate-500">Sumber dana<input name="sumber_dana" value="{{ $k->sumber_dana }}" placeholder="DAU/DBH…" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
+                                    <label class="text-xs text-slate-500">Pagu anggaran<input type="number" step="1" name="pagu_anggaran" value="{{ (float) $k->pagu_anggaran }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
+                                    <label class="text-xs text-slate-500 col-span-2">Indikator<input name="indikator" value="{{ $k->indikator }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
+                                    <div class="flex gap-2"><label class="text-xs text-slate-500 flex-1">Target<input type="number" step="any" name="target" value="{{ (float) $k->target }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label><label class="text-xs text-slate-500 flex-1">Satuan<input name="satuan" value="{{ $k->satuan }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label></div>
+                                    <div class="flex gap-2"><label class="text-xs text-slate-500 flex-1">Capaian<input type="number" step="any" name="capaian" value="{{ (float) $k->capaian }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label><label class="text-xs text-slate-500 flex-1">Persentase %<input type="number" step="any" name="persentase" value="{{ (float) $k->persentase }}" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5"></label></div>
+                                    <label class="text-xs text-slate-500 col-span-2">Pelaksana (bidang)
+                                        <select name="id_bidang" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option value="">— Tidak spesifik —</option>@foreach ($bidangs as $bd)<option value="{{ $bd->id }}" @selected($bd->id == $k->id_bidang)>{{ $bd->nama }}</option>@endforeach</select>
+                                    </label>
+                                    <label class="text-xs text-slate-500 col-span-2">Catatan / permasalahan<textarea name="catatan" rows="2" class="mt-0.5 w-full rounded-lg border border-slate-300 px-3 py-2.5">{{ $k->catatan }}</textarea></label>
+                                    <button class="col-span-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 transition">Simpan Perubahan</button>
                                 </form>
                             </div>
                         </div>

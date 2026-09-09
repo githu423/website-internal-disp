@@ -21,6 +21,38 @@ class PrestasiController extends Controller
         ]);
     }
 
+    /** Tambah satu prestasi secara manual (tanpa import file). */
+    public function store(Request $request): RedirectResponse
+    {
+        $d = $request->validate([
+            'nama_penghargaan' => ['required', 'string', 'max:500'],
+            'nama_penerima' => ['nullable', 'string', 'max:255'],
+            'pemberi_penghargaan' => ['nullable', 'string', 'max:255'],
+            'tahun' => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tingkat' => ['nullable', 'string', 'max:50'],
+        ]);
+        $prestasi = Prestasi::create($d);
+        LogAktivitas::catat('tambah prestasi', $prestasi->nama_penghargaan . ' (' . $prestasi->tahun . ')');
+
+        return back()->with('sukses', 'Prestasi "' . $prestasi->nama_penghargaan . '" ditambahkan.');
+    }
+
+    /** Ubah satu prestasi secara manual. */
+    public function update(Request $request, Prestasi $prestasi): RedirectResponse
+    {
+        $d = $request->validate([
+            'nama_penghargaan' => ['required', 'string', 'max:500'],
+            'nama_penerima' => ['nullable', 'string', 'max:255'],
+            'pemberi_penghargaan' => ['nullable', 'string', 'max:255'],
+            'tahun' => ['required', 'integer', 'min:1900', 'max:2100'],
+            'tingkat' => ['nullable', 'string', 'max:50'],
+        ]);
+        $prestasi->update($d);
+        LogAktivitas::catat('ubah prestasi', $d['nama_penghargaan'] . ' (' . $d['tahun'] . ')');
+
+        return back()->with('sukses', 'Prestasi "' . $d['nama_penghargaan'] . '" diperbarui.');
+    }
+
     public function toggleFeatured(Prestasi $prestasi): RedirectResponse
     {
         $prestasi->is_featured = ! $prestasi->is_featured;

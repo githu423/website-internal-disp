@@ -66,26 +66,31 @@
 
             @if ($u->isAdmin())
             <div>
-                <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400/80">Admin</p>
+                <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400/80">Admin — Data</p>
                 <div class="space-y-0.5">
                     <x-sb-link :href="route('admin.dashboard')" label="Ringkasan Admin" icon="admin" :active="$r('admin.dashboard')" />
                     <x-sb-link :href="route('admin.kinerja.index')" label="Kelola Kinerja" icon="kinerja" :active="$r('admin.kinerja.*')" />
                     <x-sb-link :href="route('admin.capaian.index')" label="Kelola Capaian Kinerja" icon="statistik" :active="$r('admin.capaian.*')" />
                     <x-sb-link :href="route('admin.statistik.index')" label="Kelola Statistik" icon="statistik" :active="$r('admin.statistik.*')" />
                     <x-sb-link :href="route('admin.pad.index')" label="Kelola PAD" icon="pad" :active="$r('admin.pad.*')" />
+                    <x-sb-link :href="route('admin.prestasi.index')" label="Kelola Prestasi" icon="prestasi" :active="$r('admin.prestasi.*')" />
                     <x-sb-link :href="route('admin.pegawai.index')" label="Kelola Pegawai" icon="pegawai" :active="$r('admin.pegawai.*')" />
                     <x-sb-link :href="route('admin.agenda.index')" label="Kelola Agenda" icon="agenda" :active="$r('admin.agenda.*')" />
                     <x-sb-link :href="route('admin.dokumen.index')" label="Kelola Dokumen" icon="dokumen" :active="$r('admin.dokumen.*')" />
+                </div>
+            </div>
+            <div>
+                <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400/80">Admin — Sistem</p>
+                <div class="space-y-0.5">
                     <x-sb-link :href="route('admin.akun.index')" label="Akun & Akses" icon="akun" :active="$r('admin.akun.*')" />
-                    <x-sb-link :href="route('admin.prestasi.index')" label="Kelola Prestasi" icon="kinerja" :active="$r('admin.prestasi.*')" />
                     <x-sb-link :href="route('admin.log.index')" label="Log Aktivitas" icon="log" :active="$r('admin.log.*')" />
                 </div>
             </div>
             @endif
         </nav>
 
-        <div class="border-t border-white/10 p-2.5 shrink-0">
-            <a href="{{ route('profil.index') }}" title="Buka profil saya" class="group flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-white/10 transition">
+        <div class="border-t border-white/10 p-2.5 shrink-0 flex items-center gap-1.5">
+            <a href="{{ route('profil.index') }}" title="Buka profil saya" class="group flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-white/10 transition flex-1 min-w-0">
                 <div class="relative shrink-0">
                     <span style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;" class="rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white text-xs font-bold shadow-md ring-1 ring-white/20">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
                     <span class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-900" title="Akun Aktif"></span>
@@ -98,8 +103,8 @@
                     </p>
                 </div>
             </a>
-            <form method="POST" action="{{ route('logout') }}">@csrf
-                <button title="Keluar" class="h-8 w-8 shrink-0 grid place-items-center rounded-lg text-slate-300 hover:bg-rose-500/20 hover:text-rose-300 active:scale-90 transition"><x-icon name="logout" class="h-4 w-4" /></button>
+            <form method="POST" action="{{ route('logout') }}" class="shrink-0">@csrf
+                <button title="Keluar" class="h-9 w-9 grid place-items-center rounded-lg text-slate-300 hover:bg-rose-500/20 hover:text-rose-300 active:scale-90 transition"><x-icon name="logout" class="h-4 w-4" /></button>
             </form>
         </div>
     </aside>
@@ -156,6 +161,19 @@
                 <div data-flash class="mb-4 flex items-start gap-3 rounded-xl border px-4 py-3 text-sm {{ session('sukses') ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800' }}">
                     <x-icon name="{{ session('sukses') ? 'kinerja' : 'alert' }}" class="h-5 w-5 shrink-0 mt-0.5" />
                     <p>{{ session('sukses') ?? session('gagal') }}</p>
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="mb-4 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                    <x-icon name="alert" class="h-5 w-5 shrink-0 mt-0.5" />
+                    <div class="min-w-0">
+                        <p class="font-bold">Ada isian yang perlu diperbaiki:</p>
+                        <ul class="mt-1 space-y-0.5 list-disc pl-4">
+                            @foreach ($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
             @endif
             @yield('content')

@@ -1,0 +1,52 @@
+name: Verify (Arena)
+
+on:
+  push:
+    branches: ['arena/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PHPUnit (SQLite)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, zip, gd, dom, xml, iconv, mbstring, fileinfo, curl
+          coverage: none
+
+      - name: Install dependencies Composer
+        env:
+          COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
+        run: |
+          set -o pipefail
+          if ! composer install --no-interaction --no-progress --prefer-dist 2>&1 | tee composer-install.log; then
+            echo "::error title=composer::composer install gagal. Baris penting:"
+            grep -iE "error|problem|failed|exceed" composer-install.log | head -n 8 | while IFS= read -r l; do echo "::error title=composer::$l"; done
+            exit 1
+          fi
+
+      - name: Siapkan environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+
+      - name: Jalankan test suite
+        run: |
+          set -o pipefail
+          vendor/bin/phpunit --no-progress 2>&1 | tee phpunit.log || {
+            echo "::error title=phpunit::Test suite TIDAK lolos:"
+            grep -E "^[0-9]+\) " phpunit.log | head -n 10 | while IFS= read -r l; do echo "::error title=phpunit::$l"; done
+            grep -E "^(Tests:|Time:|FAILURES|ERRORS)" phpunit.log | head -n 3 | while IFS= read -r l; do echo "::error title=phpunit::$l"; done
+            exit 1
+          }
+
+      - name: Ringkas hasil
+        if: success()
+        run: grep -E "^(OK|Tests:)" phpunit.log | head -n 3 | while IFS= read -r l; do echo "::notice title=phpunit::$l"; done
