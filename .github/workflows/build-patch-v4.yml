@@ -2,6 +2,11 @@ name: Build Patch v4 (ZIP)
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-patch-v4.yml'
+      - 'patches/**'
 
 permissions:
   contents: write
