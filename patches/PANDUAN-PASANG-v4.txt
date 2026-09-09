@@ -1,0 +1,61 @@
+================================================================
+  PATCH v4 — 2026-09-09  (Kelola Kinerja & Prestasi — perbaikan bug)
+================================================================
+Isi paket ini memperbaiki 4 masalah yang dilaporkan admin:
+
+  1. UPDATE DATA KINERJA TIDAK BISA (gagal diam-diam)
+     Sebab: form edit tidak mengirim kolom "tahun" & "level" yang
+     diwajibkan server, dan errornya tidak pernah ditampilkan.
+     Kini: kolom otomatis dilengkapi, modal edit diperluas (tahun,
+     level, sumber dana, indikator, bidang), dan SEMUA error validasi
+     kini tampil sebagai pesan merah di bagian atas halaman.
+
+  2. IMPORT EXCEL KINERJA "TIDAK DIKENALI" PADAHAL KOLOMNYA SAMA
+     Sebab: baris "TAHUN <tahun>" di Excel sering rata tengah
+     (merged cell, tidak di kolom A) atau ditulis "TAHUN ANGGARAN",
+     dan sheet pertama kadang berupa sampul kosong.
+     Kini: semua variasi tersebut dikenali + sheet kosong dilewati
+     otomatis. Jika gagal, pesannya kini menyebut jumlah baris yang
+     terbaca dan format yang diharapkan.
+
+  3. SIDEBAR ADMIN TIDAK TERSUSUN RAPI
+     Menu admin kini berurutan & berkelompok: "Admin — Data"
+     (Kinerja, Capaian, Statistik, PAD, Prestasi, Pegawai, Agenda,
+     Dokumen) lalu "Admin — Sistem" (Akun, Log). Menu Prestasi
+     dapat ikon piala sendiri. Kartu profil + tombol keluar rapi
+     dalam satu baris.
+
+  4. KELOLA PRESTASI
+     Ada tombol "Tambah Prestasi" (tambah 1 prestasi manual),
+     tombol "Edit" di tiap baris, dan form import yang tampilannya
+     seragam dengan halaman kelola lain.
+
+PASANG (di folder project):
+
+  1. Tutup dulu aplikasi / hentikan "php artisan serve" yang jalan.
+  2. Ekstrak zip ini ke C:\Laravel10\dispar-web  (Yes to All / timpa)
+  3. cd C:\Laravel10\dispar-web
+  4. php artisan optimize:clear
+
+TIDAK PERLU:
+  - composer / npm (tidak ada dependensi baru)
+  - php artisan migrate (tidak ada tabel baru)
+  - download ulang project penuh; cukup zip ini.
+
+KENAL PASTI PATCH TERPASANG:
+  - /admin/kinerja → klik "Edit" baris mana pun → modal berisi
+    Tahun, Level, Sumber dana, Indikator, Bidang → Simpan harus
+    muncul pesan hijau "... diperbarui" (dulu selalu gagal senyap).
+  - /admin/kinerja → import ulang file Excel kinerja yang dulu
+    gagal → seharusnya sukses / pesannya jelas menyebut penyebab.
+  - /admin/prestasi → kanan atas ada tombol "Tambah Prestasi";
+    tiap baris ada "Edit"; kotak import tampilan barunya seragam.
+  - Sidebar admin tersusun 2 kelompok seperti butir 3 di atas.
+
+CATATAN:
+  - Jika upload file Excel besar ditolak dengan pesan "failed to
+    upload", naikkan upload_max_filesize & post_max_size di php.ini
+    (default XAMPP hanya 2M) lalu restart Apache.
+  - Sumber lengkap + riwayat perubahan: GitHub repo, branch main
+    (PR #1, semua 90 test otomatis lolos).
+================================================================

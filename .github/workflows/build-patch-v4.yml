@@ -1,0 +1,37 @@
+name: Build Patch v4 (ZIP)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Rakit & unggah ZIP patch ke release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rakit ZIP patch v4
+        run: |
+          mkdir -p build
+          cp --parents \
+            app/Http/Controllers/Admin/KinerjaController.php \
+            app/Http/Controllers/Admin/PrestasiController.php \
+            app/Services/ImportService.php \
+            routes/web.php \
+            resources/views/layouts/dashboard.blade.php \
+            resources/views/admin/kinerja/index.blade.php \
+            resources/views/admin/prestasi/index.blade.php \
+            resources/views/components/icon.blade.php \
+            resources/views/components/import-card.blade.php \
+            build/
+          cp patches/PANDUAN-PASANG-v4.txt build/PANDUAN-PASANG.txt
+          cd build && zip -r ../PATCH-v4-2026-09-09-kelola-kinerja-prestasi.zip . && cd ..
+          unzip -l PATCH-v4-2026-09-09-kelola-kinerja-prestasi.zip
+
+      - name: Unggah ke release patch-v4
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload patch-v4 PATCH-v4-2026-09-09-kelola-kinerja-prestasi.zip --clobber
