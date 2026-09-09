@@ -1,0 +1,7 @@
+# pack-refs with: peeled fully-peeled sorted 
+8f30c91b91d4d579974f4eee3b604f762f34f50b refs/heads/arena/01a08532-website-internal-disp
+8c63e10f976e1765f27d34f8f54555a8e6a32577 refs/heads/main
+8f30c91b91d4d579974f4eee3b604f762f34f50b refs/pull/1/head
+c71058868a9a90ca5964c83f2e61239d396a883b refs/pull/1/merge
+d68cc5a56333312d636c4637fd08f5cb827cdff7 refs/tags/v8
+^f7d3736e20aa981f88e06f6c1050a165ed2d19fa
