@@ -13,35 +13,34 @@
 
 <div class="grid lg:grid-cols-3 gap-4">
     <div class="lg:col-span-2 space-y-2.5">
-        @forelse ($items as $a)
-            @php $lewat = $a->status === 'belum' && $a->tanggal->lt(now()->startOfDay()); @endphp
-            <div class="card p-4 flex items-start gap-4 {{ $a->status === 'selesai' ? 'opacity-60' : ($lewat ? 'border-rose-200' : '') }}">
-                <div class="h-12 w-12 shrink-0 rounded-xl grid place-items-center text-center {{ $lewat ? 'bg-rose-50 text-rose-600' : 'bg-teal-50 text-teal-700' }}">
-                    <div><p class="text-lg font-extrabold leading-none">{{ $a->tanggal->format('d') }}</p><p class="text-[9px] font-bold uppercase">{{ $a->tanggal->translatedFormat('M') }}</p></div>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <p class="font-bold text-[14px] {{ $a->status === 'selesai' ? 'line-through' : '' }}">{{ $a->judul }}</p>
-                        @if ($a->kategori)<span class="text-[10px] font-bold uppercase bg-slate-100 text-slate-500 rounded px-1.5 py-0.5">{{ $a->kategori }}</span>@endif
-                        @if ($lewat)<span class="text-[10px] font-bold bg-rose-100 text-rose-600 rounded px-1.5 py-0.5">TERLEWAT</span>@endif
-                    </div>
-                    <p class="text-[12.5px] text-slate-500 mt-1">{{ $a->jam_mulai ? substr((string) $a->jam_mulai, 0, 5) . ($a->jam_selesai ? '–' . substr((string) $a->jam_selesai, 0, 5) : '') . ' WIB' : 'Waktu menyusul' }} · {{ $a->lokasi ?: 'Lokasi menyusul' }} @if ($a->bidang) · <span class="text-sky-600 font-semibold">{{ $a->bidang->nama }}</span>@endif</p>
-                    @if ($a->deskripsi)<p class="text-xs text-slate-400 mt-1.5 line-clamp-2">{{ $a->deskripsi }}</p>@endif
-                </div>
-                <div class="flex flex-col gap-1.5 shrink-0">
-                    @if ($u->isAdmin() || $u->id === $a->created_by)
-                    <form method="POST" action="{{ route('agenda.status', $a) }}">@csrf @method('PATCH')
-                        <button class="text-[11px] font-bold rounded-lg border px-2.5 py-1.5 transition active:scale-95 {{ $a->status === 'selesai' ? 'border-slate-200 text-slate-500 hover:bg-slate-50' : 'border-emerald-300 text-emerald-600 hover:bg-emerald-50' }}">{{ $a->status === 'selesai' ? 'Batal' : '✓ Selesai' }}</button>
-                    </form>
-                    <form method="POST" action="{{ route('agenda.destroy', $a) }}" data-confirm="Hapus agenda ini?">@csrf @method('DELETE')
-                        <button class="text-[11px] font-bold rounded-lg border border-rose-200 text-rose-500 px-2.5 py-1.5 hover:bg-rose-50 transition active:scale-95">Hapus</button>
-                    </form>
-                    @endif
-                </div>
+        @php
+            // Konfirmasi Dinas 10 Sep: agenda dinas (umum) di atas, lalu kelompok per bidang — semua terlihat semua user
+            $dinas = $items->whereNull('id_bidang')->values();
+            $perBidang = $items->whereNotNull('id_bidang')->groupBy(fn ($a) => $a->bidang?->nama ?? 'Bidang')->sortKeys();
+        @endphp
+        @if ($items->isEmpty())
+            <div class="card"><x-empty icon="agenda" title="Tidak ada agenda di bulan ini" desc="Agenda dinas dibuat admin; agenda bidang dibuat lewat halaman bidang masing-masing." /></div>
+        @endif
+
+        @if ($dinas->isNotEmpty())
+            <div class="flex items-center gap-2 pt-1">
+                <span class="h-7 w-7 rounded-lg bg-slate-900 text-white grid place-items-center text-[13px]">🏛</span>
+                <h3 class="font-bold text-[14px]">Agenda Dinas <span class="text-[11px] font-bold text-slate-400">umum · {{ $dinas->count() }} kegiatan</span></h3>
             </div>
-        @empty
-            <div class="card"><x-empty icon="agenda" title="Tidak ada agenda di bulan ini" desc="Gunakan tombol + Tambah Agenda untuk menjadwalkan kegiatan." /></div>
-        @endforelse
+            @foreach ($dinas as $a)
+                @include('agenda._kartu', ['a' => $a])
+            @endforeach
+        @endif
+
+        @foreach ($perBidang as $nama => $grup)
+            <div class="flex items-center gap-2 pt-1 {{ $loop->first && $dinas->isEmpty() ? '' : 'mt-2' }}">
+                <span class="h-7 w-7 rounded-lg bg-sky-100 text-sky-700 grid place-items-center text-[13px]">🏢</span>
+                <h3 class="font-bold text-[14px]">{{ $nama }} <span class="text-[11px] font-bold text-slate-400">{{ $grup->count() }} kegiatan</span></h3>
+            </div>
+            @foreach ($grup as $a)
+                @include('agenda._kartu', ['a' => $a])
+            @endforeach
+        @endforeach
     </div>
 
     <div class="space-y-4">

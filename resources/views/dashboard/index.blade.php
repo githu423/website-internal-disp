@@ -8,9 +8,6 @@
         <h2 class="text-xl font-extrabold tracking-tight">Assalamu'alaikum, {{ $u->name }} 👋</h2>
         <p class="text-sm text-slate-500 mt-0.5">{{ $u->jabatan ?: 'Selamat datang di SIPARDIS' }} · {{ now()->translatedFormat('d F Y') }}</p>
     </div>
-    @if ($u->isAdmin())
-        <a href="{{ route('admin.kinerja.index') }}" class="rounded-lg bg-slate-900 text-white text-sm font-bold px-4 py-2.5 hover:bg-slate-700 active:scale-[.98] transition inline-flex items-center gap-2"><x-icon name="plus" class="h-4 w-4" /> Kelola Kinerja / Import</a>
-    @endif
 </div>
 
 @if ($prestasiTerbaru->isNotEmpty())
@@ -29,9 +26,6 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-amber-400">Prestasi &amp; Penghargaan Dinas</span>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                            {{ $prestasiTerbaru->count() }} Terkini
-                        </span>
                     </div>
                     <h3 class="text-base sm:text-lg font-extrabold tracking-tight text-white flex items-center gap-1.5">
                         Galeri Prestasi &amp; Capaian Unggulan
@@ -136,11 +130,22 @@
     </div>
 @endif
 
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
-    <x-stat label="Pegawai Aktif" :value="$jumlahPegawai" sub="NSPK & non-NSPK" tone="sky" icon="pegawai" :href="route('pegawai.index')" />
+{{-- Konfirmasi Dinas 10 Sep: pilihan lingkup hanya bagi user yang punya bidang --}}
+@if ($punyaBidang)
+<div class="flex flex-wrap items-center gap-1.5 mb-4">
+    <span class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mr-1">Lingkup data:</span>
+    <a href="{{ route('dashboard', array_merge(request()->query(), ['lingkup' => 'semua'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', ! $lingkupSaya ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏛 Sedinas (Semua Bidang)</a>
+    <a href="{{ route('dashboard', array_merge(request()->query(), ['lingkup' => 'saya'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', $lingkupSaya ? 'bg-teal-600 text-white border-teal-600' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏢 Bidang Saya</a>
+</div>
+@endif
+
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-5">
+    <x-stat label="Pegawai Aktif" :value="$jumlahPegawai" sub="NSPK & non-NSPK" tone="sky" icon="pegawai" dataKey="pegawai_aktif" :href="route('pegawai.index', ['status' => 'aktif'])" />
+    <x-stat label="Pegawai Non-Aktif" :value="$jumlahPegawaiNonaktif" sub="cuti panjang/berhenti" tone="amber" icon="pegawai" dataKey="pegawai_nonaktif" :href="route('pegawai.index', ['status' => 'nonaktif'])" />
+    <x-stat label="Pegawai Pensiun" :value="$jumlahPegawaiPensiun" sub="purna tugas" tone="slate" icon="pegawai" dataKey="pegawai_pensiun" :href="route('pegawai.index', ['status' => 'pensiun'])" />
     <x-stat label="Dokumen" :value="$jumlahDokumen" sub="tersimpan terpusat" tone="violet" icon="dokumen" :href="route('dokumen.index')" />
-    <x-stat label="Agenda Terdekat" :value="$agendaMendatang->count() . ' / 5'" :sub="$agendaTerlewat > 0 ? $agendaTerlewat . ' terlewat belum selesai' : 'semua tepat waktu'" tone="amber" icon="agenda" :href="route('agenda.index')" />
-    <x-stat :label="'PAD ' . $padTahun" :value="$padPersen !== null ? $padPersen . '%' : '—'" :sub="'Realisasi Rp ' . number_format($padSum?->realisasi ?? 0, 0, ',', '.')" tone="emerald" icon="pad" :href="route('pad.index')" />
+    <x-stat label="Agenda Terdekat" :value="$agendaMendatang->count() . ' / 5'" :sub="$agendaTerlewat > 0 ? $agendaTerlewat . ' terlewat belum selesai' : 'semua tepat waktu'" tone="emerald" icon="agenda" :href="route('agenda.index')" />
+    <x-stat :label="'PAD ' . $padTahun" :value="$padPersen !== null ? $padPersen . '%' : '—'" :sub="'Realisasi Rp ' . number_format($padSum?->realisasi ?? 0, 0, ',', '.')" tone="teal" icon="pad" :href="route('pad.index')" />
 </div>
 
 <div class="grid lg:grid-cols-3 gap-4 mb-5">
@@ -176,7 +181,7 @@
                 </div>
                 <div class="min-w-0 flex-1">
                     <p class="text-[13px] font-semibold truncate">{{ $a->judul }}</p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">{{ $a->jam_mulai ? substr((string) $a->jam_mulai, 0, 5) . ' WIB · ' : '' }}{{ $a->lokasi ?: 'Lokasi menyusul' }}</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">{{ $a->jam_mulai ? substr((string) $a->jam_mulai, 0, 5) . ' WIB · ' : '' }}{{ $a->lokasi ?: 'Lokasi menyusul' }}@if ($a->bidang) · <span class="text-sky-600 font-semibold">{{ \Illuminate\Support\Str::limit($a->bidang->nama, 28, '…') }}</span>@endif</p>
                     @if ($lewat)<span class="inline-block mt-1 text-[10px] font-bold text-rose-600 bg-rose-50 rounded px-1.5 py-0.5">Terlewat</span>
                     @elseif ($hariIni)<span class="inline-block mt-1 text-[10px] font-bold text-amber-700 bg-amber-50 rounded px-1.5 py-0.5">Hari ini</span>@endif
                 </div>
@@ -235,7 +240,8 @@
 </style>
 
 <script>
-(function() {
+(function () {
+    var inited = false;
     function initPrestasiSlider() {
         const track = document.getElementById('prestasi-track');
         if (!track) return;
@@ -250,7 +256,6 @@
 
         let currentIndex = 0;
 
-        // Render dots
         if (dotsContainer) {
             dotsContainer.innerHTML = '';
             items.forEach((_, idx) => {
@@ -270,37 +275,22 @@
         }
 
         function updateUI() {
-            if (indicator) {
-                indicator.textContent = (currentIndex + 1) + ' / ' + total;
-            }
+            if (indicator) indicator.textContent = (currentIndex + 1) + ' / ' + total;
             if (dotsContainer) {
-                const dots = dotsContainer.querySelectorAll('button');
-                dots.forEach((d, i) => {
-                    if (i === currentIndex) {
-                        d.className = 'h-1.5 rounded-full transition-all duration-300 w-6 bg-amber-400';
-                    } else {
-                        d.className = 'h-1.5 rounded-full transition-all duration-300 w-2 bg-white/20 hover:bg-white/40';
-                    }
+                dotsContainer.querySelectorAll('button').forEach((d, i) => {
+                    d.className = 'h-1.5 rounded-full transition-all duration-300 ' + (i === currentIndex ? 'w-6 bg-amber-400' : 'w-2 bg-white/20 hover:bg-white/40');
                 });
             }
         }
 
         function goToSlide(idx) {
             currentIndex = (idx + total) % total;
-            const step = getCardStep();
-            track.scrollTo({ left: currentIndex * step, behavior: 'smooth' });
+            track.scrollTo({ left: currentIndex * getCardStep(), behavior: 'smooth' });
             updateUI();
         }
 
-        prevBtn?.addEventListener('click', () => {
-            goToSlide(currentIndex - 1);
-            restartAuto();
-        });
-
-        nextBtn?.addEventListener('click', () => {
-            goToSlide(currentIndex + 1);
-            restartAuto();
-        });
+        prevBtn?.addEventListener('click', () => { goToSlide(currentIndex - 1); restartAuto(); });
+        nextBtn?.addEventListener('click', () => { goToSlide(currentIndex + 1); restartAuto(); });
 
         let scrollTimeout;
         track.addEventListener('scroll', () => {
@@ -314,26 +304,16 @@
             }, 80);
         }, { passive: true });
 
-        // Auto slide
+        // Auto slide — berjalan tiap 4 detik; berhenti sementara saat kursor menyentuh kartu
         let autoTimer = null;
         function startAuto() {
             stopAuto();
-            autoTimer = setInterval(() => {
-                goToSlide(currentIndex + 1);
-            }, 5000);
+            autoTimer = setInterval(() => goToSlide(currentIndex + 1), 4000);
         }
-
         function stopAuto() {
-            if (autoTimer) {
-                clearInterval(autoTimer);
-                autoTimer = null;
-            }
+            if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
         }
-
-        function restartAuto() {
-            stopAuto();
-            startAuto();
-        }
+        function restartAuto() { stopAuto(); startAuto(); }
 
         const box = document.getElementById('prestasi-slider-box');
         if (box) {
@@ -347,11 +327,37 @@
         updateUI();
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPrestasiSlider);
-    } else {
-        initPrestasiSlider();
+    // Boot tunggal (anti dobel) + dicoba ulang saat DOM & seluruh aset siap —
+    // slider tetap hidup walau ada bagian lain yang error.
+    function boot() {
+        if (inited) return;
+        inited = true;
+        try { initPrestasiSlider(); } catch (e) { console.error('slider prestasi:', e); }
     }
+    boot();
+    document.addEventListener('DOMContentLoaded', boot);
+    window.addEventListener('load', boot);
+})();
+</script>
+
+<script>
+/* kartu pegawai realtime — polling 10 detik, dipisah sendiri agar slider tak ikut mati bila error */
+(function () {
+    var els = document.querySelectorAll('[data-kartu]');
+    if (!els.length) return;
+    var url = {{ json_encode(route('dashboard.kartu')) }};
+    setInterval(function () {
+        fetch(url, { headers: { Accept: 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (d) {
+                if (!d) return;
+                els.forEach(function (el) {
+                    var v = d[el.dataset.kartu];
+                    if (v !== undefined && el.textContent !== String(v)) el.textContent = v;
+                });
+            })
+            .catch(function () { /* offline: biarkan angka terakhir */ });
+    }, 10000);
 })();
 </script>
 @endsection

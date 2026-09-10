@@ -30,7 +30,8 @@ class BidangController extends Controller
                        OR jenis_kelamin IS NULL OR jenis_kelamin='' OR pangkat_golongan IS NULL OR pangkat_golongan=''
                        OR pendidikan IS NULL OR pendidikan='' OR unit_kerja IS NULL OR unit_kerja=''
                        OR tmt_cpns IS NULL OR tmt_sekarang IS NULL OR tmt_jabatan IS NULL
-                      THEN 1 ELSE 0 END) blm")
+                      THEN 1 ELSE 0 END) blm"
+        )
             ->whereNotNull('id_bidang')->groupBy('id_bidang')->get()->keyBy('id_bidang');
 
         $bidangList = Bidang::withCount(['pegawais', 'dokumen', 'agenda'])->orderBy('kode')->get()
@@ -69,7 +70,7 @@ class BidangController extends Controller
 
         $dq = Dokumen::where('id_bidang', $bidang->id)->with('uploader');
         if ($anggota) {
-            $dq->where(fn ($w) => $w->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $u->id));
+            $dq->where(fn($w) => $w->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $u->id));
         } else {
             $dq->where('visibility', 'publik');
         }
@@ -78,11 +79,14 @@ class BidangController extends Controller
         // (termasuk anggota fallback tebak-jabatan), jadi angkanya tidak mungkin beda dengan tabelnya
         $pegawais = $this->anggotaBidang($bidang);
         $statistik = [
-            'semua'  => $pegawais->count(),
-            'l'      => $pegawais->where('jenis_kelamin', 'L')->count(),
-            'p'      => $pegawais->where('jenis_kelamin', 'P')->count(),
-            'pns'    => $pegawais->where('jenis_asn', 'PNS')->count(),
-            'nonpns' => $pegawais->filter(fn ($x) => $x->jenis_asn !== 'PNS')->count(),
+            'semua' => $pegawais->count(),
+            'l' => $pegawais->where('jenis_kelamin', 'L')->count(),
+            'p' => $pegawais->where('jenis_kelamin', 'P')->count(),
+            'pns' => $pegawais->where('jenis_asn', 'PNS')->count(),
+            'nonpns' => $pegawais->filter(fn($x) => $x->jenis_asn !== 'PNS')->count(),
+            // Konfirmasi Dinas 10 Sep: rekap anggota mencantumkan non-aktif & pensiun juga
+            'nonaktif' => $pegawais->where('status', 'nonaktif')->count(),
+            'pensiun' => $pegawais->where('status', 'pensiun')->count(),
         ];
 
         return view('bidang.show', [
@@ -142,10 +146,15 @@ class BidangController extends Controller
         $file = $request->file('file');
         $path = $file->storeAs('dokumen', time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
         Dokumen::create([
-            'judul' => $d['judul'], 'deskripsi' => $d['deskripsi'] ?? null, 'kategori' => 'Arsip Bidang',
-            'visibility' => 'bidang', 'id_bidang' => $bidang->id,
-            'file_path' => $path, 'file_name' => $file->getClientOriginalName(),
-            'file_size' => $file->getSize(), 'mime' => $file->getClientMimeType(),
+            'judul' => $d['judul'],
+            'deskripsi' => $d['deskripsi'] ?? null,
+            'kategori' => 'Arsip Bidang',
+            'visibility' => 'bidang',
+            'id_bidang' => $bidang->id,
+            'file_path' => $path,
+            'file_name' => $file->getClientOriginalName(),
+            'file_size' => $file->getSize(),
+            'mime' => $file->getClientMimeType(),
             'uploaded_by' => $u->id,
         ]);
         LogAktivitas::catat('unggah dokumen bidang', $d['judul'] . ' (' . $bidang->nama . ')');

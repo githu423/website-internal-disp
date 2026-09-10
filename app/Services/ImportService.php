@@ -122,6 +122,40 @@ class ImportService
             ? 'bidang' : 'pegawai';
     }
 
+    /**
+     * Konfirmasi Dinas 10 Sep 2026 — BATAS KEPALA untuk penempatan bidang.
+     * Baris berjabatan "Kepala Bidang X" menandai kepala bidang X; semua baris di
+     * bawahnya adalah staf X sampai "Kepala Bidang" berikutnya. Baris di atas batas
+     * pertama (Sekretaris Dinas, Kepala Sub Bagian, dst.) = Sekretariat.
+     * Mengembalikan KODE bidang yang dipimpin, atau null bila baris bukan batas kepala.
+     * ("Kepala Sub Bagian" BUKAN batas — dia tetap staf sekretariat.)
+     */
+    public static function kepalaBidangDariJabatan(?string $jabatan): ?string
+    {
+        $T = mb_strtoupper(preg_replace('/\s+/u', ' ', trim((string) $jabatan)) ?? '');
+        if ($T === '') return null;
+
+        // Sekretaris Dinas = kepala Sekretariat (bukan batas pergantian bagian)
+        if (preg_match('/SEKRETARIS\s+DINAS/u', $T)) return '1';
+
+        // Kepala UPTD / Pengelola Objek Wisata + wilayah → batas UPTD bersangkutan
+        if (preg_match('/\b(UPTD|PENGELOLA\s+OBJEK\s+WISATA)\b/u', $T)) {
+            if (preg_match('/\bKAWALI\b/u', $T)) return 'UPTD-KAW';
+            if (preg_match('/\bCIAMIS\b/u', $T)) return 'UPTD-CIA';
+        }
+
+        // Kepala Bidang <X> → batas bidang X; kata kunci yang muncul PERTAMA di teks menang
+        if (preg_match('/KEPALA\s+BIDANG/u', $T)) {
+            $pos = null; $kode = null;
+            foreach (['DESTINASI' => '2', 'PEMASARAN' => '3', 'EKONOMI' => '4'] as $kw => $kd) {
+                $p = mb_strpos($T, $kw);
+                if ($p !== false && ($pos === null || $p < $pos)) { $pos = $p; $kode = $kd; }
+            }
+            return $kode; // null bila "Kepala Bidang" tanpa nama bidang yang dikenal
+        }
+        return null;
+    }
+
     /* ================= KINERJA FISIK (capaian program/kegiatan/sub) ================= */
 
     /**
@@ -346,7 +380,7 @@ class ImportService
 
     public static function parsePegawai(array $rows): array
     {
-        $out = [];
+        $out = []; $batas = [];
         // v21: kolom dikenali dari TEKS HEADER (baris 1-3), bukan posisi tetap — susunan
         // file user apa pun terbaca. Fallback ke posisi template Dinas lama bila header absen.
         $hx = []; $pangkatCols = [];
@@ -412,8 +446,33 @@ class ImportService
                 'diklat_fungsional' => $at($r, $col('diklat_fungsional', -1)) ?: null,
                 'diklat_teknis' => $at($r, $col('diklat_teknis', -1)) ?: null,
                 'status' => 'aktif',
-                'id_bidang' => Bidang::tebakDariTeks(trim($jabatan . ' ' . $unit)),
+                'id_bidang' => null, // diisi setelah seluruh baris terkumpul (penempatan berurutan, lihat bawah)
             ];
+            $batas[] = self::kepalaBidangDariJabatan($jabatan);
+        }
+
+        /* Konfirmasi Dinas 10 Sep 2026 — penempatan bidang mengikuti URUTAN baris file:
+         * baris "Kepala Bidang X" = batas (dia kepala X), baris di bawahnya staf X sampai
+         * batas berikutnya; di atas batas pertama (Sekretaris, Kasubbag, dst.) = Sekretariat.
+         * Jabatan tetap tertulis sesuai SK. Bila file tidak memuat satu pun batas kepala →
+         * fallback menebak per-baris dari teks jabatan/unit kerja (perilaku lama). */
+        $adaBatas = false;
+        foreach ($batas as $k) if ($k !== null && $k !== '1') { $adaBatas = true; break; }
+
+        if ($adaBatas) {
+            foreach ($batas as $k) if (str_starts_with((string) $k, 'UPTD')) { Bidang::pastikanUptd(); break; }
+            $idDariKode = [];
+            foreach (Bidang::all() as $b) $idDariKode[$b->kode] = (int) $b->id;
+            $current = $idDariKode['1'] ?? null; // di atas batas pertama = Sekretariat
+            foreach ($out as $i => $row) {
+                $k = $batas[$i] ?? null;
+                if ($k !== null && $k !== '1' && ($idDariKode[$k] ?? null)) $current = $idDariKode[$k];
+                $out[$i]['id_bidang'] = $current;
+            }
+        } else {
+            foreach ($out as $i => $row) {
+                $out[$i]['id_bidang'] = Bidang::tebakDariTeks(trim((string) $row['jabatan'] . ' ' . (string) $row['unit_kerja']));
+            }
         }
         return $out;
     }
@@ -427,6 +486,14 @@ class ImportService
             $exists = Pegawai::where('nip', $data['nip'])->exists();
             Pegawai::updateOrCreate(['nip' => $data['nip']], $data);
             $exists ? $diperbarui++ : $dibuat++;
+
+            // Konfirmasi Dinas 10 Sep: baris batas kepala ("Kepala Bidang/UPTD/Sekretaris
+            // Dinas") → catat namanya sebagai ketua bidang, bila kolom ketua masih kosong.
+            $kepalaKode = self::kepalaBidangDariJabatan($data['jabatan']);
+            if ($kepalaKode) {
+                $b = Bidang::where('kode', $kepalaKode)->first();
+                if ($b && ! trim((string) $b->ketua)) $b->update(['ketua' => $data['nama']]);
+            }
 
             $bidang = $data['id_bidang'];
             $peran = self::peranDariJabatan($data['jabatan']);

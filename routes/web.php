@@ -16,6 +16,7 @@ Route::redirect('/', '/dashboard')->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/kartu', [DashboardController::class, 'kartu'])->name('dashboard.kartu');
 
     // modul publik
     Route::get('/dokumen', [DokumenController::class, 'index'])->name('dokumen.index');
@@ -118,4 +119,4 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

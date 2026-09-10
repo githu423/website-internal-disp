@@ -11,18 +11,19 @@ use Illuminate\View\View;
 
 class AgendaController extends Controller
 {
-    public function index(Request $request): View
+        public function index(Request $request): View
     {
         $u = $request->user();
         $bulan = $request->query('bulan') ?: now()->format('Y-m');
         [$y, $m] = array_pad(explode('-', $bulan), 2, null);
         $y = (int) $y; $m = (int) ($m ?: now()->month);
 
+        // Konfirmasi Dinas 10 Sep 2026: SEMUA agenda (dinas + milik bidang mana pun) tampil
+        // untuk semua user — dikelompokkan per bidang di tampilan. Tidak ada lagi yang tersembunyi.
         $q = Agenda::query()->with('bidang')->whereYear('tanggal', $y)->whereMonth('tanggal', $m);
-        if (! $u->isAdmin()) $q->where(fn ($w) => $w->whereNull('id_bidang')->orWhere('id_bidang', $u->id_bidang ?: -1));
 
         $items = $q->orderBy('tanggal')->orderBy('jam_mulai')->get();
-        $terdekat = ($u->isAdmin() ? Agenda::query() : Agenda::query()->where(fn ($w) => $w->whereNull('id_bidang')->orWhere('id_bidang', $u->id_bidang ?: -1)))->terdekat()->limit(5)->get();
+        $terdekat = Agenda::query()->with('bidang')->terdekat()->limit(5)->get();
 
         return view('agenda.index', [
             'items' => $items, 'bulanIni' => sprintf('%04d-%02d', $y, $m),

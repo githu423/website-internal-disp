@@ -250,6 +250,26 @@ if (office) {
                 const rerender = () => { clearTimeout(rT); rT = setTimeout(render, 90); };
                 document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === box || !document.fullscreenElement) rerender(); });
                 document.addEventListener('webkitfullscreenchange', () => rerender());
+            } else if (office.dataset.kind === 'pptx') {
+                // PPTX — dirender lokal di browser oleh pptx-preview (file tidak meninggalkan server).
+                // Render ulang saat masuk/keluar layar penuh supaya slide memenuhi layar.
+                const { init } = await import('pptx-preview');
+                const render = () => {
+                    office.innerHTML = '';
+                    const wrap = document.createElement('div');
+                    wrap.style.width = '100%';
+                    office.appendChild(wrap);
+                    const cw = Math.max(320, wrap.clientWidth || office.clientWidth || 960);
+                    const ch = Math.round(cw * 0.5625); // rasio 16:9; library menskalakan slide agar pas
+                    const previewer = init(wrap, { width: cw, height: ch, mode: 'slide' });
+                    previewer.preview(buf);
+                };
+                render();
+                const box = document.getElementById('preview-box') || office;
+                let rT;
+                const rerender = () => { clearTimeout(rT); rT = setTimeout(render, 90); };
+                document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === box || !document.fullscreenElement) rerender(); });
+                document.addEventListener('webkitfullscreenchange', () => rerender());
             } else {
                 const { renderAsync } = await import('docx-preview');
                 office.innerHTML = '<style>#office-host{background:#e2e8f0;padding:14px}#office-host .docx-wrapper{background:#e2e8f0;padding:0}#office-host .docx-wrapper>section.docx{box-shadow:0 4px 18px rgba(15,23,42,.14);margin-bottom:14px}</style><div id="docx-mount"></div>';

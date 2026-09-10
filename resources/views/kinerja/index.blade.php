@@ -14,6 +14,15 @@
     </div>
 </div>
 
+{{-- Konfirmasi Dinas 10 Sep: pemilik bidang boleh pilih lingkup — bawaan seluruh dinas --}}
+@if ($punyaBidang)
+<div class="flex flex-wrap items-center gap-1.5 mb-4">
+    <span class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mr-1">Lingkup data:</span>
+    <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['lingkup' => 'semua'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', ! $lingkupSaya ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏛 Seluruh Dinas</a>
+    <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['lingkup' => 'saya'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', $lingkupSaya ? 'bg-teal-600 text-white border-teal-600' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏢 Bidang Saya</a>
+</div>
+@endif
+
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
     <x-stat label="Total Sub Kegiatan" :value="(int) $ringkas->total" tone="sky" icon="kinerja" />
     <x-stat label="Tuntas (≥100%)" :value="(int) $ringkas->tuntas" tone="emerald" icon="kinerja" />
@@ -25,6 +34,7 @@
     <div class="px-4 py-3 border-b border-slate-100 flex flex-wrap gap-2.5 items-center">
         <form class="flex-1 min-w-[200px] flex gap-2" method="GET">
             <input type="hidden" name="tahun" value="{{ $tahun }}">
+            @if (request('lingkup'))<input type="hidden" name="lingkup" value="{{ request('lingkup') }}">@endif
             <input name="q" value="{{ request('q') }}" placeholder="Cari nama kegiatan…" class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 outline-none">
             <select name="status" class="rounded-lg border border-slate-300 px-2 py-2 text-sm bg-white">
                 <option value="">Semua status</option>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Bidang;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
+use App\Models\User;
 use App\Services\ImportService;
 use App\Services\NotifikasiService;
 use Illuminate\Http\RedirectResponse;
@@ -46,8 +47,24 @@ class PegawaiController extends Controller
 
     public function update(Request $request, Pegawai $pegawai): RedirectResponse
     {
-        $pegawai->update($this->validateData($request, $pegawai->id));
-        return back()->with('sukses', 'Data pegawai diperbarui.');
+        $d = $this->validateData($request, $pegawai->id);
+        $pegawai->update($d);
+
+        // Konfirmasi Dinas 10 Sep: admin cukup ubah SATU kolom (mis. hanya bidang) lalu simpan.
+        // Perubahan bidang/jabatan pada data pegawai ikut diterapkan ke AKUN LOGIN terkait
+        // (non-admin) — agar lingkup "Bidang Saya", agenda bidang, dan peran pengelola
+        // langsung mengikuti data terbaru tanpa perlu menunggu import ulang Excel.
+        $akunUbah = [];
+        $user = User::where('nip', $pegawai->nip)->first();
+        if ($user && $user->role !== 'admin') {
+            if (! empty($d['id_bidang']) && (int) $user->id_bidang !== (int) $d['id_bidang']) $akunUbah['id_bidang'] = $d['id_bidang'];
+            if (! empty($d['jabatan']) && $user->jabatan !== $d['jabatan']) $akunUbah['jabatan'] = $d['jabatan'];
+            $peran = ImportService::peranDariJabatan($pegawai->jabatan);
+            if ($user->role !== $peran) $akunUbah['role'] = $peran;
+            if ($akunUbah) $user->update($akunUbah);
+        }
+        LogAktivitas::catat('ubah pegawai', $pegawai->nama . ($akunUbah ? ' (' . implode(', ', array_keys($akunUbah)) . ')' : ''));
+        return back()->with('sukses', 'Data pegawai diperbarui' . ($akunUbah ? ' — akun login ikut disesuaikan.' : '.'));
     }
 
     public function destroy(Pegawai $pegawai): RedirectResponse
@@ -82,27 +99,30 @@ class PegawaiController extends Controller
 
     private function validateData(Request $request, ?int $exceptId = null): array
     {
-        $d = $request->validate([
-            'nip' => ['required', 'string', 'max:40', 'unique:pegawai,nip'.($exceptId ? ",$exceptId" : '')],
-            'nama' => ['required', 'string', 'max:150'],
-            'tempat_lahir' => ['nullable', 'string', 'max:100'],
-            'tanggal_lahir' => ['nullable', 'date'],
-            'jenis_kelamin' => ['nullable', 'in:L,P'],
-            'jabatan' => ['nullable', 'string', 'max:150'],
-            'pangkat_golongan' => ['nullable', 'string', 'max:100'],
-            'jenis_asn' => ['nullable', 'in:PNS,PPPK'],
-            'tmt_cpns' => ['nullable', 'date'],
-            'tmt_sekarang' => ['nullable', 'date'],
-            'tmt_jabatan' => ['nullable', 'date'],
-            'pendidikan' => ['nullable', 'string', 'max:100'],
-            'unit_kerja' => ['nullable', 'string', 'max:120'],
-            'pangkat_awal' => ['nullable', 'string', 'max:100'],
-            'diklat_struktural' => ['nullable', 'string', 'max:150'],
-            'diklat_fungsional' => ['nullable', 'string', 'max:150'],
-            'diklat_teknis' => ['nullable', 'string', 'max:150'],
-            'status' => ['required', 'in:aktif,nonaktif,pensiun'],
-            'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
+        // Mode edit ($exceptId terisi, 10 Sep 2026): semua aturan diberi awalan 'sometimes' —
+        // admin boleh mengirim SEBAGIAN kolom saja (mis. hanya bidang/status) dan tetap
+        // bisa simpan; kolom yang tidak dikirim tidak ikut diubah. Mode tambah tetap ketat.
+        $r = fn (array $rules) => $exceptId ? array_merge(['sometimes'], $rules) : $rules;
+        return $request->validate([
+            'nip' => $r(['required', 'string', 'max:40', 'unique:pegawai,nip'.($exceptId ? ','.$exceptId : '')]),
+            'nama' => $r(['required', 'string', 'max:150']),
+            'tempat_lahir' => $r(['nullable', 'string', 'max:100']),
+            'tanggal_lahir' => $r(['nullable', 'date']),
+            'jenis_kelamin' => $r(['nullable', 'in:L,P']),
+            'jabatan' => $r(['nullable', 'string', 'max:150']),
+            'pangkat_golongan' => $r(['nullable', 'string', 'max:100']),
+            'jenis_asn' => $r(['nullable', 'in:PNS,PPPK']),
+            'tmt_cpns' => $r(['nullable', 'date']),
+            'tmt_sekarang' => $r(['nullable', 'date']),
+            'tmt_jabatan' => $r(['nullable', 'date']),
+            'pendidikan' => $r(['nullable', 'string', 'max:100']),
+            'unit_kerja' => $r(['nullable', 'string', 'max:120']),
+            'pangkat_awal' => $r(['nullable', 'string', 'max:100']),
+            'diklat_struktural' => $r(['nullable', 'string', 'max:150']),
+            'diklat_fungsional' => $r(['nullable', 'string', 'max:150']),
+            'diklat_teknis' => $r(['nullable', 'string', 'max:150']),
+            'status' => $r(['required', 'in:aktif,nonaktif,pensiun']),
+            'id_bidang' => $r(['nullable', 'integer', 'exists:bidang,id']),
         ]);
-        return $d;
     }
 }

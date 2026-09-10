@@ -48,14 +48,20 @@ class StatistikController extends Controller
         ]);
     }
 
-    /** daftar kegiatan & capaian (bisa difilter bidang) — info + pengingat kegiatan dinas */
+        /** daftar kegiatan & capaian (bisa difilter bidang) — info + pengingat kegiatan dinas */
     public function kinerja(Request $request): View
     {
         $u = $request->user();
+        // Konfirmasi Dinas 10 Sep 2026: bawaan = seluruh dinas (sama utk semua user);
+        // pemilik bidang boleh memilih lingkup bidangnya sendiri lewat ?lingkup=saya.
+        $punyaBidang = ! $u->isAdmin() && $u->id_bidang;
+        $bid = $punyaBidang && $request->query('lingkup') === 'saya' ? $u->id_bidang : null;
+        $lingkupSaya = (bool) $bid;
+
         $tahunList = CapaianProgram::tahunTersedia();
         $tahun = (int) ($request->query('tahun') ?: ($tahunList[0] ?? now()->year));
         $q = CapaianProgram::where('tahun', $tahun)->where('level', 'sub_kegiatan')->with('bidang')->orderBy('urutan');
-        if (! $u->isAdmin() && $u->id_bidang) $q->where('id_bidang', $u->id_bidang);
+        if ($bid) $q->where('id_bidang', $bid);
         if ($f = $request->query('status')) {
             if ($f === 'tuntas') $q->where('persentase', '>=', 100);
             if ($f === 'berjalan') $q->whereBetween('persentase', [60, 99.999]);
@@ -64,10 +70,10 @@ class StatistikController extends Controller
         if ($s = trim((string) $request->query('q'))) $q->where('nama', 'like', "%$s%");
         $items = $q->paginate(20)->withQueryString();
         $ringkasQuery = CapaianProgram::where('tahun', $tahun)->where('level', 'sub_kegiatan');
-        if (! $u->isAdmin() && $u->id_bidang) $ringkasQuery->where('id_bidang', $u->id_bidang);
+        if ($bid) $ringkasQuery->where('id_bidang', $bid);
         $ringkas = $ringkasQuery->selectRaw("COUNT(*) total, SUM(CASE WHEN persentase>=100 THEN 1 ELSE 0 END) tuntas, SUM(CASE WHEN persentase>=60 AND persentase<100 THEN 1 ELSE 0 END) berjalan, SUM(CASE WHEN persentase<60 THEN 1 ELSE 0 END) lambat")->first();
 
-        return view('kinerja.index', compact('items', 'tahun', 'tahunList', 'ringkas'));
+        return view('kinerja.index', compact('items', 'tahun', 'tahunList', 'ringkas', 'punyaBidang', 'lingkupSaya'));
     }
 
     public function capaian(Request $request): View

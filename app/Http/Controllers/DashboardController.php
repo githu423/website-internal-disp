@@ -8,6 +8,7 @@ use App\Models\CapaianProgram;
 use App\Models\Dokumen;
 use App\Models\Pad;
 use App\Models\Pegawai;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -17,19 +18,31 @@ class DashboardController extends Controller
     public function index(Request $request): View
     {
         $u = $request->user();
-        $bid = $u->isAdmin() ? null : $u->id_bidang;
+        // Konfirmasi Dinas 10 Sep 2026: halaman utama SAMA untuk semua user (lingkup seluruh
+        // dinas). User yang punya bidang diberi PILIHAN melihat data bidangnya sendiri
+        // lewat ?lingkup=saya — bukan lagi dipaksa otomatis.
+        $punyaBidang = ! $u->isAdmin() && $u->id_bidang;
+        $bid = $punyaBidang && $request->query('lingkup') === 'saya' ? $u->id_bidang : null;
+        $lingkupSaya = (bool) $bid;
         $scope = fn ($q) => $bid ? $q->where('id_bidang', $bid) : $q;
 
         $kinerjaTahun = (int) ($request->query('tahun') ?: (CapaianProgram::tahunTersedia()[0] ?? now()->year));
         $padList = Pad::tahunTersedia();
         $padTahun = (int) (in_array(now()->year, $padList) ? now()->year : ($padList[0] ?? now()->year));
 
-        // kartu statistik
+        // kartu statistik (konfirmasi Dinas 10 Sep: kartu non-aktif & pensiun + angka live via polling)
         $jumlahPegawai = Pegawai::where('status', 'aktif')->count();
+        $jumlahPegawaiNonaktif = Pegawai::where('status', 'nonaktif')->count();
+        $jumlahPegawaiPensiun = Pegawai::where('status', 'pensiun')->count();
         $prestasiTerbaru = \App\Models\Prestasi::untukDashboard(10);
         $jumlahDokumen = $scope(Dokumen::query())->count();
-        $agendaMendatang = $scope(Agenda::query())->terdekat()->limit(5)->get();
-        $agendaTerlewat = $scope(Agenda::query())->terlewat()->count();
+
+        // agenda: konfirmasi Dinas 10 Sep — SEMUA agenda (dinas + bidang mana pun) tampil untuk
+        // semua user; saat lingkup "bidang saya" → agenda dinas umum + bidang sendiri saja.
+        $agendaQ = Agenda::query();
+        if ($bid) $agendaQ->where(fn ($w) => $w->whereNull('id_bidang')->orWhere('id_bidang', $bid));
+        $agendaMendatang = (clone $agendaQ)->with('bidang')->terdekat()->limit(5)->get();
+        $agendaTerlewat = (clone $agendaQ)->terlewat()->count();
 
         $padSum = Pad::where('tahun', $padTahun)
             ->select(DB::raw('COALESCE(SUM(kumulatif),0) realisasi'), DB::raw('COALESCE(SUM(CASE WHEN target_perubahan>0 THEN target_perubahan ELSE target_tahunan END),0) target'))
@@ -60,13 +73,24 @@ class DashboardController extends Controller
             ->orderBy('urutan');
         $kinerja = (clone $kinerjaQuery)->limit(8)->get();
         $kinerjaTotal = (clone $kinerjaQuery)->count();
-        $kinerjaSelesai = CapaianProgram::where('tahun', $kinerjaTahun)->where('level', 'sub_kegiatan')
+        $kinerjaSelesai = $scope(CapaianProgram::query()->where('tahun', $kinerjaTahun)->where('level', 'sub_kegiatan'))
             ->where('persentase', '>=', 100)->count();
 
         return view('dashboard.index', compact(
-            'jumlahPegawai', 'jumlahDokumen', 'agendaMendatang', 'agendaTerlewat',
-            'padTahun', 'padSum', 'padPersen', 'prestasiTerbaru','chart', 'ringkas', 'kinerja', 'kinerjaTotal',
+            'jumlahPegawai', 'jumlahPegawaiNonaktif', 'jumlahPegawaiPensiun', 'jumlahDokumen',
+            'agendaMendatang', 'agendaTerlewat', 'punyaBidang', 'lingkupSaya',
+            'padTahun', 'padSum', 'padPersen', 'prestasiTerbaru', 'chart', 'ringkas', 'kinerja', 'kinerjaTotal',
             'kinerjaSelesai', 'kinerjaTahun'
         ));
+    }
+
+    /** JSON angka kartu pegawai — dipanggil tiap 10 detik oleh dashboard agar tetap mutakhir (realtime). */
+    public function kartu(Request $request): JsonResponse
+    {
+        return response()->json([
+            'pegawai_aktif' => Pegawai::where('status', 'aktif')->count(),
+            'pegawai_nonaktif' => Pegawai::where('status', 'nonaktif')->count(),
+            'pegawai_pensiun' => Pegawai::where('status', 'pensiun')->count(),
+        ]);
     }
 }
