@@ -116,8 +116,10 @@ document.querySelectorAll('canvas[data-chart]').forEach((cv) => {
     const scales = { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } };
     if (Array.isArray(data.datasets) && data.datasets.some((d) => d.axis === 'y1'))
         scales.y1 = { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { callback: (v) => v + '%' } };
-    new Chart(cv, { type, data: { labels: data.labels, datasets: ds },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales } });
+    new Chart(cv, {
+        type, data: { labels: data.labels, datasets: ds },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales }
+    });
 });
 
 /* ===== form import: state saat submit ===== */
@@ -137,7 +139,7 @@ document.querySelectorAll('[data-modal-close]').forEach((btn) => btn.addEventLis
 
 /* service worker */
 if ("serviceWorker" in navigator && location.protocol !== "file:") {
-    window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+    window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => { }));
 }
 
 /* Esc menutup panel/modal */
@@ -228,6 +230,26 @@ if (office) {
                 const show = (ix) => { body.innerHTML = sheetHtml(names[ix]); office.querySelectorAll('.sheet-tab').forEach((b, i2) => { const on = i2 === ix; b.className = b.className.replace(/border-slate-200 bg-white text-slate-500 hover:border-teal-400|border-slate-900 bg-slate-900 text-white/g, on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-teal-400'); }); };
                 office.querySelectorAll('.sheet-tab').forEach((b) => b.addEventListener('click', () => show(+b.dataset.i)));
                 show(0);
+            } else if (office.dataset.kind === 'pptx') {
+                // PPTX — dirender lokal di browser oleh pptx-preview (file tidak meninggalkan server).
+                // Render ulang saat masuk/keluar layar penuh supaya slide memenuhi layar.
+                const { init } = await import('pptx-preview');
+                const render = () => {
+                    office.innerHTML = '';
+                    const wrap = document.createElement('div');
+                    wrap.style.width = '100%';
+                    office.appendChild(wrap);
+                    const cw = Math.max(320, wrap.clientWidth || office.clientWidth || 960);
+                    const ch = Math.round(cw * 0.5625); // rasio 16:9; library menskalakan slide agar pas
+                    const previewer = init(wrap, { width: cw, height: ch, mode: 'slide' });
+                    previewer.preview(buf);
+                };
+                render();
+                const box = document.getElementById('preview-box') || office;
+                let rT;
+                const rerender = () => { clearTimeout(rT); rT = setTimeout(render, 90); };
+                document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === box || !document.fullscreenElement) rerender(); });
+                document.addEventListener('webkitfullscreenchange', () => rerender());
             } else {
                 const { renderAsync } = await import('docx-preview');
                 office.innerHTML = '<style>#office-host{background:#e2e8f0;padding:14px}#office-host .docx-wrapper{background:#e2e8f0;padding:0}#office-host .docx-wrapper>section.docx{box-shadow:0 4px 18px rgba(15,23,42,.14);margin-bottom:14px}</style><div id="docx-mount"></div>';

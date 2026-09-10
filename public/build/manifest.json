@@ -1,9 +1,25 @@
 {
+  "_jszip.min-CvlsHj2n.js": {
+    "file": "assets/jszip.min-CvlsHj2n.js",
+    "name": "jszip.min"
+  },
   "node_modules/docx-preview/dist/docx-preview.mjs": {
-    "file": "assets/docx-preview-B8Y14n_B.js",
+    "file": "assets/docx-preview-BS8Tjt09.js",
     "name": "docx-preview",
     "src": "node_modules/docx-preview/dist/docx-preview.mjs",
-    "isDynamicEntry": true
+    "isDynamicEntry": true,
+    "imports": [
+      "_jszip.min-CvlsHj2n.js"
+    ]
+  },
+  "node_modules/pptx-preview/dist/pptx-preview.es.js": {
+    "file": "assets/pptx-preview.es-DBHRlAuW.js",
+    "name": "pptx-preview.es",
+    "src": "node_modules/pptx-preview/dist/pptx-preview.es.js",
+    "isDynamicEntry": true,
+    "imports": [
+      "_jszip.min-CvlsHj2n.js"
+    ]
   },
   "node_modules/xlsx/xlsx.mjs": {
     "file": "assets/xlsx-B6LBHFmH.js",
@@ -12,7 +28,7 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-L50iAzF5.css",
+    "file": "assets/app-Ca4JaztI.css",
     "name": "app",
     "names": [
       "app.css"
@@ -21,12 +37,13 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BeTU9teh.js",
+    "file": "assets/app-Bhi1a-Z_.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "dynamicImports": [
       "node_modules/xlsx/xlsx.mjs",
+      "node_modules/pptx-preview/dist/pptx-preview.es.js",
       "node_modules/docx-preview/dist/docx-preview.mjs"
     ]
   }
