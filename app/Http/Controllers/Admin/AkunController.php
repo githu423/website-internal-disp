@@ -16,7 +16,7 @@ class AkunController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = User::query()->with('bidang');
+        $q = User::query()->with(['bidang', 'pegawai']);
         if ($s = trim((string) $request->query('q'))) {
             $q->where(fn ($w) => $w->where('name', 'like', "%$s%")->orWhere('nip', 'like', "%$s%"));
         }

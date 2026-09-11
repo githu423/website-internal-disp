@@ -25,6 +25,17 @@ class Pegawai extends Model
     }
 
     /**
+     * Umur dalam TAHUN, dihitung real-time dari tanggal lahir (konfirmasi Dinas
+     * 11 Sep 2026 — identitas umur tampil di semua halaman data pegawai).
+     * NULL bila tanggal lahir belum terisi atau salah (tertanggal di masa depan).
+     */
+    public function getUmurAttribute(): ?int
+    {
+        if (! $this->tanggal_lahir || $this->tanggal_lahir->isFuture()) return null;
+        return (int) $this->tanggal_lahir->diffInYears(now());
+    }
+
+    /**
      * Pegawai yang datanya belum lengkap — kriteria SAMA dengan checklist
      * halaman /profil (permintaan Ricky 7 Sep 2026, dipakai chip merah & filter).
      */

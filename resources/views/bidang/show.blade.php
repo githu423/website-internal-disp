@@ -56,9 +56,9 @@
         <table class="data w-full">
             <tbody>
             @forelse ($pegawais as $p)
-                <tr><td class="font-semibold text-[13px]">{{ $p->nama }}<span class="block font-normal text-[11px] text-slate-400">{{ $p->jabatan ?: '—' }}</span></td>
+                <tr><td class="font-semibold text-[13px]">{{ $p->nama }}<span class="block font-normal text-[11px] text-slate-400">{{ $p->jabatan ?: '—' }}@if ($p->umur !== null) · umur {{ $p->umur }} th@endif</span></td>
                     <td class="text-xs font-mono text-slate-500">{{ $p->nip }}</td>
-                    <td class="text-xs whitespace-nowrap text-right">{{ $p->masa_kerja['label'] }}</td></tr>
+                    <td class="text-xs whitespace-nowrap text-right">{{ $p->masa_kerja['label'] }}<span class="block text-[10px] text-slate-400">{{ $p->umur !== null ? 'lahir ' . $p->tanggal_lahir->translatedFormat('d M Y') : 'tanggal lahir belum terisi' }}</span></td></tr>
             @empty
                 <tr><td><x-empty icon="pegawai" title="Belum ada pegawai terdata di bidang ini" /></td></tr>
             @endforelse

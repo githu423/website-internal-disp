@@ -131,6 +131,7 @@
                 <div class="flex items-baseline justify-between gap-3"><dt class="text-slate-400 shrink-0">Bidang</dt><dd class="font-semibold text-right">{{ $u->bidang?->nama ?? 'Seluruh Dinas' }}</dd></div>
                 <div class="flex items-baseline justify-between gap-3"><dt class="text-slate-400 shrink-0">Jabatan</dt><dd class="font-semibold text-right">{{ $isi('jabatan') ?: ($u->jabatan ?: '—') }}</dd></div>
                 <div class="flex items-baseline justify-between gap-3"><dt class="text-slate-400 shrink-0">Masa kerja</dt><dd class="font-semibold text-right text-teal-700" title="dihitung real-time sampai hari ini">{{ $p?->masa_kerja['label'] ?? '—' }}</dd></div>
+                <div class="flex items-baseline justify-between gap-3"><dt class="text-slate-400 shrink-0">Umur</dt><dd class="font-semibold text-right text-teal-700" title="dihitung real-time dari tanggal lahir">{{ $p?->umur !== null ? $p->umur . ' tahun' : '—' }}@if ($p?->tanggal_lahir) <span class="font-normal text-slate-400">({{ $p->tanggal_lahir->translatedFormat('d M Y') }})</span>@endif</dd></div>
                 <div class="flex items-baseline justify-between gap-3"><dt class="text-slate-400 shrink-0">TMT CPNS</dt><dd class="font-semibold text-right">{{ $isi('tmt_cpns') ? \Carbon\Carbon::parse($isi('tmt_cpns'))->translatedFormat('d M Y') : '—' }}</dd></div>
             </dl>
         </div>

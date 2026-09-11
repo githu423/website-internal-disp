@@ -34,7 +34,7 @@
                 @forelse ($pegawai as $p)
                     <tr>
                         <td><p class="font-semibold text-[13px]">{{ $p->nama }}</p><p class="text-[11px] text-slate-400 font-mono">{{ $p->nip }}</p>@if ($modeBelum)<p class="mt-0.5 text-[10.5px] font-bold text-rose-600">belum lengkap: {{ implode(', ', $p->kolomKurang()) }}</p>@endif</td>
-                        <td class="text-xs">{{ $p->jabatan ?? '—' }}<span class="block text-[10.5px] text-slate-400">{{ $p->pangkat_golongan }} · {{ $p->masa_kerja['label'] }}</span></td>
+                        <td class="text-xs">{{ $p->jabatan ?? '—' }}<span class="block text-[10.5px] text-slate-400">{{ $p->pangkat_golongan }} · {{ $p->masa_kerja['label'] }} @if ($p->umur !== null)· <span title="umur (dari tanggal lahir)">umur {{ $p->umur }} th</span>@endif</span></td>
                         <td class="text-xs text-slate-500">{{ $p->bidang?->nama ?? '—' }}</td>
                         <td><span class="text-[10.5px] font-bold rounded-full px-2 py-0.5 {{ $p->status === 'aktif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500' }}">{{ ucfirst($p->status) }}</span></td>
                         <td class="text-right whitespace-nowrap">

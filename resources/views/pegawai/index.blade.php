@@ -20,7 +20,7 @@
 <div class="card overflow-hidden">
     <div class="overflow-x-auto thin-scroll">
         <table class="data w-full min-w-[880px]">
-            <thead><tr><th>Nama / NIP</th><th>Jabatan</th><th>Pangkat / Gol.</th><th>Pendidikan</th><th>Masa Kerja</th><th>Unit Kerja</th></tr></thead>
+            <thead><tr><th>Nama / NIP</th><th>Jabatan</th><th>Pangkat / Gol.</th><th>Pendidikan</th><th>Umur</th><th>Masa Kerja</th><th>Unit Kerja</th></tr></thead>
             <tbody>
             @forelse ($pegawai as $p)
                 <tr>
@@ -33,11 +33,12 @@
                     <td class="text-[13px]">{{ $p->jabatan ?? '—' }}</td>
                     <td class="text-xs">{{ $p->pangkat_golongan ?? '—' }}</td>
                     <td class="text-xs">{{ $p->pendidikan ?? '—' }}</td>
+                    <td class="text-xs font-semibold whitespace-nowrap" title="dihitung dari tanggal lahir">{{ $p->umur !== null ? $p->umur . ' tahun' : '—' }}<span class="block font-normal text-[10px] text-slate-400">{{ $p->tanggal_lahir?->translatedFormat('d M Y') }}</span></td>
                     <td class="text-xs font-semibold whitespace-nowrap">{{ $p->masa_kerja['label'] }}<span class="block font-normal text-[10px] text-slate-400">sejak {{ $p->tmt_cpns ? \Carbon\Carbon::parse($p->tmt_cpns)->translatedFormat('M Y') : '—' }}</span></td>
                     <td class="text-[11px] text-slate-500">{{ $p->bidang?->nama ?? '—' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="6"><x-empty icon="pegawai" title="{{ $modeBelum ? 'Semua pegawai sudah lengkap datanya 🎉' : 'Tidak ada pegawai ditemukan' }}" /></td></tr>
+                <tr><td colspan="7"><x-empty icon="pegawai" title="{{ $modeBelum ? 'Semua pegawai sudah lengkap datanya 🎉' : 'Tidak ada pegawai ditemukan' }}" /></td></tr>
             @endforelse
             </tbody>
         </table>

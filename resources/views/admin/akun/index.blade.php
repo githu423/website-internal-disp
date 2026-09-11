@@ -24,7 +24,7 @@
             <tbody>
             @foreach ($users as $usr)
                 <tr>
-                    <td><p class="font-semibold text-[13px]">{{ $usr->name }}</p><p class="text-[11px] text-slate-400 font-mono">{{ $usr->nip }}</p></td>
+                    <td><p class="font-semibold text-[13px]">{{ $usr->name }}</p><p class="text-[11px] text-slate-400 font-mono">{{ $usr->nip }}@if ($usr->pegawai?->umur !== null) <span class="font-sans font-bold text-slate-500" title="umur (dari tanggal lahir)">· {{ $usr->pegawai->umur }} th</span>@endif</p></td>
                     <td><span class="text-[10.5px] font-bold rounded-full px-2 py-0.5 {{ ['admin' => 'bg-amber-50 text-amber-700', 'bidang' => 'bg-sky-50 text-sky-700'][$usr->role] ?? 'bg-slate-100 text-slate-600' }}">{{ ucfirst($usr->role) }}</span></td>
                     <td class="text-xs text-slate-500">{{ $usr->bidang?->nama ?? '—' }}</td>
                     <td class="text-xs text-slate-500">{{ $usr->jabatan ?? '—' }}</td>
