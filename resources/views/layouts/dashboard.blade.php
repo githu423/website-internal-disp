@@ -7,7 +7,7 @@
     <title>@yield('title', 'Dashboard') · SIPARDIS</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script>document.documentElement.dataset.sidebar = localStorage.getItem('sb-collapsed') === '1' ? 'collapsed' : '';</script>
+    <script>document.documentElement.dataset.sidebar = localStorage.getItem('sb-collapsed') === '1' ? 'collapsed' : '';if (window.innerWidth >= 768 && window.innerWidth < 1024) document.documentElement.classList.add('sb-tablet');</script>
 </head>
 @php
     $u = auth()->user();
@@ -29,16 +29,16 @@
                 <p class="font-bold text-[15px] tracking-tight truncate">SIPARDIS</p>
                 <p class="text-[10.5px] text-slate-400 truncate">Dispar Kab. Ciamis</p>
             </div>
-            <button data-sb-toggle title="Tutup / buka menu" id="sb-collapse-btn"
-                class="ml-auto h-8 w-8 shrink-0 grid place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white active:scale-90 transition lg:hidden"><x-icon name="chevron" class="h-4 w-4" /></button>
-            <button data-sb-toggle title="Tutup / buka menu"
-                class="ml-auto hidden lg:grid h-8 w-8 place-items-center rounded-lg text-slate-300 hover:bg-white/10 hover:text-white active:scale-90 transition sb-chev"><x-icon name="chevron" class="h-4 w-4 transition-transform duration-200" /></button>
+            <button data-sb-toggle title="Buka menu" id="sb-collapse-btn"
+                class="ml-auto h-9 w-9 shrink-0 grid place-items-center rounded-lg border border-white/15 bg-white/10 text-slate-200 hover:bg-white/20 hover:text-white hover:border-white/30 active:scale-90 transition lg:hidden"><x-icon name="chevron" class="h-4 w-4" /></button>
+            <button data-sb-toggle title="Perkecil sidebar"
+                class="ml-auto hidden lg:grid h-9 w-9 place-items-center rounded-lg border border-white/15 bg-white/10 text-slate-200 hover:bg-white/20 hover:text-white hover:border-white/30 active:scale-90 transition sb-chev"><x-icon name="chevron" class="h-4 w-4 transition-transform duration-300 ease-out" /></button>
         </div>
 
         <nav class="flex-1 overflow-y-auto thin-scroll px-2.5 py-3 space-y-4">
             <div>
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Utama</p>
-                <div class="space-y-0.5">
+                <div class="space-y-1.5">
                     <x-sb-link :href="route('dashboard')" label="Dashboard" icon="dashboard" :active="$r('dashboard')" />
                     <x-sb-link :href="route('agenda.index')" label="Agenda & Pengingat" icon="agenda" :active="$r('agenda.*')" />
                 </div>
@@ -46,7 +46,7 @@
 
             <div>
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Data &amp; Kinerja</p>
-                <div class="space-y-0.5">
+                <div class="space-y-1.5">
                     <x-sb-link :href="route('kinerja.publik')" label="Kegiatan & Kinerja" icon="kinerja" :active="$r('kinerja.publik')" />
                     <x-sb-link :href="route('kinerja.capaian')" label="Capaian Kinerja" icon="statistik" :active="$r('kinerja.capaian')" />
                     <x-sb-link :href="route('pad.index')" label="PAD (Retribusi)" icon="pad" :active="$r('pad.*')" />
@@ -57,7 +57,7 @@
 
             <div>
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">Kantor</p>
-                <div class="space-y-0.5">
+                <div class="space-y-1.5">
                     <x-sb-link :href="route('dokumen.index')" label="Dokumen" icon="dokumen" :active="$r('dokumen.*')" />
                     <x-sb-link :href="route('notifikasi.index')" label="Notifikasi" icon="bell" :active="$r('notifikasi.*')" :badge="$u->notifikasi()->belum()->count() ?: null" />
                     <x-sb-link :href="route('bidang.index')" label="Bidang Dinas" icon="bidang" :active="$r('bidang.*')" />
@@ -67,7 +67,7 @@
             @if ($u->isAdmin())
             <div>
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400/80">Admin — Data</p>
-                <div class="space-y-0.5">
+                <div class="space-y-1.5">
                     <x-sb-link :href="route('admin.dashboard')" label="Ringkasan Admin" icon="admin" :active="$r('admin.dashboard')" />
                     <x-sb-link :href="route('admin.kinerja.index')" label="Kelola Kinerja" icon="kinerja" :active="$r('admin.kinerja.*')" />
                     <x-sb-link :href="route('admin.capaian.index')" label="Kelola Capaian Kinerja" icon="statistik" :active="$r('admin.capaian.*')" />
@@ -81,7 +81,7 @@
             </div>
             <div>
                 <p class="sb-hide px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-amber-400/80">Admin — Sistem</p>
-                <div class="space-y-0.5">
+                <div class="space-y-1.5">
                     <x-sb-link :href="route('admin.akun.index')" label="Akun & Akses" icon="akun" :active="$r('admin.akun.*')" />
                     <x-sb-link :href="route('admin.log.index')" label="Log Aktivitas" icon="log" :active="$r('admin.log.*')" />
                 </div>
@@ -126,7 +126,7 @@
             <div class="relative">
                 <button id="bell-btn" class="relative h-9 w-9 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition">
                     <x-icon name="bell" />
-                    <span id="bell-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold grid place-items-center">0</span>
+                    <span id="bell-badge" class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold grid place-items-center ring-2 ring-white">0</span>
                 </button>
                 <div id="bell-panel" class="bell-panel hidden fixed right-2 sm:right-4 top-[62px] w-[min(92vw,21rem)] max-h-[70vh] card overflow-hidden z-[90] shadow-xl">
                     <div class="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">

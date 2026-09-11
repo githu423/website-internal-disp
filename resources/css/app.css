@@ -2,38 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== sidebar collapsible ===== */
+/* ===== sidebar: 3 mode responsif (11 Sep 2026) =================================
+   ≥1024px  : penuh (ikon + label), bisa di-collapse user (tersimpan di localStorage)
+   768-1023 : TABLET — ikon-saja menetap, konten mengambil sisa lebar (kelas .sb-tablet
+              dipasang otomatis oleh JS sesuai lebar layar)
+   <768px   : tersembunyi total; hamburger membuka drawer overlay penuh berlabel.
+   Mode ikon-saja = html[data-sidebar="collapsed"] (pilihan user) ATAU html.sb-tablet. */
 #sidebar { width: 16rem; transition: width .25s ease, transform .25s ease; }
-html[data-sidebar="collapsed"] #sidebar { width: 5.25rem; }
-html[data-sidebar="collapsed"] .sb-hide { opacity: 0; width: 0; overflow: hidden; pointer-events: none; white-space: nowrap; }
 .sb-hide { transition: opacity .15s ease; }
-html[data-sidebar="collapsed"] #sidebar .nav-link { justify-content: center; }
-html:not([data-sidebar="collapsed"]) #sidebar .nav-link { justify-content: flex-start; }
+:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar { width: 5.25rem; }
+:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar .sb-hide { opacity: 0; width: 0; overflow: hidden; pointer-events: none; white-space: nowrap; }
+:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar .nav-link { justify-content: center; }
+:is(html[data-sidebar="collapsed"], html.sb-tablet) .sb-chev svg { transform: rotate(180deg); }
+/* mode ikon-saja: judul grup tidak menciptakan jarak — antar item jadi SERAGAM */
+:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar nav p.sb-hide { padding: 0; margin: 0; height: 0; }
+:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar nav > * + * { margin-top: .375rem; }
 
-/* nav link */
-.nav-link { display: flex; align-items: center; gap: .75rem; padding: .55rem .8rem; border-radius: .6rem; font-size: .875rem; color: #cbd5e1; border-left: 3px solid transparent; transition: background .15s, color .15s, border-color .15s; }
-.nav-link:hover { background: rgba(148,163,184,.10); color: #fff; }
+/* nav link — hover halus ~200ms: aksen teal + scale kecil (tanpa loop, tanpa bayangan) */
+.nav-link { display: flex; align-items: center; gap: .75rem; padding: .55rem .8rem; border-radius: .6rem; font-size: .875rem; color: #cbd5e1; border-left: 3px solid transparent; transition: background .2s ease, color .2s ease, border-color .2s ease; }
+.nav-link:hover { background: rgba(45,212,191,.10); color: #fff; }
 .nav-link:active { transform: translateX(1px) scale(.985); }
 .nav-link.is-active { background: linear-gradient(90deg, rgba(45,212,191,.18), rgba(45,212,191,.04)); color: #fff; border-left-color: #2dd4bf; }
 .nav-link.is-active .nav-ico { color: #2dd4bf; }
 
-/* mobile drawer */
-#sidebar.sbx-open { transform: translateX(0); }
-@media (max-width: 1023px) {
-  #sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); z-index: 60; width: 16rem !important; }
-  html[data-sidebar="collapsed"] #sidebar.sbx-open .sb-hide { opacity: 1; width: auto; pointer-events: auto; }
-  #sidebar.sbx-open ~ #sb-overlay, #sb-overlay.show { display: block !important; }
+/* tooltip mode ikon-saja — elemen fixed dibuat JS (menghindari terpotong scroll nav);
+   fade-in halus; atribut title tetap ada sebagai fallback perangkat sentuh */
+.sb-tip { position: fixed; z-index: 95; background: #0f172a; color: #e2e8f0; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(148,163,184,.28); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-50%); transition: opacity .18s ease; }
+.sb-tip.show { opacity: 1; }
+
+/* drawer terbuka (mobile/tablet): sidebar tampil PENUH berlabel di atas overlay */
+#sidebar.sbx-open { transform: translateX(0); width: 16rem !important; }
+#sidebar.sbx-open .sb-hide { opacity: 1 !important; width: auto !important; pointer-events: auto; }
+#sidebar.sbx-open .nav-link { justify-content: flex-start !important; }
+#sidebar.sbx-open nav > * + * { margin-top: 1rem !important; }
+#sidebar.sbx-open nav p.sb-hide { padding: 0 .625rem .375rem; height: auto; }
+@media (max-width: 767px) {
+  #sidebar { position: fixed; left: 0; top: 0; bottom: 0; transform: translateX(-100%); z-index: 60; }
 }
-#sb-overlay { display: none; } /* desktop: tidak pernah tampil (di mobile .show menimpa via !important) */
-#sidebar.sbx-open { transform: translateX(0); }
+#sidebar.sbx-open ~ #sb-overlay, #sb-overlay.show { display: block !important; }
+#sb-overlay { display: none; } /* desktop: tidak pernah tampil */
 
-/* content offset */
+/* offset konten — selalu mengikuti lebar sidebar mode aktif */
 main, header.topbar { margin-left: 16rem; transition: margin .25s ease; }
-html[data-sidebar="collapsed"] main, html[data-sidebar="collapsed"] header.topbar { margin-left: 5.25rem; }
-@media (max-width: 1023px) { main, header.topbar { margin-left: 0 !important; } }
+:is(html[data-sidebar="collapsed"], html.sb-tablet) main, :is(html[data-sidebar="collapsed"], html.sb-tablet) header.topbar { margin-left: 5.25rem; }
+@media (max-width: 767px) { main, header.topbar { margin-left: 0 !important; } }
 
-html[data-sidebar="collapsed"] .sb-chev svg { transform: rotate(180deg); }
-html:not([data-sidebar="collapsed"]) #sidebar .nav-link span.sb-hide { max-width: 14rem; }
+html:not([data-sidebar="collapsed"]):not(.sb-tablet) #sidebar .nav-link span.sb-hide { max-width: 14rem; }
+
+/* pengaman: konten tidak boleh overflow/terpotong horizontal di lebar mana pun */
+#app { overflow-x: clip; }
+main { min-width: 0; }
+/* anak grid tidak boleh memaksa kolom melebar melewati sisa ruang (akar overflow 1280/1440) */
+main .grid > * { min-width: 0; }
+.card { min-width: 0; }
+main canvas { max-width: 100%; }
+/* panah tombol collapse berputar halus saat berganti arah */
+.sb-chev svg { transition: transform .3s ease-out; }
 
 /* panel notifikasi */
 .bell-panel .thin-scroll, #bell-list { scrollbar-width: thin; }

@@ -3,18 +3,66 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 window.Chart = Chart;
 
-/* ===== sidebar: collapse (desktop) + drawer (mobile) ===== */
+/* ===== sidebar: 3 mode (desktop penuh / tablet ikon-saja / mobile drawer) ===== */
 const html = document.documentElement;
 const sidebar = document.getElementById('sidebar');
 if (html.dataset.sidebar !== 'collapsed' && localStorage.getItem('sb-collapsed') === '1') html.dataset.sidebar = 'collapsed';
 
 function persistSb() { localStorage.setItem('sb-collapsed', html.dataset.sidebar === 'collapsed' ? '1' : '0'); }
+
+/* Tablet (768-1023px): pasang kelas sb-tablet — sidebar jadi ikon-saja menetap dan
+   konten mengambil sisa lebar. Kelas dilepas otomatis saat lebar berubah, dan drawer
+   yang terbuka ditutup agar tidak ada kondisi tanggung antar mode. */
+function sbMode() {
+    const w = window.innerWidth;
+    const tablet = w >= 768 && w < 1024;
+    if (html.classList.contains('sb-tablet') !== tablet) {
+        html.classList.toggle('sb-tablet', tablet);
+        sidebar?.classList.remove('sbx-open');
+        document.getElementById('sb-overlay')?.classList.remove('show');
+    }
+    if (w >= 1024) { sidebar?.classList.remove('sbx-open'); document.getElementById('sb-overlay')?.classList.remove('show'); }
+}
+sbMode();
+window.addEventListener('resize', sbMode);
+
+/* judul tooltip tombol toggle mengikuti kondisi (perkecil/perbesar, buka/tutup menu) */
+function sbTitles() {
+    const chev = document.getElementById('sb-collapse-btn');
+    const desk = document.querySelector('.sb-chev');
+    if (desk) desk.title = html.dataset.sidebar === 'collapsed' ? 'Perbesar sidebar' : 'Perkecil sidebar';
+    if (chev) chev.title = sidebar?.classList.contains('sbx-open') ? 'Tutup menu' : 'Buka menu';
+}
+sbTitles();
+
 document.querySelectorAll('[data-sb-toggle]').forEach((btn) => btn.addEventListener('click', () => {
     if (window.innerWidth < 1024) { sidebar.classList.toggle('sbx-open'); document.getElementById('sb-overlay')?.classList.toggle('show'); }
     else { html.dataset.sidebar = html.dataset.sidebar === 'collapsed' ? '' : 'collapsed'; if (html.dataset.sidebar === '') delete html.dataset.sidebar; persistSb(); }
+    sbTitles();
 }));
 document.getElementById('sb-overlay')?.addEventListener('click', () => { sidebar.classList.remove('sbx-open'); document.getElementById('sb-overlay').classList.remove('show'); });
-window.addEventListener('resize', () => { if (window.innerWidth >= 1024) { sidebar.classList.remove('sbx-open'); } });
+
+/* tooltip nama menu saat sidebar ikon-saja (desktop/tablet ber-mouse) — fade-in halus.
+   Diposisikan fixed agar tidak terpotong area scroll nav; perangkat sentuh memakai
+   fallback atribut title. */
+if (window.matchMedia('(hover: hover)').matches) {
+    sidebar?.querySelectorAll('.nav-link[data-label]').forEach((a) => {
+        let tip = null;
+        a.addEventListener('mouseenter', () => {
+            const ikonSaja = html.dataset.sidebar === 'collapsed' || html.classList.contains('sb-tablet');
+            if (!ikonSaja || sidebar.classList.contains('sbx-open')) return;
+            tip = document.createElement('div');
+            tip.className = 'sb-tip';
+            tip.textContent = a.dataset.label;
+            document.body.appendChild(tip);
+            const r = a.getBoundingClientRect();
+            tip.style.top = (r.top + r.height / 2) + 'px';
+            tip.style.left = (r.right + 10) + 'px';
+            requestAnimationFrame(() => tip.classList.add('show'));
+        });
+        a.addEventListener('mouseleave', () => { tip?.remove(); tip = null; });
+    });
+}
 
 /* ===== dropdown notifikasi ===== */
 const bell = document.getElementById('bell-btn'), bellPanel = document.getElementById('bell-panel');
@@ -35,7 +83,7 @@ async function renderBellList() {
         });
     } catch (e) { box.innerHTML = '<p class="px-4 py-4 text-center text-xs text-slate-400">Gagal memuat.</p>'; }
 }
-bell?.addEventListener('click', (e) => { e.stopPropagation(); bellPanel.classList.toggle('hidden'); if (!bellPanel.classList.contains('hidden')) renderBellList(); });
+bell?.addEventListener('click', (e) => { e.stopPropagation(); bellPanel.classList.toggle('hidden'); if (!bellPanel.classList.contains('hidden')) { renderBellList(); pollNotifs(); } });
 document.addEventListener('click', () => bellPanel?.classList.add('hidden'));
 bellPanel?.addEventListener('click', (e) => e.stopPropagation());
 
@@ -94,7 +142,10 @@ document.getElementById('notif-permit')?.addEventListener('click', async (e) => 
     pollNotifs();
 });
 pollNotifs();
-setInterval(pollNotifs, 75000);
+setInterval(pollNotifs, 30000);
+/* badge reaktif: langsung segar saat tab kembali difokuskan / kembali dari halaman lain */
+window.addEventListener('focus', () => pollNotifs());
+document.addEventListener('visibilitychange', () => { if (!document.hidden) pollNotifs(); });
 
 /* ===== grafik ===== */
 document.querySelectorAll('canvas[data-chart]').forEach((cv) => {

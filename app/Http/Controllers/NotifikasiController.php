@@ -18,7 +18,8 @@ class NotifikasiController extends Controller
     {
         $items = $request->user()->notifikasi()->belum()->latest()->limit(8)->get()
             ->map(fn ($n) => ['id' => $n->id, 'judul' => $n->judul, 'isi' => $n->isi, 'tipe' => $n->tipe, 'url' => $n->url, 'waktu' => $n->created_at->diffForHumans()]);
-        return response()->json(['belum' => $items->count(), 'items' => $items]);
+        // hitungan badge = SEMUA yang belum dibaca (bukan hanya 8 teratas yang dirender)
+        return response()->json(['belum' => $request->user()->notifikasi()->belum()->count(), 'items' => $items]);
     }
 
     public function bacaSemua(Request $request): RedirectResponse

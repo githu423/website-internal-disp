@@ -139,7 +139,7 @@
 </div>
 @endif
 
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-5">
+<div class="grid grid-cols-2 md:grid-cols-3 2xl:grid-cols-6 gap-3.5 mb-5">
     <x-stat label="Pegawai Aktif" :value="$jumlahPegawai" sub="NSPK & non-NSPK" tone="sky" icon="pegawai" dataKey="pegawai_aktif" :href="route('pegawai.index', ['status' => 'aktif'])" />
     <x-stat label="Pegawai Non-Aktif" :value="$jumlahPegawaiNonaktif" sub="cuti panjang/berhenti" tone="amber" icon="pegawai" dataKey="pegawai_nonaktif" :href="route('pegawai.index', ['status' => 'nonaktif'])" />
     <x-stat label="Pegawai Pensiun" :value="$jumlahPegawaiPensiun" sub="purna tugas" tone="slate" icon="pegawai" dataKey="pegawai_pensiun" :href="route('pegawai.index', ['status' => 'pensiun'])" />
