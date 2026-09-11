@@ -40,9 +40,28 @@ class PegawaiController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $d = $this->validateData($request);
+
+        // Konfirmasi Dinas 10 Sep: tambah manual pun "terkonek" — bidang dibiarkan kosong
+        // → ditebak dari jabatan/unit kerja; dan akun login dibuat otomatis seperti import.
+        if (empty($d['id_bidang'])) {
+            $d['id_bidang'] = Bidang::tebakDariTeks(trim(($d['jabatan'] ?? '') . ' ' . ($d['unit_kerja'] ?? '')));
+        }
         Pegawai::create($d);
+
+        $akunBaru = false;
+        if (! User::where('nip', $d['nip'])->exists()) {
+            User::create([
+                'name' => $d['nama'],
+                'nip' => $d['nip'],
+                'password' => config('dispar.password_default_pegawai'),
+                'role' => ImportService::peranDariJabatan($d['jabatan'] ?? null),
+                'id_bidang' => $d['id_bidang'],
+                'jabatan' => $d['jabatan'] ?? null,
+            ]);
+            $akunBaru = true;
+        }
         LogAktivitas::catat('tambah pegawai', $d['nama']);
-        return back()->with('sukses', 'Pegawai ditambahkan.');
+        return back()->with('sukses', 'Pegawai ditambahkan.' . ($akunBaru ? ' Akun login dibuat otomatis (password default dinas).' : ''));
     }
 
     public function update(Request $request, Pegawai $pegawai): RedirectResponse

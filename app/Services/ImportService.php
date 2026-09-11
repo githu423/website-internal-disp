@@ -156,6 +156,30 @@ class ImportService
         return null;
     }
 
+    /**
+     * Konfirmasi Dinas 11 Sep 2026 — baca kolom UNIT KERJA (kolom paling kanan file
+     * Excel) → kode bidang. Bila sel pada suatu baris menyebut bidang secara eksplisit,
+     * itulah penempatan baris tersebut (menang atas urutan batas kepala, karena kolom
+     * ini memang kolom penempatan resmi). NULL bila kosong / generik (mis. hanya
+     * "Dinas Pariwisata") → baris mengikuti urutan batas kepala dari kolom jabatan.
+     */
+    public static function kodeDariUnitKerja(?string $unit): ?string
+    {
+        $T = mb_strtoupper(preg_replace('/\s+/u', ' ', trim((string) $unit)) ?? '');
+        if ($T === '') return null;
+
+        // UPTD / Pengelola Objek Wisata + wilayah → UPTD bersangkutan
+        if (preg_match('/\bUPTD?\b/u', $T) || preg_match('/OBJEK\s+WISATA/u', $T)) {
+            if (preg_match('/\bKAWALI\b/u', $T)) return 'UPTD-KAW';
+            if (preg_match('/\bCIAMIS\b/u', $T)) return 'UPTD-CIA';
+        }
+        if (preg_match('/EKONOMI\s+KREATIF|\bEKRAB\b/u', $T)) return '4';
+        if (preg_match('/PEMASARAN/u', $T)) return '3';
+        if (preg_match('/DESTINASI|DAYA\s+TARIK/u', $T)) return '2';
+        if (preg_match('/SEKRETARIAT|\bSEKRE\b/u', $T)) return '1';
+        return null; // generik — ikut urutan batas kepala
+    }
+
     /* ================= KINERJA FISIK (capaian program/kegiatan/sub) ================= */
 
     /**
@@ -461,13 +485,20 @@ class ImportService
 
         if ($adaBatas) {
             foreach ($batas as $k) if (str_starts_with((string) $k, 'UPTD')) { Bidang::pastikanUptd(); break; }
+            foreach ($out as $row) if (str_starts_with((string) self::kodeDariUnitKerja($row['unit_kerja'] ?? null), 'UPTD')) { Bidang::pastikanUptd(); break; }
             $idDariKode = [];
             foreach (Bidang::all() as $b) $idDariKode[$b->kode] = (int) $b->id;
             $current = $idDariKode['1'] ?? null; // di atas batas pertama = Sekretariat
             foreach ($out as $i => $row) {
                 $k = $batas[$i] ?? null;
                 if ($k !== null && $k !== '1' && ($idDariKode[$k] ?? null)) $current = $idDariKode[$k];
-                $out[$i]['id_bidang'] = $current;
+
+                // Konfirmasi Dinas 11 Sep: kolom UNIT KERJA (paling kanan di file) ikut
+                // dibaca — bila sel baris ini menyebut bidang secara eksplisit, itulah
+                // yang MENANG untuk baris tersebut; selain itu mengikuti batas kepala
+                // (urutan jabatan).
+                $uk = self::kodeDariUnitKerja($row['unit_kerja'] ?? null);
+                $out[$i]['id_bidang'] = ($uk !== null && isset($idDariKode[$uk])) ? $idDariKode[$uk] : $current;
             }
         } else {
             foreach ($out as $i => $row) {

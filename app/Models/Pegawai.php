@@ -70,12 +70,50 @@ class Pegawai extends Model
         return $kurang;
     }
 
+        /**
+     * Pencarian menyeluruh (konfirmasi Dinas 11 Sep 2026): kata kunci dicocokkan ke
+     * SEMUA data yang tampil di halaman pegawai — nama, NIP, jabatan, pangkat,
+     * pendidikan, unit kerja, status, tempat lahir — TERMASUK nama bidang tempat
+     * orang itu ditempatkan, sehingga mencari "destinasi" menampilkan SELURUH
+     * anggota Bidang Destinasi (bukan hanya yang jabatannya menyebut destinasi).
+     * Singkatan sehari-hari dikenali (ekrab/ekraf → ekonomi kreatif). NIP boleh
+     * diketik dengan spasi; angka 4 digit juga dicocokkan ke tahun TMT/tgl lahir.
+     */
     public function scopeCari($q, ?string $s)
     {
         if ($s) {
-            $q->where(fn ($w) => $w->where('nama', 'like', "%$s%")
-                ->orWhere('nip', 'like', "%$s%")
-                ->orWhere('jabatan', 'like', "%$s%"));
+            // padanan singkatan sehari-hari → nama resmi (mis. "ekrab"/"ekraf" → "ekonomi kreatif")
+            $varian = [$s];
+            foreach (['ekrab' => 'ekonomi kreatif', 'ekraf' => 'ekonomi kreatif'] as $singk => $resmi) {
+                if (stripos($s, $singk) !== false) $varian[] = $resmi;
+            }
+            $nipRapat = preg_replace('/\s+/', '', $s);
+            $q->where(function ($w) use ($varian, $s, $nipRapat) {
+                foreach ($varian as $i => $k) {
+                    $grp = fn ($g) => $g->where('nama', 'like', "%$k%")
+                        ->orWhere('nip', 'like', "%$k%")
+                        ->orWhere('jabatan', 'like', "%$k%")
+                        ->orWhere('unit_kerja', 'like', "%$k%")
+                        ->orWhere('pangkat_golongan', 'like', "%$k%")
+                        ->orWhere('pangkat_awal', 'like', "%$k%")
+                        ->orWhere('pendidikan', 'like', "%$k%")
+                        ->orWhere('jenis_asn', 'like', "%$k%")
+                        ->orWhere('tempat_lahir', 'like', "%$k%")
+                        ->orWhere('status', 'like', "%$k%")
+                        ->orWhereHas('bidang', fn ($b) => $b->where('nama', 'like', "%$k%"));
+                    $i === 0 ? $w->where($grp) : $w->orWhere($grp);
+                }
+                if ($nipRapat !== '' && $nipRapat !== $s) {
+                    $w->orWhereRaw("REPLACE(nip, ' ', '') LIKE ?", ["%$nipRapat%"]);
+                }
+                if (preg_match('/^\d{4}$/', $nipRapat)) {
+                    $t = (int) $nipRapat;
+                    $w->orWhere(fn ($y) => $y->whereYear('tmt_cpns', $t)
+                        ->orWhereYear('tmt_sekarang', $t)
+                        ->orWhereYear('tmt_jabatan', $t)
+                        ->orWhereYear('tanggal_lahir', $t));
+                }
+            });
         }
         return $q;
     }
