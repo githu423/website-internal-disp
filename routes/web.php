@@ -9,6 +9,7 @@ use App\Http\Controllers\NotifikasiController;
 use App\Http\Controllers\PadController;
 use App\Http\Controllers\PegawaiController;
 use App\Http\Controllers\ProfilController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\StatistikController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,7 @@ Route::redirect('/', '/dashboard')->name('home');
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/kartu', [DashboardController::class, 'kartu'])->name('dashboard.kartu');
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
 
     // modul publik
     Route::get('/dokumen', [DokumenController::class, 'index'])->name('dokumen.index');

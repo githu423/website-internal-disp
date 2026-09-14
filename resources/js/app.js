@@ -3,12 +3,11 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 window.Chart = Chart;
 
-/* ===== sidebar: 3 mode (desktop penuh / tablet ikon-saja / mobile drawer) ===== */
+/* ===== sidebar: fluid on hover + pin toggle ===== */
 const html = document.documentElement;
 const sidebar = document.getElementById('sidebar');
-if (html.dataset.sidebar !== 'collapsed' && localStorage.getItem('sb-collapsed') === '1') html.dataset.sidebar = 'collapsed';
 
-function persistSb() { localStorage.setItem('sb-collapsed', html.dataset.sidebar === 'collapsed' ? '1' : '0'); }
+function persistSb() { localStorage.setItem('sb-pinned', html.classList.contains('sb-pinned') ? '1' : '0'); }
 
 /* Tablet (768-1023px): pasang kelas sb-tablet — sidebar jadi ikon-saja menetap dan
    konten mengambil sisa lebar. Kelas dilepas otomatis saat lebar berubah, dan drawer
@@ -29,17 +28,25 @@ window.addEventListener('resize', sbMode);
 /* judul tooltip tombol toggle mengikuti kondisi (perkecil/perbesar, buka/tutup menu) */
 function sbTitles() {
     const chev = document.getElementById('sb-collapse-btn');
-    const desk = document.querySelector('.sb-chev');
-    if (desk) desk.title = html.dataset.sidebar === 'collapsed' ? 'Perbesar sidebar' : 'Perkecil sidebar';
+    const desk = document.getElementById('sb-pin-btn');
+    if (desk) desk.title = html.classList.contains('sb-pinned') ? 'Unpin sidebar' : 'Pin sidebar';
     if (chev) chev.title = sidebar?.classList.contains('sbx-open') ? 'Tutup menu' : 'Buka menu';
 }
 sbTitles();
 
 document.querySelectorAll('[data-sb-toggle]').forEach((btn) => btn.addEventListener('click', () => {
     if (window.innerWidth < 1024) { sidebar.classList.toggle('sbx-open'); document.getElementById('sb-overlay')?.classList.toggle('show'); }
-    else { html.dataset.sidebar = html.dataset.sidebar === 'collapsed' ? '' : 'collapsed'; if (html.dataset.sidebar === '') delete html.dataset.sidebar; persistSb(); }
     sbTitles();
 }));
+
+const pinBtn = document.getElementById('sb-pin-btn');
+if (pinBtn) {
+    pinBtn.addEventListener('click', () => {
+        html.classList.toggle('sb-pinned');
+        persistSb();
+        sbTitles();
+    });
+}
 document.getElementById('sb-overlay')?.addEventListener('click', () => { sidebar.classList.remove('sbx-open'); document.getElementById('sb-overlay').classList.remove('show'); });
 
 /* tooltip nama menu saat sidebar ikon-saja (desktop/tablet ber-mouse) — fade-in halus.
@@ -49,7 +56,7 @@ if (window.matchMedia('(hover: hover)').matches) {
     sidebar?.querySelectorAll('.nav-link[data-label]').forEach((a) => {
         let tip = null;
         a.addEventListener('mouseenter', () => {
-            const ikonSaja = html.dataset.sidebar === 'collapsed' || html.classList.contains('sb-tablet');
+            const ikonSaja = !html.classList.contains('sb-pinned') && !sidebar.matches(':hover') || html.classList.contains('sb-tablet');
             if (!ikonSaja || sidebar.classList.contains('sbx-open')) return;
             tip = document.createElement('div');
             tip.className = 'sb-tip';

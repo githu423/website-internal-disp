@@ -2,32 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== sidebar: 3 mode responsif (11 Sep 2026) =================================
-   ≥1024px  : penuh (ikon + label), bisa di-collapse user (tersimpan di localStorage)
-   768-1023 : TABLET — ikon-saja menetap, konten mengambil sisa lebar (kelas .sb-tablet
-              dipasang otomatis oleh JS sesuai lebar layar)
-   <768px   : tersembunyi total; hamburger membuka drawer overlay penuh berlabel.
-   Mode ikon-saja = html[data-sidebar="collapsed"] (pilihan user) ATAU html.sb-tablet. */
-#sidebar { width: 16rem; transition: width .25s ease, transform .25s ease; }
-.sb-hide { transition: opacity .15s ease; }
-:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar { width: 5.25rem; }
-:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar .sb-hide { opacity: 0; width: 0; overflow: hidden; pointer-events: none; white-space: nowrap; }
-:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar .nav-link { justify-content: center; }
-:is(html[data-sidebar="collapsed"], html.sb-tablet) .sb-chev svg { transform: rotate(180deg); }
-/* mode ikon-saja: judul grup tidak menciptakan jarak — antar item jadi SERAGAM */
-:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar nav p.sb-hide { padding: 0; margin: 0; height: 0; }
-:is(html[data-sidebar="collapsed"], html.sb-tablet) #sidebar nav > * + * { margin-top: .375rem; }
+/* ===== sidebar: Fluid on hover + Pin toggle (14 Sep 2026) =================================
+   Sidebar default collapsed unless .sb-pinned is active or on mobile drawer mode.
+   Hovering expands the sidebar smoothly. */
+#sidebar { width: 5.25rem; transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), transform .3s cubic-bezier(0.4, 0, 0.2, 1), background-color .3s ease; }
+.sb-hide { transition: opacity .2s ease, width .2s ease; opacity: 0; width: 0; overflow: hidden; pointer-events: none; white-space: nowrap; }
+.nav-link { justify-content: center; transition: all .2s ease; }
+.sb-chev svg { transform: rotate(180deg); transition: transform .3s ease-out; }
+#sidebar nav p.sb-hide { padding: 0; margin: 0; height: 0; }
+#sidebar nav > * + * { margin-top: .375rem; transition: margin .2s ease; }
 
-/* nav link — hover halus ~200ms: aksen teal + scale kecil (tanpa loop, tanpa bayangan) */
-.nav-link { display: flex; align-items: center; gap: .75rem; padding: .55rem .8rem; border-radius: .6rem; font-size: .875rem; color: #cbd5e1; border-left: 3px solid transparent; transition: background .2s ease, color .2s ease, border-color .2s ease; }
-.nav-link:hover { background: rgba(45,212,191,.10); color: #fff; }
+/* Hover / Pinned state */
+html.sb-pinned #sidebar,
+#sidebar:hover { width: 16rem; }
+html.sb-pinned #sidebar .sb-hide,
+#sidebar:hover .sb-hide { opacity: 1; width: auto; pointer-events: auto; }
+html.sb-pinned .nav-link,
+#sidebar:hover .nav-link { justify-content: flex-start; }
+html.sb-pinned .sb-chev svg,
+#sidebar:hover .sb-chev svg { transform: rotate(0deg); }
+html.sb-pinned #sidebar nav p.sb-hide,
+#sidebar:hover nav p.sb-hide { padding: 0 .625rem .375rem; height: auto; }
+html.sb-pinned #sidebar nav > * + *,
+#sidebar:hover nav > * + * { margin-top: 1rem; }
+
+/* nav link — hover halus ~200ms: aksen ungu */
+.nav-link { display: flex; align-items: center; gap: .75rem; padding: .55rem .8rem; border-radius: .6rem; font-size: .875rem; color: #475569; border-left: 4px solid transparent; transition: background .2s ease, color .2s ease, border-color .2s ease; }
+.nav-link:hover { background: #f3e8ff; color: #6b21a8; }
 .nav-link:active { transform: translateX(1px) scale(.985); }
-.nav-link.is-active { background: linear-gradient(90deg, rgba(45,212,191,.18), rgba(45,212,191,.04)); color: #fff; border-left-color: #2dd4bf; }
-.nav-link.is-active .nav-ico { color: #2dd4bf; }
+.nav-link.is-active { background: linear-gradient(90deg, #f3e8ff, transparent); color: #581c87; border-left-color: #7e22ce; font-weight: 600; }
+.nav-link.is-active .nav-ico { color: #7e22ce; }
 
-/* tooltip mode ikon-saja — elemen fixed dibuat JS (menghindari terpotong scroll nav);
-   fade-in halus; atribut title tetap ada sebagai fallback perangkat sentuh */
-.sb-tip { position: fixed; z-index: 95; background: #0f172a; color: #e2e8f0; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(148,163,184,.28); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-50%); transition: opacity .18s ease; }
+/* tooltip mode ikon-saja */
+.sb-tip { position: fixed; z-index: 95; background: #581c87; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 10px; border-radius: 8px; box-shadow: 0 4px 6px rgba(88,28,135,0.2); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateY(-50%); transition: opacity .18s ease; }
 .sb-tip.show { opacity: 1; }
 
 /* drawer terbuka (mobile/tablet): sidebar tampil PENUH berlabel di atas overlay */
@@ -43,11 +50,12 @@
 #sb-overlay { display: none; } /* desktop: tidak pernah tampil */
 
 /* offset konten — selalu mengikuti lebar sidebar mode aktif */
-main, header.topbar { margin-left: 16rem; transition: margin .25s ease; }
-:is(html[data-sidebar="collapsed"], html.sb-tablet) main, :is(html[data-sidebar="collapsed"], html.sb-tablet) header.topbar { margin-left: 5.25rem; }
+main, header.topbar { margin-left: 5.25rem; transition: margin-left .3s cubic-bezier(0.4, 0, 0.2, 1); }
+html.sb-pinned main, html.sb-pinned header.topbar { margin-left: 16rem; }
 @media (max-width: 767px) { main, header.topbar { margin-left: 0 !important; } }
 
-html:not([data-sidebar="collapsed"]):not(.sb-tablet) #sidebar .nav-link span.sb-hide { max-width: 14rem; }
+html.sb-pinned #sidebar .nav-link span.sb-hide,
+#sidebar:hover .nav-link span.sb-hide { max-width: 14rem; }
 
 /* pengaman: konten tidak boleh overflow/terpotong horizontal di lebar mana pun */
 #app { overflow-x: clip; }
@@ -71,13 +79,16 @@ main canvas { max-width: 100%; }
 }
 
 /* misc */
-.card { @apply bg-white rounded-xl border border-slate-200 shadow-sm; }
-.progress { height: .45rem; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
-.progress > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #14b8a6, #0ea5e9); }
+/* misc */
+.clean-card, .card { 
+    @apply bg-white rounded-2xl border border-slate-200 shadow-sm;
+}
+.progress { height: .45rem; border-radius: 999px; background: #f1f5f9; overflow: hidden; }
+.progress > span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #a855f7, #6366f1); box-shadow: 0 1px 3px rgba(168,85,247,0.3); }
 .toast { animation: tin .3s ease; }
 @keyframes tin { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 .thin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-.thin-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
-table.data th { @apply text-left text-xs font-semibold uppercase tracking-wide text-slate-500; }
-table.data td, table.data th { @apply px-3 py-2.5 border-b border-slate-100; }
-table.data tbody tr:hover { @apply bg-slate-50; }
+.thin-scroll::-webkit-scrollbar-thumb { background: rgba(203,213,225, 0.7); border-radius: 999px; }
+table.data th { @apply text-left text-xs font-semibold uppercase tracking-wide text-slate-500/80; }
+table.data td, table.data th { @apply px-3 py-2.5 border-b border-slate-200/50; }
+table.data tbody tr:hover { @apply bg-white/40; }
