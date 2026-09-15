@@ -14,9 +14,13 @@
     $src = route('dokumen.lihat', $d);
 @endphp
 <div class="max-w-5xl mx-auto">
+    <!-- Breadcrumbs Mikro -->
+    <div class="mb-1.5">
+        <span class="text-gray-400 text-sm font-medium">SIPARDIS <span class="mx-1">/</span> <a href="{{ route('dokumen.index') }}" class="text-gray-500 hover:text-purple-600 transition">Dokumen</a> <span class="mx-1">/</span> <span class="text-gray-500">Pratinjau</span></span>
+    </div>
     <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div class="min-w-0">
-            <h2 class="font-extrabold text-lg leading-tight truncate">{{ $d->judul }}</h2>
+            <h2 class="font-extrabold text-[22px] leading-tight truncate">{{ $d->judul }}</h2>
             <p class="text-[12.5px] text-slate-500 mt-0.5">
                 {{ $d->bidang?->nama ?? 'Seluruh Dinas' }} · diunggah {{ $d->uploader?->name ?? '—' }} · {{ $d->created_at->translatedFormat('d M Y, H:i') }}
                 · <span class="font-bold {{ ['publik' => 'text-emerald-600', 'bidang' => 'text-sky-600', 'rahasia' => 'text-rose-600'][$d->visibility] }}">{{ ucfirst($d->visibility) }}</span>
@@ -25,24 +29,24 @@
         <div class="flex items-center gap-2">
             @if ($bisaRender)
             <button type="button" id="btn-fullscreen" title="Tampilkan pratinjau memenuhi layar (tekan Esc untuk keluar)"
-                class="rounded-lg border border-slate-300 bg-white text-sm font-semibold px-3.5 py-2 text-slate-600 hover:border-teal-400 hover:text-teal-700 active:scale-95 transition inline-flex items-center gap-1.5">⛶ Layar penuh</button>
+                class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-3.5 py-2 text-slate-600 hover:border-purple-300 hover:text-purple-700 active:scale-95 transition inline-flex items-center gap-1.5">⛶ Layar penuh</button>
             @endif
-            <a href="{{ route('dokumen.unduh', $d) }}" class="rounded-lg bg-slate-900 hover:bg-slate-700 active:scale-95 text-white text-sm font-bold px-4 py-2 transition inline-flex items-center gap-1.5"><x-icon name="dokumen" class="h-4 w-4" /> Unduh</a>
+            <a href="{{ route('dokumen.unduh', $d) }}" class="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-sm shadow-purple-500/30 active:scale-95 text-white text-sm font-bold px-4 py-2 transition inline-flex items-center gap-1.5"><x-icon name="dokumen" class="h-4 w-4" /> Unduh</a>
             @if ($u->id === $d->uploaded_by)
             <form method="POST" action="{{ route('dokumen.akses', $d) }}" class="inline-flex items-center gap-1.5">
                 @csrf @method('PATCH')
-                <select name="visibility" onchange="this.form.submit()" class="rounded-lg border border-slate-300 bg-white text-sm font-semibold px-2.5 py-2 cursor-pointer outline-none hover:border-teal-400">
+                <select name="visibility" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-2.5 py-2 cursor-pointer outline-none hover:border-purple-300 focus:border-purple-400">
                     @foreach (['publik' => '🌐 Publik', 'bidang' => '🏢 Bidang', 'rahasia' => '🔒 Rahasia'] as $v => $lab)
                         <option value="{{ $v }}" @selected($d->visibility === $v)>{{ $lab }}</option>
                     @endforeach
                 </select>
             </form>
             @endif
-            <a href="{{ url()->previous() }}" class="rounded-lg border border-slate-300 bg-white text-sm font-semibold px-3.5 py-2 text-slate-600 hover:border-teal-400 active:scale-95 transition">← Kembali</a>
+            <a href="{{ url()->previous() }}" class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-3.5 py-2 text-slate-600 hover:border-purple-300 active:scale-95 transition">← Kembali</a>
         </div>
     </div>
 
-    <div class="card overflow-hidden" id="preview-box">
+    <div class="clean-card overflow-hidden" id="preview-box">
         @if ($isPdf)
             <iframe src="{{ $src }}" class="w-full h-[78vh] bg-slate-50" title="{{ $d->judul }}"></iframe>
         @elseif ($isImg)
@@ -65,7 +69,7 @@
                 <span class="mx-auto h-14 w-14 rounded-2xl bg-slate-100 text-slate-500 grid place-items-center mb-3 text-2xl font-black">{{ strtoupper(pathinfo($d->file_name, PATHINFO_EXTENSION) ?: '?') }}</span>
                 <p class="font-bold text-slate-600">Pratinjau langsung belum tersedia untuk format .{{ $ext ?: '?' }} ini</p>
                 <p class="text-sm text-slate-400 mt-1 max-w-md mx-auto">{{ $mime }} — pratinjau otomatis tersedia untuk PDF, gambar, teks, .xlsx, .docx, dan .pptx. Untuk file PowerPoint versi lama (.ppt), simpan ulang sebagai <b>.pptx</b> atau <b>PDF</b> di aplikasi Office lalu unggah ulang agar bisa dilihat langsung.</p>
-                <a href="{{ route('dokumen.unduh', $d) }}" class="inline-block mt-4 rounded-lg bg-slate-900 text-white text-sm font-bold px-5 py-2.5 hover:bg-slate-700 transition">Unduh {{ $d->file_name }}</a>
+                <a href="{{ route('dokumen.unduh', $d) }}" class="inline-block mt-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-bold px-5 py-2.5 hover:from-purple-700 hover:to-indigo-700 transition">Unduh {{ $d->file_name }}</a>
             </div>
         @endif
     </div>

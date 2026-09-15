@@ -338,3 +338,82 @@ if (office) {
         }
     })();
 }
+
+/* ====================================================================
+TEMPEL BLOK INI DI PALING BAWAH file: resources/js/app.js
+(jangan menimpa isi app.js yang sudah ada — cukup tambahkan di akhir)
+   ==================================================================== */
+
+/* ===== dropdown pilihan custom bertema (pengganti <select> native) ===== */
+(function () {
+    const CHECK_SVG = '<svg class="h-4 w-4 shrink-0 text-purple-600 cs-check" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
+
+    function closeMenu(root) {
+        root.querySelector('[data-cs-menu]')?.classList.add('hidden');
+        root.querySelector('[data-cs-chevron]')?.classList.remove('rotate-180');
+        root.classList.remove('is-open');
+    }
+    function openMenu(root) {
+        root.querySelector('[data-cs-menu]')?.classList.remove('hidden');
+        root.querySelector('[data-cs-chevron]')?.classList.add('rotate-180');
+        root.classList.add('is-open');
+    }
+
+    document.querySelectorAll('[data-custom-select]').forEach(function (root) {
+        const trigger = root.querySelector('[data-cs-trigger]');
+        const menu = root.querySelector('[data-cs-menu]');
+        const label = root.querySelector('[data-cs-label]');
+        const input = root.querySelector('input[type=hidden]');
+        const options = Array.from(root.querySelectorAll('[data-cs-option]'));
+        if (!trigger || !menu || !input) return;
+
+        const setActive = function (value) {
+            input.value = value;
+            options.forEach(function (opt) {
+                const on = opt.dataset.value === value;
+                opt.classList.toggle('bg-purple-50', on);
+                opt.classList.toggle('text-purple-700', on);
+                opt.classList.toggle('font-semibold', on);
+                opt.classList.toggle('text-slate-600', !on);
+                const oldCheck = opt.querySelector('.cs-check');
+                if (oldCheck) oldCheck.remove();
+                if (on) {
+                    opt.insertAdjacentHTML('beforeend', CHECK_SVG);
+                    const span = opt.querySelector('span');
+                    if (label && span) label.textContent = span.textContent.trim();
+                }
+            });
+        };
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            menu.classList.contains('hidden') ? openMenu(root) : closeMenu(root);
+        });
+
+        options.forEach(function (opt) {
+            opt.addEventListener('click', function () {
+                setActive(opt.dataset.value);
+                closeMenu(root);
+                if (root.dataset.autosubmit === '1' && input.form) {
+                    if (input.form.requestSubmit) input.form.requestSubmit();
+                    else input.form.submit();
+                }
+            });
+        });
+
+        window.addEventListener('resize', function () { closeMenu(root); });
+    });
+
+    document.addEventListener('click', function (e) {
+        document.querySelectorAll('[data-custom-select].is-open').forEach(function (root) {
+            const menu = root.querySelector('[data-cs-menu]');
+            const trigger = root.querySelector('[data-cs-trigger]');
+            if (menu && !menu.contains(e.target) && trigger && !trigger.contains(e.target)) closeMenu(root);
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('[data-custom-select].is-open').forEach(closeMenu);
+    });
+})();
