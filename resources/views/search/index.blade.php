@@ -14,8 +14,8 @@
                 @if($q) Ditemukan <strong>{{ $total }}</strong> hasil dari pegawai, agenda, dan dokumen @else Ketik kata kunci untuk mulai mencari @endif
             </p>
         </div>
-        {{-- Form pencarian inline di halaman hasil --}}
-        <form action="{{ route('search') }}" method="GET" class="flex-1 max-w-md">
+        {{-- Form pencarian inline di halaman hasil (di mobile melebar penuh agar mudah diketik) --}}
+        <form action="{{ route('search') }}" method="GET" class="w-full sm:flex-1 max-w-md">
             <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>

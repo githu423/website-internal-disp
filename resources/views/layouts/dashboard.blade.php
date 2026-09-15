@@ -183,7 +183,7 @@
         <header
             class="topbar fixed inset-x-0 top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl px-4 sm:px-6">
             <button data-sb-toggle
-                class="lg:hidden h-9 w-9 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 active:scale-90 transition"><x-icon
+                class="lg:hidden h-9 w-9 shrink-0 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 active:scale-90 transition"><x-icon
                     name="menu" /></button>
             <div class="min-w-0 flex-1 flex items-center gap-6">
                 <div class="min-w-0 shrink-0 hidden sm:block">
@@ -198,41 +198,42 @@
                         @yield('subtitle', now()->translatedFormat('l, d F Y'))</p>
                 </div>
 
-                <!-- Global Search -->
                 <!-- Global Search (disembunyikan di halaman pencarian agar tidak dobel dengan form inline) -->
                 @unless (request()->routeIs('search'))
-                    <div class="flex-1 max-w-md hidden md:block">
+                    {{-- Kolom pencarian cepat: tampil di SEMUA ukuran layar — di ponsel pun pengguna
+                         bisa langsung mengetik di header (tanpa membuka panel/halaman lain),
+                         persis seperti perilaku di desktop. --}}
+                    <div class="min-w-0 flex-1 max-w-md">
                         <form action="{{ route('search') }}" method="GET" class="relative w-full">
-                            <span
-                                class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
-                            </span>
-                            <input type="text" name="q" placeholder="Cari pegawai, agenda, dokumen..."
-                                class="block w-full pl-10 pr-4 py-2 border border-transparent rounded-full bg-gray-100 text-[13px] placeholder-slate-400 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all cursor-text">
+                            {{-- tanpa ikon kaca pembesar: kolom langsung diketik di tempat --}}
+                            <input type="text" name="q" enterkeyhint="search"
+                                placeholder="Cari pegawai, agenda, dokumen..."
+                                class="block w-full pl-4 pr-4 py-2 border border-transparent rounded-full bg-gray-100 text-[13px] placeholder-slate-400 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all cursor-text">
                         </form>
                     </div>
                 @endunless
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex shrink-0 items-center gap-2 sm:gap-3">
                 <span
                     class="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[220px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}"
                     title="{{ $u->isAdmin() ? 'Seluruh Dinas' : ($u->bidang?->nama ?? ('Belum tertaut ke bidang tertentu' . ($u->jabatan ? ' — jabatan: ' . $u->jabatan : '') . '. Tetapkan di Admin › Akun & Akses.')) }}">
                     {{ $u->isAdmin() ? 'Admin' : ($bidangBadge ?? 'Bidang: belum tertentu') }}
                 </span>
 
-                <div class="relative">
+                <div class="relative shrink-0">
                     <button id="bell-btn"
-                        class="relative h-9 w-9 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition">
+                        class="relative h-9 w-9 shrink-0 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 active:scale-90 transition">
                         <x-icon name="bell" />
                         <span id="bell-badge"
-                            class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold grid place-items-center ring-2 ring-white">0</span>
+                            class="hidden absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none grid place-items-center ring-2 ring-white">0</span>
                     </button>
+                    {{-- panel notifikasi: jaraknya dipatok 4.5rem dari atas supaya turun tepat di bawah
+                         header (h-16 = 4rem) dan tidak lagi menyusup ke dalam header — gaya inline
+                         dipakai agar posisinya tetap benar walau berkas CSS belum ikut diperbarui --}}
                     <div id="bell-panel"
-                        class="bell-panel hidden fixed right-2 sm:right-4 top-[62px] w-[min(92vw,21rem)] max-h-[70vh] card overflow-hidden z-[90] shadow-xl">
+                        class="bell-panel hidden fixed right-2 sm:right-4 top-[4.5rem] w-[min(92vw,21rem)] max-h-[70vh] card overflow-hidden z-[90] shadow-xl"
+                        style="top: 4.5rem; z-index: 90;">
                         <div class="flex items-center justify-between px-3.5 py-2.5 border-b border-slate-100">
                             <p class="text-sm font-semibold">Notifikasi</p>
                             <a href="{{ route('notifikasi.index') }}"
@@ -246,7 +247,7 @@
                     </div>
                 </div>
 
-                <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
+                <div class="h-6 w-px shrink-0 bg-slate-200 hidden sm:block"></div>
 
                 <a href="{{ route('profil.index') }}" title="Profil saya"
                     class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-purple-300 pl-1.5 pr-3 py-1 transition active:scale-95">
