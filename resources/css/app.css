@@ -70,6 +70,18 @@ main canvas { max-width: 100%; }
 /* panel notifikasi */
 .bell-panel .thin-scroll, #bell-list { scrollbar-width: thin; }
 
+/* ===== pencarian cepat mobile (panel diperbesar dari atas) ===== */
+#msearch { opacity: 0; transition: opacity .18s ease; }
+#msearch.show { opacity: 1; }
+.ms-sheet { transform: translateY(-10px) scale(.98); transform-origin: top center; opacity: 0;
+  transition: transform .22s cubic-bezier(.22,1,.36,1), opacity .22s ease; }
+#msearch.show .ms-sheet { transform: none; opacity: 1; }
+/* tombol silang bawaan browser disembunyikan — app menyediakan tombol bersihkan sendiri */
+#msearch input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+@media (prefers-reduced-motion: reduce) {
+  #msearch, .ms-sheet { transition: none; }
+}
+
 /* perbaikan responsif mobile */
 @media (max-width: 640px) {
   main > div { padding-left: .75rem; padding-right: .75rem; }

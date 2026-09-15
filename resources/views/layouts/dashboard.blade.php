@@ -198,9 +198,9 @@
                         @yield('subtitle', now()->translatedFormat('l, d F Y'))</p>
                 </div>
 
-                <!-- Global Search -->
                 <!-- Global Search (disembunyikan di halaman pencarian agar tidak dobel dengan form inline) -->
                 @unless (request()->routeIs('search'))
+                    {{-- Desktop/laptop: kolom pencarian cepat tampil langsung di topbar --}}
                     <div class="flex-1 max-w-md hidden md:block">
                         <form action="{{ route('search') }}" method="GET" class="relative w-full">
                             <span
@@ -218,6 +218,17 @@
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3">
+                @unless (request()->routeIs('search'))
+                    {{-- Pencarian cepat versi mobile/tablet: hanya tampil di bawah md (layar < 768px),
+                         membuka panel #msearch. Sengaja memakai <a> ke route('search') sebagai
+                         cadangan: bila berkas JS belum diperbarui, tautan ini tetap membuka halaman
+                         pencarian (yang sudah punya kolom pencarian sendiri). --}}
+                    <a href="{{ route('search') }}" id="ms-open" aria-label="Buka pencarian cepat"
+                        aria-controls="msearch" aria-expanded="false"
+                        class="md:hidden h-9 w-9 shrink-0 grid place-items-center rounded-xl border border-slate-200/90 bg-white text-slate-500 hover:bg-purple-50 hover:border-purple-200 hover:text-purple-600 active:scale-90 transition">
+                        <x-icon name="search" class="h-5 w-5" />
+                    </a>
+                @endunless
                 <span
                     class="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[220px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}"
                     title="{{ $u->isAdmin() ? 'Seluruh Dinas' : ($u->bidang?->nama ?? ('Belum tertaut ke bidang tertentu' . ($u->jabatan ? ' — jabatan: ' . $u->jabatan : '') . '. Tetapkan di Admin › Akun & Akses.')) }}">
@@ -269,6 +280,74 @@
                 </a>
             </div>
         </header>
+
+        <!-- ============ PENCARIAN CEPAT (MOBILE) ============ -->
+        {{-- Panel pencarian untuk layar < 768px (md:hidden), dibuka oleh tombol #ms-open.
+             Hanya memakai route & nama field yang sudah ada (route('search'), name="q"). --}}
+        @unless (request()->routeIs('search'))
+            <div id="msearch" class="fixed inset-0 z-[80] hidden md:hidden" role="dialog" aria-modal="true"
+                aria-label="Pencarian cepat">
+                {{-- latar gelap: klik untuk menutup --}}
+                <div data-ms-close class="absolute inset-0 bg-slate-900/50 backdrop-blur-[2px]"></div>
+
+                <div
+                    class="ms-sheet absolute inset-x-2.5 top-2.5 sm:inset-x-4 sm:top-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                    <form id="ms-form" action="{{ route('search') }}" method="GET" class="p-2.5">
+                        <div
+                            class="flex items-center gap-2 rounded-xl border border-transparent bg-slate-100 px-3 transition-all focus-within:border-purple-300 focus-within:bg-white focus-within:ring-2 focus-within:ring-purple-500/20">
+                            <span class="pointer-events-none shrink-0 text-slate-400"><x-icon name="search"
+                                    class="h-4 w-4" /></span>
+                            <input id="ms-input" type="search" name="q" inputmode="search" enterkeyhint="search"
+                                autocomplete="off" placeholder="Cari pegawai, agenda, dokumen..."
+                                class="min-w-0 flex-1 border-0 bg-transparent px-0 py-2.5 text-[14px] placeholder-slate-400 outline-none focus:ring-0">
+                            <button type="button" id="ms-clear" aria-label="Bersihkan kata kunci"
+                                class="hidden h-6 w-6 shrink-0 grid place-items-center rounded-full bg-slate-200 text-slate-500 transition hover:bg-slate-300 active:scale-90">
+                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                    stroke-width="2.4" stroke-linecap="round">
+                                    <path d="M6 6l12 12M18 6L6 18" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mt-2.5 flex items-center gap-1.5">
+                            <button type="submit"
+                                class="flex-1 rounded-xl bg-purple-600 px-3 py-2 text-[13px] font-bold text-white transition hover:bg-purple-700 active:scale-[.98]">Cari</button>
+                            <button type="button" data-ms-close
+                                class="rounded-xl border border-slate-200 px-3.5 py-2 text-[13px] font-semibold text-slate-600 transition hover:bg-slate-50 active:scale-[.98]">Tutup</button>
+                        </div>
+                    </form>
+
+                    <div class="border-t border-slate-100 px-3.5 py-3">
+                        <div id="ms-recent-wrap" class="hidden">
+                            <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Terakhir dicari
+                            </p>
+                            <div id="ms-recent-list" class="mt-2 flex flex-wrap gap-1.5"></div>
+                        </div>
+                        <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Coba kata kunci</p>
+                        <div class="mt-2 flex flex-wrap gap-1.5">
+                            @foreach (['Kepala Dinas', 'Rapat Koordinasi', 'SOP', 'Staf Ahli', 'Workshop'] as $contoh)
+                                <a href="{{ route('search', ['q' => $contoh]) }}"
+                                    class="inline-flex max-w-full items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700">
+                                    <span class="truncate">{{ $contoh }}</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- cetakan (template) chip riwayat pencarian — diisi oleh app.js dari localStorage --}}
+                    <template id="ms-recent-tpl">
+                        <a
+                            class="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700">
+                            <svg class="h-3.5 w-3.5 shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 8v4l3 2" />
+                                <circle cx="12" cy="12" r="9" />
+                            </svg>
+                            <span class="ms-recent-text truncate"></span>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        @endunless
 
         <!-- ============ KONTEN ============ -->
         <main class="pt-16 min-h-screen">
