@@ -39,8 +39,10 @@ jobs:
           out = []
           for name, body in fails[:14]:
               baris = [l.strip() for l in body.strip().splitlines() if l.strip()]
-              inti = baris[-2] if len(baris) >= 2 else (baris[0] if baris else '')
-              out.append('• ' + name + '  ||  ' + inti[-320:])
+              inti = baris[0] if baris else ''
+              lokasi = baris[-1] if len(baris) > 1 else ''
+              lokasi = lokasi.replace('/home/runner/work/website-internal-disp/website-internal-disp/', '')
+              out.append('• ' + name.split('::')[-1] + '  ||  ' + inti[-300:].replace('\\n', ' ') + '   @ ' + lokasi)
           tail = ' | '.join([l.strip() for l in log.strip().splitlines()[-4:]])
           msg = ('JUMLAH GAGAL: ' + str(len(fails)) + '\n' + '\n'.join(out) + '\nRINGKASAN: ' + tail)[:60000]
           print('::error title=detail-cabang::' + msg.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
@@ -78,8 +80,10 @@ jobs:
           out = []
           for name, body in fails[:14]:
               baris = [l.strip() for l in body.strip().splitlines() if l.strip()]
-              inti = baris[-2] if len(baris) >= 2 else (baris[0] if baris else '')
-              out.append('• ' + name + '  ||  ' + inti[-320:])
+              inti = baris[0] if baris else ''
+              lokasi = baris[-1] if len(baris) > 1 else ''
+              lokasi = lokasi.replace('/home/runner/work/website-internal-disp/website-internal-disp/', '')
+              out.append('• ' + name.split('::')[-1] + '  ||  ' + inti[-300:].replace('\\n', ' ') + '   @ ' + lokasi)
           tail = ' | '.join([l.strip() for l in log.strip().splitlines()[-4:]])
           msg = ('JUMLAH GAGAL: ' + str(len(fails)) + '\n' + '\n'.join(out) + '\nRINGKASAN: ' + tail)[:60000]
           print('::error title=detail-dasar::' + msg.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
