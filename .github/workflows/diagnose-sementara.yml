@@ -1,0 +1,84 @@
+name: Diagnosa sementara (hapus setelah dipakai)
+
+on:
+  push:
+    branches: ['arena/01a0a3fd-website-internal-disp']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # A) uji kode di cabang ini (perubahan pencarian mobile ikut)
+  cabang:
+    name: Uji cabang (dengan perubahan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, zip, gd, dom, xml, iconv, mbstring, fileinfo, curl
+          coverage: none
+      - name: Install dependencies Composer
+        env:
+          COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Siapkan environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+      - name: Jalankan test suite + laporkan detail
+        run: |
+          set +e
+          vendor/bin/phpunit --no-progress > phpunit.log 2>&1
+          python3 - <<'PY'
+          import re
+          log = open('phpunit.log', errors='replace').read()
+          fails = re.findall(r'\n\d+\) (.*?)\n(.*?)(?=\n\d+\) |\nFAILURES!|\nERRORS!|\nOK |\Z)', log, re.S)
+          out = []
+          for name, body in fails[:14]:
+              first = [l.strip() for l in body.strip().splitlines() if l.strip()][:3]
+              out.append('• ' + name + '  ||  ' + ' / '.join(first))
+          tail = ' | '.join([l.strip() for l in log.strip().splitlines()[-4:]])
+          msg = ('JUMLAH GAGAL: ' + str(len(fails)) + '\n' + '\n'.join(out) + '\nRINGKASAN: ' + tail)[:60000]
+          print('::error title=detail-cabang::' + msg.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
+          PY
+
+  # B) uji komit dasar (tanpa perubahan saya) untuk membandingkan
+  dasar:
+    name: Uji komit dasar (tanpa perubahan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: a447bb1cd012f97d9816d8fe3ba9a8382c7493a3
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sqlite3, pdo_sqlite, zip, gd, dom, xml, iconv, mbstring, fileinfo, curl
+          coverage: none
+      - name: Install dependencies Composer
+        env:
+          COMPOSER_AUTH: '{"github-oauth":{"github.com":"${{ secrets.GITHUB_TOKEN }}"}}'
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Siapkan environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+      - name: Jalankan test suite + laporkan detail
+        run: |
+          set +e
+          vendor/bin/phpunit --no-progress > phpunit.log 2>&1
+          python3 - <<'PY'
+          import re
+          log = open('phpunit.log', errors='replace').read()
+          fails = re.findall(r'\n\d+\) (.*?)\n(.*?)(?=\n\d+\) |\nFAILURES!|\nERRORS!|\nOK |\Z)', log, re.S)
+          out = []
+          for name, body in fails[:14]:
+              first = [l.strip() for l in body.strip().splitlines() if l.strip()][:3]
+              out.append('• ' + name + '  ||  ' + ' / '.join(first))
+          tail = ' | '.join([l.strip() for l in log.strip().splitlines()[-4:]])
+          msg = ('JUMLAH GAGAL: ' + str(len(fails)) + '\n' + '\n'.join(out) + '\nRINGKASAN: ' + tail)[:60000]
+          print('::error title=detail-dasar::' + msg.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
+          PY
