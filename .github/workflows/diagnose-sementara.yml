@@ -38,8 +38,9 @@ jobs:
           fails = re.findall(r'\n\d+\) (.*?)\n(.*?)(?=\n\d+\) |\nFAILURES!|\nERRORS!|\nOK |\Z)', log, re.S)
           out = []
           for name, body in fails[:14]:
-              first = [l.strip() for l in body.strip().splitlines() if l.strip()][:3]
-              out.append('• ' + name + '  ||  ' + ' / '.join(first))
+              baris = [l.strip() for l in body.strip().splitlines() if l.strip()]
+              inti = baris[-2] if len(baris) >= 2 else (baris[0] if baris else '')
+              out.append('• ' + name + '  ||  ' + inti[-320:])
           tail = ' | '.join([l.strip() for l in log.strip().splitlines()[-4:]])
           msg = ('JUMLAH GAGAL: ' + str(len(fails)) + '\n' + '\n'.join(out) + '\nRINGKASAN: ' + tail)[:60000]
           print('::error title=detail-cabang::' + msg.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
@@ -76,8 +77,9 @@ jobs:
           fails = re.findall(r'\n\d+\) (.*?)\n(.*?)(?=\n\d+\) |\nFAILURES!|\nERRORS!|\nOK |\Z)', log, re.S)
           out = []
           for name, body in fails[:14]:
-              first = [l.strip() for l in body.strip().splitlines() if l.strip()][:3]
-              out.append('• ' + name + '  ||  ' + ' / '.join(first))
+              baris = [l.strip() for l in body.strip().splitlines() if l.strip()]
+              inti = baris[-2] if len(baris) >= 2 else (baris[0] if baris else '')
+              out.append('• ' + name + '  ||  ' + inti[-320:])
           tail = ' | '.join([l.strip() for l in log.strip().splitlines()[-4:]])
           msg = ('JUMLAH GAGAL: ' + str(len(fails)) + '\n' + '\n'.join(out) + '\nRINGKASAN: ' + tail)[:60000]
           print('::error title=detail-dasar::' + msg.replace('%','%25').replace('\r','%0D').replace('\n','%0A'))
