@@ -1,7 +1,14 @@
 @extends('layouts.dashboard')
+
 @section('title', 'Statistik Pariwisata')
+@section('header_title')
+<span class="font-bold text-xl tracking-tight text-purple-700">SIPARDIS</span>
+@endsection
+@section('subtitle', 'Data & Statistik Pariwisata Kabupaten Ciamis')
+
 @section('content')
 @php
+    $u = auth()->user();
     $fmt = function ($v, $sat) {
         if ($v === null) return '—';
         $v = (float) $v;
@@ -10,71 +17,172 @@
     };
 @endphp
 
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <div>
-        <h2 class="text-lg font-extrabold">Statistik Pariwisata Daerah</h2>
-        <p class="text-[12px] text-slate-400 mt-0.5">{{ $totalSemua }} indikator
-            @if (count($tahunList)) · {{ $tahunList[0] }}–{{ $tahunList[count($tahunList) - 1] }} @endif
-            — rekap resmi Dinas per tahun. Klik baris untuk melihat grafik trennya.</p>
-    </div>
-    <form method="GET" class="flex gap-2">
-        @if ($selected && !request('q'))<input type="hidden" name="ind" value="{{ $selected->id }}">@endif
-        <input name="q" value="{{ request('q') }}" placeholder="Cari indikator…"
-            class="w-56 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 outline-none">
-        <button class="rounded-lg bg-slate-900 text-white px-3.5 py-2 text-sm font-bold hover:bg-slate-700 active:scale-95 transition">Cari</button>
-    </form>
-</div>
+<div class="space-y-6">
 
-@if ($totalSemua === 0)
-    <div class="card p-8 text-center">
-        <div class="mx-auto h-12 w-12 rounded-2xl bg-slate-100 text-slate-400 grid place-items-center mb-3 text-xl">📊</div>
-        <h3 class="font-bold">Belum ada data statistik</h3>
-        <p class="text-[13px] text-slate-400 mt-1">Admin dapat mengimpor file Excel/CSV "Data Statistik Pariwisata"<br>melalui menu Admin ▸ Statistik.</p>
-        @if (auth()->user()->isAdmin())
-            <a href="{{ route('admin.statistik.index') }}" class="btn-main inline-flex mt-4">Buka halaman import</a>
-        @endif
-    </div>
-@else
-    @if ($chart)
-        <div class="card p-5 mb-4">
-            <div class="flex items-start justify-between gap-3 mb-2">
-                <h3 class="font-bold leading-snug">Tren — <span class="text-teal-700">{{ $selected->indikator }}</span>
-                    @if ($selected->satuan)<span class="text-[11px] text-slate-400 font-bold">({{ $selected->satuan }})</span>@endif</h3>
-                <span class="text-[11px] text-slate-400 shrink-0 mt-1">klik baris tabel untuk ganti indikator</span>
+    <!-- 1. Breadcrumbs Mikro -->
+    <nav class="flex items-center text-sm font-medium text-slate-400">
+        <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-400">Data &amp; Kinerja</span>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-700 font-semibold">Statistik Pariwisata</span>
+    </nav>
+
+    <!-- 2. Header Halaman & Quick Actions -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
+        <div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Statistik Pariwisata Daerah</h1>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                    {{ $totalSemua }} Indikator
+                </span>
+                @if (count($tahunList))
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                        {{ $tahunList[0] }}–{{ $tahunList[count($tahunList) - 1] }}
+                    </span>
+                @endif
             </div>
-            <div class="h-64"><canvas data-chart='@json($chart)' data-type="line"></canvas></div>
+            <p class="text-sm text-slate-500 mt-1">Rekap resmi Dinas per tahun. Klik baris tabel untuk memvisualkan grafik tren indikator.</p>
+        </div>
+
+        <!-- Quick Actions & Search -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <form method="GET" class="flex items-center gap-2">
+                @if ($selected && !request('q'))
+                    <input type="hidden" name="ind" value="{{ $selected->id }}">
+                @endif
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
+                    <input name="q" value="{{ request('q') }}" placeholder="Cari indikator…"
+                        class="w-56 pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs md:text-sm bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                </div>
+                <button class="px-3.5 py-2 rounded-xl bg-slate-900 text-white text-xs md:text-sm font-semibold hover:bg-slate-800 active:scale-95 transition shadow-sm">
+                    Cari
+                </button>
+            </form>
+
+            @if($u->isAdmin())
+            <a href="{{ route('admin.statistik.index') }}" 
+               class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white text-xs md:text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                Kelola Statistik
+            </a>
+            @endif
+        </div>
+    </div>
+
+    @if ($totalSemua === 0)
+        <div class="bg-white border border-slate-200 rounded-xl p-10 text-center shadow-sm">
+            <div class="mx-auto h-14 w-14 rounded-2xl bg-purple-50 text-purple-600 grid place-items-center mb-3.5 text-2xl border border-purple-100">📊</div>
+            <h3 class="text-base font-bold text-slate-800">Belum ada data statistik pariwisata</h3>
+            <p class="text-xs text-slate-400 mt-1">Admin dapat mengimpor file Excel/CSV "Data Statistik Pariwisata" melalui menu Kelola Statistik.</p>
+            @if ($u->isAdmin())
+                <a href="{{ route('admin.statistik.index') }}" class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-purple-700 transition">
+                    Buka Halaman Kelola / Impor →
+                </a>
+            @endif
+        </div>
+    @else
+        <!-- Grafik Tren Indikator Terpilih -->
+        @if ($chart)
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-100">
+                    <div>
+                        <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-purple-600">Visualisasi Tren</span>
+                        <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                            <span>📈</span> {{ $selected->indikator }}
+                            @if ($selected->satuan)
+                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                                    {{ $selected->satuan }}
+                                </span>
+                            @endif
+                        </h3>
+                    </div>
+                    <span class="text-xs text-slate-400 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+                        Klik baris tabel di bawah untuk mengganti indikator
+                    </span>
+                </div>
+                <div class="h-64 mt-2">
+                    <canvas data-chart='@json($chart)' data-type="line"></canvas>
+                </div>
+            </div>
+        @endif
+
+        <!-- Kontainer Tabel Data Indikator -->
+        <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+            <div class="overflow-x-auto thin-scroll">
+                <table class="data w-full min-w-[860px]">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
+                            <th class="w-12 text-center">No.</th>
+                            <th>Indikator Statistik</th>
+                            <th class="w-24">Satuan</th>
+                            @foreach ($tahunList as $t)
+                                <th class="text-right whitespace-nowrap px-3">{{ $t }}</th>
+                            @endforeach
+                            <th class="w-32">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    @forelse ($rows as $r)
+                        @php 
+                            $nv = $r->nilais->keyBy('tahun'); 
+                            $isSelected = $selected && $selected->id === $r->id;
+                        @endphp
+                        <tr class="cursor-pointer transition-colors duration-150 {{ $isSelected ? 'bg-purple-50/80 font-medium' : 'hover:bg-slate-50/80' }}"
+                            onclick="location.href='{{ route('statistik.index', array_filter(['ind' => $r->id, 'q' => request('q')])) }}'"
+                            title="Klik untuk melihat grafik tren {{ $r->indikator }}">
+                            <td class="text-xs text-slate-400 text-center font-mono {{ $isSelected ? 'text-purple-700 font-bold' : '' }}">
+                                {{ $r->no_urut ?? '—' }}
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    @if ($isSelected)
+                                        <span class="h-2 w-2 rounded-full bg-purple-600 shrink-0"></span>
+                                    @endif
+                                    <span class="text-[13px] {{ $isSelected ? 'text-purple-900 font-bold' : 'text-slate-900 font-semibold' }}">
+                                        {{ $r->indikator }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="text-xs text-slate-500 whitespace-nowrap">
+                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px]">
+                                    {{ $r->satuan ?? '—' }}
+                                </span>
+                            </td>
+                            @foreach ($tahunList as $t)
+                                <td class="text-right text-xs font-mono px-3 tabular-nums {{ $nv->get($t)?->nilai === null ? 'text-slate-300' : ($isSelected ? 'text-purple-900 font-bold' : 'text-slate-700') }}">
+                                    {{ $fmt($nv->get($t)?->nilai, $r->satuan) }}
+                                </td>
+                            @endforeach
+                            <td class="text-xs text-slate-400">
+                                {{ $r->keterangan ?: '—' }}
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ 4 + count($tahunList) }}" class="py-8">
+                                <x-empty icon="kinerja" title="Indikator statistik tidak ditemukan" desc="Coba gunakan kata kunci pencarian yang lain." />
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-4 py-3 border-t border-slate-100 bg-slate-50/50 text-[11px] text-slate-400 flex items-center justify-between">
+                <span>Tanda “—” menunjukkan ketiadaan data pada tahun terkait (n/a).</span>
+                <span class="font-medium text-slate-500">Sumber: Rekapitulasi Resmi Dinas Pariwisata Kab. Ciamis</span>
+            </div>
         </div>
     @endif
 
-    <div class="card overflow-hidden">
-        <div class="overflow-x-auto thin-scroll">
-            <table class="data w-full min-w-[860px]">
-                <thead><tr>
-                    <th class="w-12">No.</th><th>Indikator</th><th class="w-20">Satuan</th>
-                    @foreach ($tahunList as $t)<th class="text-right whitespace-nowrap">{{ $t }}</th>@endforeach
-                    <th class="w-28">Keterangan</th>
-                </tr></thead>
-                <tbody>
-                @forelse ($rows as $r)
-                    @php $nv = $r->nilais->keyBy('tahun'); @endphp
-                    <tr @class(['cursor-pointer transition', 'bg-teal-50/70' => $selected && $selected->id === $r->id])
-                        onclick="location.href='{{ route('statistik.index', array_filter(['ind' => $r->id, 'q' => request('q')])) }}'"
-                        title="Tampilkan grafik tren indikator ini">
-                        <td class="text-xs text-slate-400">{{ $r->no_urut ?? '—' }}</td>
-                        <td class="font-semibold text-[13px]">{{ $r->indikator }}</td>
-                        <td class="text-[11px] text-slate-500 whitespace-nowrap">{{ $r->satuan ?? '—' }}</td>
-                        @foreach ($tahunList as $t)
-                            <td class="text-right text-[12.5px] font-mono {{ $nv->get($t)?->nilai === null ? 'text-slate-300' : 'text-slate-700' }}">{{ $fmt($nv->get($t)?->nilai, $r->satuan) }}</td>
-                        @endforeach
-                        <td class="text-[11px] text-slate-400">{{ $r->keterangan ?: '' }}</td>
-                    </tr>
-                @empty
-                    <tr><td colspan="{{ 4 + count($tahunList) }}"><x-empty icon="kinerja" title="Indikator tidak ditemukan" /></td></tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-        <p class="px-5 py-2.5 border-t border-slate-100 text-[11px] text-slate-400">Sumber: rekap resmi Bidang/Secretariat — diperbarui lewat import Excel atau isian manual admin. Angka "—" = belum ada data (n/a), bukan nol.</p>
-    </div>
-@endif
+</div>
 @endsection
+

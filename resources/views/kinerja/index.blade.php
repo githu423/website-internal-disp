@@ -1,72 +1,255 @@
 @extends('layouts.dashboard')
-@section('title', 'Kegiatan & Kinerja')
+
+@section('title', 'Kegiatan & Capaian Kinerja')
+@section('header_title')
+<span class="font-bold text-xl tracking-tight text-purple-700">SIPARDIS</span>
+@endsection
+@section('subtitle', 'Daftar Kegiatan & Capaian Kinerja Dinas Pariwisata')
+
 @section('content')
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <div>
-        <h2 class="text-lg font-extrabold">Daftar Kegiatan &amp; Capaian Kinerja <span class="text-slate-400 font-bold">TA {{ $tahun }}</span></h2>
-        <p class="text-sm text-slate-500">Sumber: Kinerja Fisik Dinas — dikelola admin, tampil otomatis sebagai info &amp; pengingat kegiatan.</p>
-    </div>
-    <div class="flex items-center gap-2">
-        <a href="{{ route('kinerja.capaian') }}" class="rounded-lg border border-teal-500 bg-teal-50 px-3 py-1.5 text-sm font-bold text-teal-700 hover:bg-teal-100 active:scale-95 transition" title="Matriks target vs realisasi per indikator">Capaian Kinerja →</a>
-        @foreach ($tahunList as $t)
-            <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['tahun' => $t])) }}" @class(['rounded-lg px-3 py-1.5 text-sm font-bold border transition active:scale-95', $t == $tahun ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>{{ $t }}</a>
-        @endforeach
-    </div>
-</div>
+@php 
+    $u = auth()->user(); 
+@endphp
 
-{{-- Konfirmasi Dinas 10 Sep: pemilik bidang boleh pilih lingkup — bawaan seluruh dinas --}}
-@if ($punyaBidang)
-<div class="flex flex-wrap items-center gap-1.5 mb-4">
-    <span class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mr-1">Lingkup data:</span>
-    <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['lingkup' => 'semua'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', ! $lingkupSaya ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏛 Seluruh Dinas</a>
-    <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['lingkup' => 'saya'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', $lingkupSaya ? 'bg-teal-600 text-white border-teal-600' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏢 Bidang Saya</a>
-</div>
-@endif
+<div class="space-y-6">
 
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-    <x-stat label="Total Sub Kegiatan" :value="(int) $ringkas->total" tone="sky" icon="kinerja" />
-    <x-stat label="Tuntas (≥100%)" :value="(int) $ringkas->tuntas" tone="emerald" icon="kinerja" />
-    <x-stat label="Berjalan (60–99%)" :value="(int) $ringkas->berjalan" tone="teal" icon="statistik" />
-    <x-stat label="Perlu Perhatian (<60%)" :value="(int) $ringkas->lambat" tone="rose" icon="alert" />
-</div>
+    <!-- 1. Breadcrumbs Mikro -->
+    <nav class="flex items-center text-sm font-medium text-slate-400">
+        <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-400">Data &amp; Kinerja</span>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-700 font-semibold">Kegiatan &amp; Kinerja</span>
+    </nav>
 
-<div class="card overflow-hidden">
-    <div class="px-4 py-3 border-b border-slate-100 flex flex-wrap gap-2.5 items-center">
-        <form class="flex-1 min-w-[200px] flex gap-2" method="GET">
-            <input type="hidden" name="tahun" value="{{ $tahun }}">
-            @if (request('lingkup'))<input type="hidden" name="lingkup" value="{{ request('lingkup') }}">@endif
-            <input name="q" value="{{ request('q') }}" placeholder="Cari nama kegiatan…" class="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 outline-none">
-            <select name="status" class="rounded-lg border border-slate-300 px-2 py-2 text-sm bg-white">
-                <option value="">Semua status</option>
-                @foreach (['tuntas' => 'Tuntas', 'berjalan' => 'Berjalan', 'lambat' => 'Perlu perhatian'] as $kv => $lab)
-                    <option value="{{ $kv }}" @selected(request('status') == $kv)>{{ $lab }}</option>
+    <!-- 2. Header Halaman & Quick Actions -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
+        <div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Kegiatan &amp; Capaian Kinerja</h1>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                    TA {{ $tahun }}
+                </span>
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Sumber: Kinerja Fisik Dinas — monitoring kegiatan, target, dan realisasi per bidang.</p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <!-- Pilihan Tahun Anggaran (Segmented Pill) -->
+            <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+                @foreach ($tahunList as $t)
+                    <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['tahun' => $t])) }}" 
+                       class="px-3 py-1.5 text-xs font-bold rounded-lg transition {{ $t == $tahun ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50' }}">
+                        {{ $t }}
+                    </a>
                 @endforeach
-            </select>
-            <button class="rounded-lg bg-slate-900 text-white px-3.5 py-2 text-sm font-bold hover:bg-slate-700 active:scale-95 transition">Cari</button>
-        </form>
+            </div>
+
+            <!-- Tombol Sekunder: Matriks Capaian Kinerja -->
+            <a href="{{ route('kinerja.capaian') }}" 
+               class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
+                <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Matriks Capaian →
+            </a>
+
+            <!-- Tombol Utama (Hanya Admin: Kelola Kinerja) -->
+            @if($u->isAdmin())
+            <a href="{{ route('admin.kinerja.index') }}" 
+               class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                </svg>
+                Kelola Kinerja
+            </a>
+            @endif
+        </div>
     </div>
-    <div class="overflow-x-auto thin-scroll">
-        <table class="data w-full min-w-[820px]">
-            <thead><tr><th class="w-8">#</th><th>Kegiatan</th><th>Indikator / Pagu</th><th>Pelaksana</th><th>Target</th><th class="min-w-[200px]">Capaian</th><th>Status</th></tr></thead>
-            <tbody>
-            @forelse ($items as $k)
-                <tr>
-                    <td class="text-slate-400 text-xs">{{ $items->firstItem() + $loop->index }}</td>
-                    <td><p class="font-semibold text-[13px] leading-snug">{{ $k->nama }}</p>
-                        @if ($k->catatan)<p class="text-[11px] text-amber-600 mt-0.5">⚠ {{ $k->catatan }}</p>@endif</td>
-                    <td class="text-xs text-slate-500 max-w-[260px]">{{ $k->indikator ?? '—' }}<br><span class="text-slate-400">Pagu Rp {{ number_format($k->pagu_anggaran, 0, ',', '.') }}</span></td>
-                    <td class="text-xs text-slate-500">{{ $k->bidang?->nama ?? 'Dinas' }}</td>
-                    <td class="text-xs font-semibold whitespace-nowrap">{{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} <span class="font-normal text-slate-400">{{ $k->satuan }}</span></td>
-                    <td><x-prog :persen="$k->persentase" /></td>
-                    <td>@php $st = $k->label_status; @endphp
-                        <span class="text-[11px] font-bold rounded-full px-2 py-1 whitespace-nowrap {{ $st === 'Tuntas' ? 'bg-emerald-50 text-emerald-700' : ($st === 'Berjalan' ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700') }}">{{ $st }}</span></td>
-                </tr>
-            @empty
-                <tr><td colspan="7"><x-empty icon="kinerja" title="Tidak ada kegiatan yang cocok" desc="Coba kata kunci lain atau ganti tahun anggaran." /></td></tr>
-            @endforelse
-            </tbody>
-        </table>
+
+    <!-- 3. Lingkup Data (Jika akun terafiliasi ke bidang) -->
+    @if ($punyaBidang)
+    <div class="flex items-center gap-2 text-xs">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Lingkup Data:</span>
+        <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['lingkup' => 'semua'])) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition {{ ! $lingkupSaya ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                <span>🏛</span> Seluruh Dinas
+            </a>
+            <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['lingkup' => 'saya'])) }}" 
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition {{ $lingkupSaya ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50' }}">
+                <span>🏢</span> Bidang Saya
+            </a>
+        </div>
     </div>
-    @if ($items->hasPages())<div class="p-3">{{ $items->links() }}</div>@endif
+    @endif
+
+    <!-- 4. Stat Cards Ringkasan Kinerja -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Sub Kegiatan</p>
+                <p class="text-2xl font-black text-slate-900 mt-0.5">{{ (int) $ringkas->total }}</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">TA {{ $tahun }}</p>
+            </div>
+            <div class="h-11 w-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100 shrink-0">
+                <x-icon name="kinerja" class="h-5 w-5" />
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tuntas (≥100%)</p>
+                <p class="text-2xl font-black text-emerald-600 mt-0.5">{{ (int) $ringkas->tuntas }}</p>
+                <p class="text-[11px] text-emerald-600/80 mt-0.5 font-medium">Target tercapai</p>
+            </div>
+            <div class="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shrink-0">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Berjalan (60–99%)</p>
+                <p class="text-2xl font-black text-sky-600 mt-0.5">{{ (int) $ringkas->berjalan }}</p>
+                <p class="text-[11px] text-sky-600/80 mt-0.5 font-medium">Dalam progres</p>
+            </div>
+            <div class="h-11 w-11 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center border border-sky-100 shrink-0">
+                <x-icon name="statistik" class="h-5 w-5" />
+            </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Perlu Perhatian (&lt;60%)</p>
+                <p class="text-2xl font-black text-rose-600 mt-0.5">{{ (int) $ringkas->lambat }}</p>
+                <p class="text-[11px] text-rose-600/80 mt-0.5 font-medium">Perlu percepatan</p>
+            </div>
+            <div class="h-11 w-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shrink-0">
+                <x-icon name="alert" class="h-5 w-5" />
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Kontainer Data Tabel & Filter -->
+    <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+        <!-- Toolbar Filter & Pencarian -->
+        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+            <form method="GET" class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+                <input type="hidden" name="tahun" value="{{ $tahun }}">
+                @if (request('lingkup'))
+                    <input type="hidden" name="lingkup" value="{{ request('lingkup') }}">
+                @endif
+                
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </span>
+                    <input name="q" value="{{ request('q') }}" placeholder="Cari kegiatan atau indikator…" 
+                           class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <select name="status" class="px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-white text-slate-700 focus:outline-none focus:border-purple-400">
+                        <option value="">Semua Status</option>
+                        @foreach (['tuntas' => 'Tuntas (≥100%)', 'berjalan' => 'Berjalan (60–99%)', 'lambat' => 'Perlu perhatian (<60%)'] as $kv => $lab)
+                            <option value="{{ $kv }}" @selected(request('status') == $kv)>{{ $lab }}</option>
+                        @endforeach
+                    </select>
+
+                    <button type="submit" 
+                            class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs md:text-sm font-semibold hover:bg-slate-800 active:scale-95 transition shadow-sm">
+                        Cari
+                    </button>
+                    @if (request('q') || request('status'))
+                        <a href="{{ route('kinerja.publik', ['tahun' => $tahun, 'lingkup' => request('lingkup')]) }}" 
+                           class="px-3 py-2 border border-slate-200 bg-white text-slate-500 hover:text-slate-800 rounded-xl text-xs md:text-sm font-semibold transition">
+                            Reset
+                        </a>
+                    @endif
+                </div>
+            </form>
+        </div>
+
+        <!-- Tabel Data -->
+        <div class="overflow-x-auto thin-scroll">
+            <table class="data w-full min-w-[860px]">
+                <thead>
+                    <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
+                        <th class="w-10 text-center">#</th>
+                        <th>Kegiatan &amp; Catatan</th>
+                        <th>Indikator &amp; Pagu</th>
+                        <th>Pelaksana</th>
+                        <th>Target</th>
+                        <th class="min-w-[190px]">Capaian</th>
+                        <th class="text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                @forelse ($items as $k)
+                    <tr class="hover:bg-slate-50/70 transition">
+                        <td class="text-slate-400 text-xs text-center font-mono">{{ $items->firstItem() + $loop->index }}</td>
+                        <td>
+                            <p class="font-semibold text-[13px] text-slate-900 leading-snug">{{ $k->nama }}</p>
+                            @if ($k->catatan)
+                                <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/60 rounded-md px-2 py-0.5 mt-1 inline-block">
+                                    ⚠ {{ $k->catatan }}
+                                </p>
+                            @endif
+                        </td>
+                        <td class="text-xs text-slate-600 max-w-[260px]">
+                            <span class="font-medium text-slate-800">{{ $k->indikator ?? '—' }}</span>
+                            <span class="block text-slate-400 font-mono mt-0.5">Pagu: Rp {{ number_format($k->pagu_anggaran, 0, ',', '.') }}</span>
+                        </td>
+                        <td class="text-xs text-slate-600">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
+                                {{ $k->bidang?->nama ?? 'Dinas' }}
+                            </span>
+                        </td>
+                        <td class="text-xs font-semibold whitespace-nowrap text-slate-800">
+                            {{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} 
+                            <span class="font-normal text-slate-400">{{ $k->satuan }}</span>
+                        </td>
+                        <td>
+                            <x-prog :persen="$k->persentase" />
+                        </td>
+                        <td class="text-center whitespace-nowrap">
+                            @php $st = $k->label_status; @endphp
+                            @if ($st === 'Tuntas')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    Tuntas
+                                </span>
+                            @elseif ($st === 'Berjalan')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+                                    Berjalan
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                    Perlu Perhatian
+                                </span>
+                            @endif
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="py-8">
+                            <x-empty icon="kinerja" title="Tidak ada kegiatan yang cocok" desc="Coba kata kunci lain atau pilih tahun anggaran yang sesuai." />
+                        </td>
+                    </tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        @if ($items->hasPages())
+            <div class="p-3.5 border-t border-slate-100 bg-slate-50/50">
+                {{ $items->links() }}
+            </div>
+        @endif
+    </div>
+
 </div>
 @endsection

@@ -13,40 +13,64 @@
     $bisaRender = $isPdf || $isImg || $isText || $isSheet || $isDocx || $isPptx;
     $src = route('dokumen.lihat', $d);
 @endphp
-<div class="max-w-5xl mx-auto">
-    <!-- Breadcrumbs Mikro -->
-    <div class="mb-1.5">
-        <span class="text-gray-400 text-sm font-medium">SIPARDIS <span class="mx-1">/</span> <a href="{{ route('dokumen.index') }}" class="text-gray-500 hover:text-purple-600 transition">Dokumen</a> <span class="mx-1">/</span> <span class="text-gray-500">Pratinjau</span></span>
-    </div>
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div class="min-w-0">
-            <h2 class="font-extrabold text-[22px] leading-tight truncate">{{ $d->judul }}</h2>
-            <p class="text-[12.5px] text-slate-500 mt-0.5">
-                {{ $d->bidang?->nama ?? 'Seluruh Dinas' }} · diunggah {{ $d->uploader?->name ?? '—' }} · {{ $d->created_at->translatedFormat('d M Y, H:i') }}
-                · <span class="font-bold {{ ['publik' => 'text-emerald-600', 'bidang' => 'text-sky-600', 'rahasia' => 'text-rose-600'][$d->visibility] }}">{{ ucfirst($d->visibility) }}</span>
+<div class="max-w-6xl mx-auto space-y-5">
+    <!-- Breadcrumb & Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
+                <span>SIPARDIS</span>
+                <span class="text-slate-300">/</span>
+                <a href="{{ route('dokumen.index') }}" class="text-slate-500 hover:text-purple-600 transition">Kantor</a>
+                <span class="text-slate-300">/</span>
+                <a href="{{ route('dokumen.index') }}" class="text-slate-500 hover:text-purple-600 transition">Dokumen</a>
+                <span class="text-slate-300">/</span>
+                <span class="text-slate-700 font-bold">Pratinjau</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span class="truncate max-w-xl">{{ $d->judul }}</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ ['publik' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'bidang' => 'bg-sky-50 text-sky-700 border-sky-200', 'rahasia' => 'bg-rose-50 text-rose-700 border-rose-200'][$d->visibility] ?? 'bg-slate-100 text-slate-700 border-slate-200' }}">
+                    {{ ucfirst($d->visibility) }}
+                </span>
+            </h1>
+            <p class="text-sm text-slate-500 mt-1">
+                {{ $d->bidang?->nama ?? 'Seluruh Dinas' }} · Diunggah oleh <span class="font-medium text-slate-700">{{ $d->uploader?->name ?? '—' }}</span> · {{ $d->created_at->translatedFormat('d M Y, H:i') }}
             </p>
         </div>
-        <div class="flex items-center gap-2">
+
+        <!-- Quick Actions -->
+        <div class="flex items-center gap-2.5 flex-wrap">
             @if ($bisaRender)
             <button type="button" id="btn-fullscreen" title="Tampilkan pratinjau memenuhi layar (tekan Esc untuk keluar)"
-                class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-3.5 py-2 text-slate-600 hover:border-purple-300 hover:text-purple-700 active:scale-95 transition inline-flex items-center gap-1.5">⛶ Layar penuh</button>
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-sm font-semibold transition shadow-sm">
+                <span>⛶</span> Layar Penuh
+            </button>
             @endif
-            <a href="{{ route('dokumen.unduh', $d) }}" class="rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-sm shadow-purple-500/30 active:scale-95 text-white text-sm font-bold px-4 py-2 transition inline-flex items-center gap-1.5"><x-icon name="dokumen" class="h-4 w-4" /> Unduh</a>
+
+            <a href="{{ route('dokumen.unduh', $d) }}"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold transition shadow-sm shadow-purple-200">
+                <x-icon name="dokumen" class="h-4 w-4" /> Unduh Dokumen
+            </a>
+
             @if ($u->id === $d->uploaded_by)
-            <form method="POST" action="{{ route('dokumen.akses', $d) }}" class="inline-flex items-center gap-1.5">
+            <form method="POST" action="{{ route('dokumen.akses', $d) }}" class="inline-flex items-center">
                 @csrf @method('PATCH')
-                <select name="visibility" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-2.5 py-2 cursor-pointer outline-none hover:border-purple-300 focus:border-purple-400">
+                <select name="visibility" onchange="this.form.submit()" class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-3 py-2 cursor-pointer outline-none hover:border-purple-300 focus:border-purple-400 text-slate-700 shadow-sm transition">
                     @foreach (['publik' => '🌐 Publik', 'bidang' => '🏢 Bidang', 'rahasia' => '🔒 Rahasia'] as $v => $lab)
                         <option value="{{ $v }}" @selected($d->visibility === $v)>{{ $lab }}</option>
                     @endforeach
                 </select>
             </form>
             @endif
-            <a href="{{ url()->previous() }}" class="rounded-xl border border-slate-200 bg-white text-sm font-semibold px-3.5 py-2 text-slate-600 hover:border-purple-300 active:scale-95 transition">← Kembali</a>
+
+            <a href="{{ route('dokumen.index') }}"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-sm font-semibold transition shadow-sm">
+                ← Kembali
+            </a>
         </div>
     </div>
 
-    <div class="clean-card overflow-hidden" id="preview-box">
+    <!-- Viewer Container -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="preview-box">
         @if ($isPdf)
             <iframe src="{{ $src }}" class="w-full h-[78vh] bg-slate-50" title="{{ $d->judul }}"></iframe>
         @elseif ($isImg)
