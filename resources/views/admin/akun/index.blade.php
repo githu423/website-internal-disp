@@ -57,15 +57,7 @@
                 </span>
             </div>
 
-            <div class="w-full sm:w-56">
-                <select name="role" onchange="this.form.submit()" 
-                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
-                    <option value="">Semua Peran (Role)</option>
-                    @foreach (['admin' => 'Admin (Super)', 'bidang' => 'Operator Bidang', 'pegawai' => 'Pegawai'] as $rl => $label)
-                        <option value="{{ $rl }}" @selected(request('role') === $rl)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <x-select name="role" :options="['' => 'Semua Peran (Role)', 'admin' => 'Admin (Super)', 'bidang' => 'Operator Bidang', 'pegawai' => 'Pegawai']" :value="request('role')" autoSubmit class="w-full sm:w-56" />
         </div>
 
         <div class="flex items-center gap-2 shrink-0">

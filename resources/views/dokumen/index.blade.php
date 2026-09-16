@@ -72,7 +72,7 @@
             </div>
             <input type="hidden" name="bidang" value="{{ $aktifBidang ?: '' }}">
 
-            <x-select name="kategori" :options="$kategoriOptions" :value="request('kategori')" class="w-48" />
+            <x-select name="kategori" :options="$kategoriOptions" :value="request('kategori')" autoSubmit class="w-48" />
 
             <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 rounded-xl border border-slate-200 px-3 py-2 bg-white cursor-pointer hover:border-purple-300 hover:text-purple-600 transition">
                 <input type="checkbox" name="milik_saya" value="1" @checked(request('milik_saya')) class="rounded border-slate-300 text-purple-600 focus:ring-purple-500/20"> 

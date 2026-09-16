@@ -59,14 +59,11 @@
                 </span>
             </div>
 
-            <div class="w-full sm:w-64">
-                <select name="bidang" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
-                    <option value="">Semua Bidang / Penempatan</option>
-                    @foreach ($bidangs as $b)
-                        <option value="{{ $b->id }}" @selected(request('bidang') == $b->id)>{{ $b->nama }}</option>
-                    @endforeach
-                </select>
-            </div>
+            @php
+                $bidangOpts = ['' => 'Semua Bidang / Penempatan'];
+                foreach ($bidangs as $b) { $bidangOpts[$b->id] = $b->nama; }
+            @endphp
+            <x-select name="bidang" :options="$bidangOpts" :value="request('bidang')" autoSubmit class="w-full sm:w-64" />
         </div>
 
         <div class="flex items-center gap-2 shrink-0">

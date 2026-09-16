@@ -56,15 +56,7 @@
                 </span>
             </div>
 
-            <div class="w-full sm:w-56">
-                <select name="visibility" onchange="this.form.submit()" 
-                        class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
-                    <option value="">Semua Visibilitas</option>
-                    @foreach (['publik' => 'Publik (Semua)', 'bidang' => 'Internal Bidang', 'rahasia' => 'Rahasia / Terbatas'] as $v => $label)
-                        <option value="{{ $v }}" @selected(request('visibility') === $v)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
+            <x-select name="visibility" :options="['' => 'Semua Visibilitas', 'publik' => '🌐 Publik (Semua)', 'bidang' => '🔏 Internal Bidang', 'rahasia' => '🔒 Rahasia / Terbatas']" :value="request('visibility')" autoSubmit class="w-full sm:w-56" />
         </div>
 
         <div class="flex items-center gap-2 shrink-0">

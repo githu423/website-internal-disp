@@ -185,21 +185,20 @@
             <button data-sb-toggle
                 class="lg:hidden h-9 w-9 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 active:scale-90 transition"><x-icon
                     name="menu" /></button>
-            <div class="min-w-0 flex-1 flex items-center gap-6">
-                <div class="min-w-0 shrink-0 hidden sm:block">
-                    <h1 class="font-bold text-[15px] leading-tight truncate">
+            <div class="min-w-0 flex-1 flex items-center gap-4 sm:gap-6">
+                <div class="min-w-0 shrink-0">
+                    <h1 class="font-bold text-[14px] sm:text-[15px] leading-tight truncate text-slate-900">
                         @hasSection('header_title')
                             @yield('header_title')
                         @else
                             @yield('title', 'Dashboard')
                         @endif
                     </h1>
-                    <p class="text-[11px] text-slate-400 truncate">
+                    <p class="text-[10.5px] sm:text-[11px] text-slate-400 truncate hidden xs:block sm:block">
                         @yield('subtitle', now()->translatedFormat('l, d F Y'))</p>
                 </div>
 
-                <!-- Global Search -->
-                <!-- Global Search (disembunyikan di halaman pencarian agar tidak dobel dengan form inline) -->
+                <!-- Global Search Desktop & Tablet (disembunyikan di halaman pencarian agar tidak dobel dengan form inline) -->
                 @unless (request()->routeIs('search'))
                     <div class="flex-1 max-w-md hidden md:block">
                         <form action="{{ route('search') }}" method="GET" class="relative w-full">
@@ -211,13 +210,21 @@
                                 </svg>
                             </span>
                             <input type="text" name="q" placeholder="Cari pegawai, agenda, dokumen..."
-                                class="block w-full pl-10 pr-4 py-2 border border-transparent rounded-full bg-gray-100 text-[13px] placeholder-slate-400 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all cursor-text">
+                                class="block w-full pl-10 pr-4 py-2 border border-slate-200/80 rounded-full bg-slate-100/80 text-[13px] placeholder-slate-400 focus:bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all cursor-text">
                         </form>
                     </div>
                 @endunless
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1.5 sm:gap-3">
+                <!-- Tombol Search Khusus Mobile -->
+                @unless (request()->routeIs('search'))
+                    <button id="mobile-search-toggle" type="button" title="Buka Pencarian"
+                        class="md:hidden h-9 w-9 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
+                        <x-icon name="search" class="h-4 w-4" />
+                    </button>
+                @endunless
+
                 <span
                     class="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[220px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}"
                     title="{{ $u->isAdmin() ? 'Seluruh Dinas' : ($u->bidang?->nama ?? ('Belum tertaut ke bidang tertentu' . ($u->jabatan ? ' — jabatan: ' . $u->jabatan : '') . '. Tetapkan di Admin › Akun & Akses.')) }}">
@@ -249,7 +256,7 @@
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
                 <a href="{{ route('profil.index') }}" title="Profil saya"
-                    class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-purple-300 pl-1.5 pr-3 py-1 transition active:scale-95">
+                    class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-purple-300 pl-1.5 pr-1.5 sm:pr-3 py-1 transition active:scale-95">
                     <div class="relative shrink-0 flex items-center justify-center">
                         <span style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;"
                             class="rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white shadow-sm shrink-0">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
@@ -269,6 +276,29 @@
                 </a>
             </div>
         </header>
+
+        <!-- ============ MOBILE SEARCH DRAWER ============ -->
+        @unless (request()->routeIs('search'))
+            <div id="mobile-search-drawer"
+                class="hidden md:hidden fixed inset-x-0 top-16 z-40 bg-white/95 backdrop-blur-xl border-b border-slate-200/90 px-4 py-3 shadow-lg shadow-purple-950/5 transition-all">
+                <form action="{{ route('search') }}" method="GET" class="relative w-full flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input id="mobile-search-input" type="text" name="q" placeholder="Cari pegawai, agenda, dokumen..."
+                            class="block w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-sm placeholder-slate-400 focus:bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition">
+                    </div>
+                    <button type="button" id="mobile-search-close"
+                        class="h-10 w-10 shrink-0 grid place-items-center rounded-xl border border-slate-200 bg-slate-50 text-slate-500 hover:bg-slate-100 active:scale-95 transition text-sm">
+                        ✕
+                    </button>
+                </form>
+            </div>
+        @endunless
 
         <!-- ============ KONTEN ============ -->
         <main class="pt-16 min-h-screen">

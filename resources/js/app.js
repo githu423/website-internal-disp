@@ -1,4 +1,3 @@
-
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 window.Chart = Chart;
@@ -68,6 +67,35 @@ if (window.matchMedia('(hover: hover)').matches) {
             requestAnimationFrame(() => tip.classList.add('show'));
         });
         a.addEventListener('mouseleave', () => { tip?.remove(); tip = null; });
+    });
+}
+
+/* ===== mobile search drawer toggle ===== */
+const mobileSearchToggle = document.getElementById('mobile-search-toggle');
+const mobileSearchDrawer = document.getElementById('mobile-search-drawer');
+const mobileSearchClose = document.getElementById('mobile-search-close');
+const mobileSearchInput = document.getElementById('mobile-search-input');
+
+if (mobileSearchToggle && mobileSearchDrawer) {
+    mobileSearchToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = !mobileSearchDrawer.classList.contains('hidden');
+        if (isOpen) {
+            mobileSearchDrawer.classList.add('hidden');
+        } else {
+            mobileSearchDrawer.classList.remove('hidden');
+            setTimeout(() => mobileSearchInput?.focus(), 80);
+        }
+    });
+
+    mobileSearchClose?.addEventListener('click', () => {
+        mobileSearchDrawer.classList.add('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!mobileSearchDrawer.contains(e.target) && e.target !== mobileSearchToggle && !mobileSearchToggle.contains(e.target)) {
+            mobileSearchDrawer.classList.add('hidden');
+        }
     });
 }
 
@@ -204,11 +232,12 @@ if ("serviceWorker" in navigator && location.protocol !== "file:") {
 document.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     document.getElementById('bell-panel')?.classList.add('hidden');
+    document.getElementById('mobile-search-drawer')?.classList.add('hidden');
     document.querySelectorAll('.modal-shell:not(.hidden)').forEach((m) => m.classList.add('hidden'));
     sidebar.classList.remove('sbx-open'); document.getElementById('sb-overlay')?.classList.remove('show');
 });
 
-/* ===== nama file tampil saat pilih file upload (tanpa memindah input, tanpa teks dobel) ===== */
+/* ===== nama file tampil saat pilih file upload ===== */
 document.querySelectorAll('input[type=file]').forEach((f) => {
     if (f.dataset.fnameOwn) return;
     f.dataset.fnameOwn = '1';
@@ -220,13 +249,11 @@ document.querySelectorAll('input[type=file]').forEach((f) => {
     f.addEventListener('change', upd);
     upd();
 });
-// teks "No file chosen"/nama bawaan browser dibuat transparan — HANYA warna teksnya;
-// tombol tetap terlihat karena tiap input di app menyetel warna tombolnya sendiri (class file:*)
 const fnameCss = document.createElement('style');
 fnameCss.textContent = 'input.fname-own{color:transparent}';
 document.head.appendChild(fnameCss);
 
-/* ===== pratinjau Excel & Word langsung di browser (tampilan usaha mirip aslinya) ===== */
+/* ===== pratinjau Excel, Word, PPTX langsung di browser ===== */
 const office = document.getElementById('office-host');
 if (office) {
     const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -289,8 +316,6 @@ if (office) {
                 office.querySelectorAll('.sheet-tab').forEach((b) => b.addEventListener('click', () => show(+b.dataset.i)));
                 show(0);
             } else if (office.dataset.kind === 'pptx') {
-                // PPTX — dirender lokal di browser oleh pptx-preview (file tidak meninggalkan server).
-                // Render ulang saat masuk/keluar layar penuh supaya slide memenuhi layar.
                 const { init } = await import('pptx-preview');
                 const render = () => {
                     office.innerHTML = '';
@@ -298,27 +323,7 @@ if (office) {
                     wrap.style.width = '100%';
                     office.appendChild(wrap);
                     const cw = Math.max(320, wrap.clientWidth || office.clientWidth || 960);
-                    const ch = Math.round(cw * 0.5625); // rasio 16:9; library menskalakan slide agar pas
-                    const previewer = init(wrap, { width: cw, height: ch, mode: 'slide' });
-                    previewer.preview(buf);
-                };
-                render();
-                const box = document.getElementById('preview-box') || office;
-                let rT;
-                const rerender = () => { clearTimeout(rT); rT = setTimeout(render, 90); };
-                document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === box || !document.fullscreenElement) rerender(); });
-                document.addEventListener('webkitfullscreenchange', () => rerender());
-            } else if (office.dataset.kind === 'pptx') {
-                // PPTX — dirender lokal di browser oleh pptx-preview (file tidak meninggalkan server).
-                // Render ulang saat masuk/keluar layar penuh supaya slide memenuhi layar.
-                const { init } = await import('pptx-preview');
-                const render = () => {
-                    office.innerHTML = '';
-                    const wrap = document.createElement('div');
-                    wrap.style.width = '100%';
-                    office.appendChild(wrap);
-                    const cw = Math.max(320, wrap.clientWidth || office.clientWidth || 960);
-                    const ch = Math.round(cw * 0.5625); // rasio 16:9; library menskalakan slide agar pas
+                    const ch = Math.round(cw * 0.5625);
                     const previewer = init(wrap, { width: cw, height: ch, mode: 'slide' });
                     previewer.preview(buf);
                 };
@@ -339,11 +344,6 @@ if (office) {
     })();
 }
 
-/* ====================================================================
-TEMPEL BLOK INI DI PALING BAWAH file: resources/js/app.js
-(jangan menimpa isi app.js yang sudah ada — cukup tambahkan di akhir)
-   ==================================================================== */
-
 /* ===== dropdown pilihan custom bertema (pengganti <select> native) ===== */
 (function () {
     const CHECK_SVG = '<svg class="h-4 w-4 shrink-0 text-purple-600 cs-check" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
@@ -354,6 +354,10 @@ TEMPEL BLOK INI DI PALING BAWAH file: resources/js/app.js
         root.classList.remove('is-open');
     }
     function openMenu(root) {
+        // Tutup custom select lain yang sedang terbuka
+        document.querySelectorAll('[data-custom-select].is-open').forEach(function (other) {
+            if (other !== root) closeMenu(other);
+        });
         root.querySelector('[data-cs-menu]')?.classList.remove('hidden');
         root.querySelector('[data-cs-chevron]')?.classList.add('rotate-180');
         root.classList.add('is-open');
@@ -371,9 +375,9 @@ TEMPEL BLOK INI DI PALING BAWAH file: resources/js/app.js
             input.value = value;
             options.forEach(function (opt) {
                 const on = opt.dataset.value === value;
-                opt.classList.toggle('bg-purple-50', on);
+                opt.classList.toggle('bg-purple-50/90', on);
                 opt.classList.toggle('text-purple-700', on);
-                opt.classList.toggle('font-semibold', on);
+                opt.classList.toggle('font-bold', on);
                 opt.classList.toggle('text-slate-600', !on);
                 const oldCheck = opt.querySelector('.cs-check');
                 if (oldCheck) oldCheck.remove();
@@ -391,7 +395,8 @@ TEMPEL BLOK INI DI PALING BAWAH file: resources/js/app.js
         });
 
         options.forEach(function (opt) {
-            opt.addEventListener('click', function () {
+            opt.addEventListener('click', function (e) {
+                e.stopPropagation();
                 setActive(opt.dataset.value);
                 closeMenu(root);
                 if (root.dataset.autosubmit === '1' && input.form) {
