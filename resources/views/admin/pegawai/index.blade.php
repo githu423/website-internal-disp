@@ -1,158 +1,438 @@
 @extends('layouts.dashboard')
+
 @section('title', 'Kelola Pegawai')
+@section('header_title')
+<span class="font-bold text-xl tracking-tight text-purple-700">SIPARDIS</span>
+@endsection
+@section('subtitle', 'Manajemen Data Pegawai, Jabatan, dan Penempatan Bidang Dinas Pariwisata')
+
 @section('content')
-<div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-    <h2 class="text-lg font-extrabold">Data Pegawai <span class="text-xs font-bold text-slate-400 bg-slate-100 rounded-full px-2 py-1 align-middle">{{ $total }} orang</span>@if ($belumLengkap > 0 || request('belum'))
-        <a href="{{ request()->fullUrlWithQuery(['belum' => request('belum') ? null : 1]) }}" class="ml-1.5 align-middle inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-extrabold transition {{ request('belum') ? 'bg-rose-600 text-white border-rose-600' : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' }}">⚠ {{ $belumLengkap }} belum · ✓ {{ $lengkap }} lengkap — {{ request('belum') ? 'reset filter' : 'saring' }}</a>@endif</h2>
-    <div class="flex items-center gap-2">
-        <form method="GET" class="flex gap-2">
-            @if (request('belum'))<input type="hidden" name="belum" value="1">@endif
-            <select name="bidang" onchange="this.form.submit()" class="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm">
-                <option value="">Semua bidang</option>
-                @foreach ($bidangs as $b)<option value="{{ $b->id }}" @selected(request('bidang') == $b->id)>{{ $b->nama }}</option>@endforeach
-            </select>
-            <input name="q" value="{{ request('q') }}" placeholder="Cari nama/NIP… atau: belum lengkap" class="w-52 rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-500">
-        </form>
-        <button data-modal-open="modal-pegawai" class="rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold px-3.5 py-2 transition inline-flex items-center gap-1.5"><x-icon name="plus" class="h-4 w-4" /> Tambah</button>
-    </div>
-</div>
+<div class="space-y-6">
 
-{{-- 10 Sep 2026: pesan error validasi kini SELALU terlihat (dulu tersembunyi di dalam modal tambah) --}}
-@if ($errors->any())
-<div class="mb-4 rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-rose-700 text-[13px]">
-    <b>⚠ Gagal menyimpan:</b> {{ $errors->first() }}<br>
-    <span class="text-rose-500">Perbaiki kolom yang dimaksud lalu tekan Simpan lagi — kolom lain boleh dibiarkan kosong.</span>
-</div>
-@endif
+    <!-- 1. Breadcrumbs Mikro -->
+    <nav class="flex items-center text-sm font-medium text-slate-400">
+        <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-400">Admin — Kepegawaian</span>
+        <span class="mx-2 text-slate-300">/</span>
+        <span class="text-slate-700 font-semibold">Kelola Pegawai</span>
+    </nav>
 
-<div class="grid lg:grid-cols-3 gap-4">
-    <div class="lg:col-span-2 card overflow-hidden">
-        <div class="overflow-x-auto thin-scroll">
-            <table class="data w-full min-w-[700px]">
-                <thead><tr><th>Nama / NIP</th><th>Jabatan</th><th>Bidang</th><th>Status</th><th></th></tr></thead>
-                <tbody>
-                @forelse ($pegawai as $p)
-                    <tr>
-                        <td><p class="font-semibold text-[13px]">{{ $p->nama }}</p><p class="text-[11px] text-slate-400 font-mono">{{ $p->nip }}</p>@if ($modeBelum)<p class="mt-0.5 text-[10.5px] font-bold text-rose-600">belum lengkap: {{ implode(', ', $p->kolomKurang()) }}</p>@endif</td>
-                        <td class="text-xs">{{ $p->jabatan ?? '—' }}<span class="block text-[10.5px] text-slate-400">{{ $p->pangkat_golongan }} · {{ $p->masa_kerja['label'] }} @if ($p->umur !== null)· <span title="umur (dari tanggal lahir)">umur {{ $p->umur }} th</span>@endif</span></td>
-                        <td class="text-xs text-slate-500">{{ $p->bidang?->nama ?? '—' }}</td>
-                        <td><span class="text-[10.5px] font-bold rounded-full px-2 py-0.5 {{ $p->status === 'aktif' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500' }}">{{ ucfirst($p->status) }}</span></td>
-                        <td class="text-right whitespace-nowrap">
-                            <button data-modal-open="pg-{{ $p->id }}" class="text-[11px] font-bold text-slate-500 hover:text-teal-600">Edit</button>
-                            <form method="POST" action="{{ route('admin.pegawai.destroy', $p) }}" data-confirm="Hapus {{ $p->nama }}?" class="inline">@csrf @method('DELETE')
-                                <button class="text-[11px] font-bold text-rose-400 hover:text-rose-600">Hapus</button>
-                            </form>
-                        </td>
-                    </tr>
-                    <div id="pg-{{ $p->id }}" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 p-4 grid place-items-center overflow-y-auto">
-                        <div class="card w-full max-w-lg p-6 text-sm">
-                            <div class="flex justify-between mb-2"><h3 class="font-bold">Edit {{ $p->nama }}</h3><button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400">✕</button></div>
-                            <p class="mb-3 text-[11.5px] text-slate-600 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2">✏️ Cukup ubah kolom yang diperlukan lalu tekan <b>Simpan</b> — kolom lain boleh dibiarkan kosong. Nama &amp; NIP wajib terisi.</p>
-                            <form method="POST" action="{{ route('admin.pegawai.update', $p) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                @csrf @method('PATCH')
-                                <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Nama lengkap <span class="text-rose-500">*</span></span>
-                                    <input name="nama" value="{{ $p->nama }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">NIP <span class="text-rose-500">*</span></span>
-                                    <input name="nip" value="{{ $p->nip }}" required class="w-full rounded-lg border border-slate-300 px-3 py-2 font-mono"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Status kepegawaian</span>
-                                    <select name="status" class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white">@foreach (['aktif','nonaktif','pensiun'] as $s)<option @selected($p->status === $s)>{{ $s }}</option>@endforeach</select></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Jenis ASN</span>
-                                    <select name="jenis_asn" class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white"><option value="">— belum diketahui —</option>@foreach (['PNS','PPPK'] as $j)<option @selected($p->jenis_asn === $j)>{{ $j }}</option>@endforeach</select></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Jenis kelamin</span>
-                                    <select name="jenis_kelamin" class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white"><option value="">— belum diketahui —</option>@foreach (['L' => 'Laki-laki', 'P' => 'Perempuan'] as $k => $v)<option value="{{ $k }}" @selected($p->jenis_kelamin === $k)>{{ $v }}</option>@endforeach</select></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Tempat lahir</span>
-                                    <input name="tempat_lahir" value="{{ $p->tempat_lahir }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Tanggal lahir</span>
-                                    <input type="date" name="tanggal_lahir" value="{{ $p->tanggal_lahir?->format('Y-m-d') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Pangkat/gol. awal</span>
-                                    <input name="pangkat_awal" value="{{ $p->pangkat_awal }}" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="mis. Pengatur Muda (II/a)"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">TMT CPNS <span class="normal-case font-medium text-slate-400">(awal pengangkatan)</span></span>
-                                    <input type="date" name="tmt_cpns" value="{{ $p->tmt_cpns?->format('Y-m-d') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Pangkat/gol. terakhir</span>
-                                    <input name="pangkat_golongan" value="{{ $p->pangkat_golongan }}" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="mis. Penata (III/c)"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">TMT pangkat sekarang</span>
-                                    <input type="date" name="tmt_sekarang" value="{{ $p->tmt_sekarang?->format('Y-m-d') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Jabatan <span class="normal-case font-medium text-slate-400">(tulis persis sesuai SK)</span></span>
-                                    <input name="jabatan" value="{{ $p->jabatan }}" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="mis. Kepala Sub Bagian Umum dan Kepegawaian Dispar Pada …"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">TMT jabatan</span>
-                                    <input type="date" name="tmt_jabatan" value="{{ $p->tmt_jabatan?->format('Y-m-d') }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Pendidikan terakhir</span>
-                                    <input name="pendidikan" value="{{ $p->pendidikan }}" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="mis. S-1"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Unit kerja <span class="normal-case font-medium text-slate-400">(sesuai file Excel)</span></span>
-                                    <input name="unit_kerja" value="{{ $p->unit_kerja }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Penempatan bidang <span class="normal-case font-medium text-slate-400">(kelompok kerja — menentukan "Bidang Saya" &amp; agenda bidang)</span></span>
-                                    <select name="id_bidang" class="w-full rounded-lg border border-slate-300 px-3 py-2 bg-white"><option value="">— belum ditempatkan —</option>@foreach ($bidangs as $b)<option value="{{ $b->id }}" @selected($p->id_bidang == $b->id)>{{ $b->nama }}</option>@endforeach</select></label>
-                                <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Diklat struktural</span>
-                                    <input name="diklat_struktural" value="{{ $p->diklat_struktural }}" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="mis. Diklat PIM Tk. III 2021"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Diklat fungsional</span>
-                                    <input name="diklat_fungsional" value="{{ $p->diklat_fungsional }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Diklat teknis</span>
-                                    <input name="diklat_teknis" value="{{ $p->diklat_teknis }}" class="w-full rounded-lg border border-slate-300 px-3 py-2"></label>
-                                <button class="sm:col-span-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5">Simpan</button>
-                            </form>
-                        </div>
-                    </div>
-                @empty
-                    <tr><td colspan="5"><x-empty icon="pegawai" title="Tidak ada data" desc="Import file daftar pegawai atau tambah manual." /></td></tr>
-                @endforelse
-                </tbody>
-            </table>
+    <!-- 2. Header Halaman & Filter Toolbar -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
+        <div>
+            <div class="flex flex-wrap items-center gap-2.5">
+                <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Data Pegawai Dinas</h1>
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-purple-50 text-purple-700 border border-purple-200">
+                    {{ $total }} orang
+                </span>
+                @if ($belumLengkap > 0 || request('belum'))
+                    <a href="{{ request()->fullUrlWithQuery(['belum' => request('belum') ? null : 1]) }}" 
+                       class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition {{ request('belum') ? 'bg-rose-600 text-white shadow-sm' : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100' }}">
+                        <span>⚠</span> {{ $belumLengkap }} belum lengkap · {{ $lengkap }} lengkap — {{ request('belum') ? 'Reset Filter' : 'Filter Belum Lengkap' }}
+                    </a>
+                @endif
+            </div>
+            <p class="text-sm text-slate-500 mt-1">Daftar aparatur sipil, riwayat kepangkatan, jabatan, dan penugasan bidang kerja.</p>
         </div>
-        @if ($pegawai->hasPages())<div class="p-3">{{ $pegawai->links() }}</div>@endif
+
+        <!-- Quick Actions & Tambah -->
+        <div class="flex flex-wrap items-center gap-2.5">
+            <button data-modal-open="modal-pegawai" 
+                    class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
+                <x-icon name="plus" class="h-4 w-4" />
+                Tambah Pegawai Manual
+            </button>
+        </div>
     </div>
 
-    <div class="space-y-4">
-        <x-import-card :action="route('admin.pegawai.import')" title="Import daftar pegawai (Excel/CSV)"
-            desc="Format: kolom No., NAMA LENGKAP, N I P, tempat/tanggal lahir, pangkat, TMT CPNS, jabatan, dst. Data lama dengan NIP sama diperbarui; pegawai baru otomatis dapat akun akses (password default dinas)." />
+    <!-- Filter Form Toolbar -->
+    <form method="GET" class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        @if (request('belum'))<input type="hidden" name="belum" value="1">@endif
+        
+        <div class="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <div class="relative flex-1">
+                <input name="q" value="{{ request('q') }}" placeholder="Cari nama, NIP, atau kata kunci..." 
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                <span class="absolute left-3 top-2.5 text-slate-400">
+                    <x-icon name="search" class="h-4 w-4" />
+                </span>
+            </div>
+
+            <div class="w-full sm:w-64">
+                <select name="bidang" onchange="this.form.submit()" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                    <option value="">Semua Bidang / Penempatan</option>
+                    @foreach ($bidangs as $b)
+                        <option value="{{ $b->id }}" @selected(request('bidang') == $b->id)>{{ $b->nama }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+            <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs md:text-sm rounded-xl shadow-sm transition">
+                Terapkan
+            </button>
+            @if(request('q') || request('bidang') || request('belum'))
+                <a href="{{ route('admin.pegawai.index') }}" class="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
+                    Reset
+                </a>
+            @endif
+        </div>
+    </form>
+
+    <!-- Pesan Peringatan Error -->
+    @if ($errors->any())
+        <div class="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-rose-700 text-sm font-medium">
+            <div class="flex items-center gap-2">
+                <span>⚠</span>
+                <span class="font-bold">Gagal menyimpan data pegawai:</span>
+                <span>{{ $errors->first() }}</span>
+            </div>
+            <p class="text-xs text-rose-600 mt-1">Perbaiki kolom yang dimaksud lalu tekan Simpan lagi — kolom lain boleh dibiarkan kosong.</p>
+        </div>
+    @endif
+
+    <!-- 3. Grid Konten: Tabel Pegawai & Panel Impor -->
+    <div class="grid lg:grid-cols-3 gap-5">
+        <!-- Kolom Kiri: Tabel Data Pegawai -->
+        <div class="lg:col-span-2">
+            <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
+                <div class="overflow-x-auto thin-scroll">
+                    <table class="data w-full min-w-[700px]">
+                        <thead>
+                            <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
+                                <th class="py-3 px-4">Nama / NIP</th>
+                                <th class="py-3 px-3">Jabatan &amp; Golongan</th>
+                                <th class="py-3 px-3">Bidang Penempatan</th>
+                                <th class="py-3 px-3 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                        @forelse ($pegawai as $p)
+                            <tr class="hover:bg-slate-50/70 transition">
+                                <td class="py-3.5 px-4">
+                                    <p class="font-semibold text-[13px] text-slate-900 leading-snug">{{ $p->nama }}</p>
+                                    <p class="text-[11px] text-slate-400 font-mono mt-0.5">{{ $p->nip }}</p>
+                                    @if ($modeBelum && method_exists($p, 'kolomKurang') && count($p->kolomKurang()))
+                                        <p class="mt-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md inline-block">
+                                            Belum lengkap: {{ implode(', ', $p->kolomKurang()) }}
+                                        </p>
+                                    @endif
+                                </td>
+                                <td class="py-3.5 px-3">
+                                    <p class="text-xs font-semibold text-slate-800 leading-snug">{{ $p->jabatan ?? '—' }}</p>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">
+                                        {{ $p->pangkat_golongan }} · {{ $p->masa_kerja['label'] ?? '—' }}
+                                        @if ($p->umur !== null)
+                                            · <span title="Umur terhitung dari tanggal lahir">{{ $p->umur }} th</span>
+                                        @endif
+                                    </p>
+                                </td>
+                                <td class="py-3.5 px-3">
+                                    @if($p->bidang)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-purple-50 text-purple-700 border border-purple-100">
+                                            {{ $p->bidang->nama }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-400 italic">Belum ditempatkan</span>
+                                    @endif
+                                </td>
+                                <td class="py-3.5 px-3 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $p->status === 'aktif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                                        {{ ucfirst($p->status) }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button data-modal-open="pg-{{ $p->id }}" 
+                                                class="px-2.5 py-1 text-xs font-bold rounded-lg text-purple-700 hover:bg-purple-50 transition">
+                                            Edit
+                                        </button>
+                                        <form method="POST" action="{{ route('admin.pegawai.destroy', $p) }}" data-confirm="Hapus pegawai {{ $p->nama }}?" class="inline">
+                                            @csrf @method('DELETE')
+                                            <button class="px-2 py-1 text-xs font-bold rounded-lg text-rose-600 hover:bg-rose-50 transition">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            {{-- Modal Edit Pegawai --}}
+                            <div id="pg-{{ $p->id }}" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
+                                <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-2xl text-sm">
+                                    <div class="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
+                                        <div>
+                                            <h3 class="font-extrabold text-base text-slate-900">Edit Data Pegawai</h3>
+                                            <p class="text-xs text-slate-400 mt-0.5">{{ $p->nama }} (NIP: {{ $p->nip }})</p>
+                                        </div>
+                                        <button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400 grid place-items-center transition">✕</button>
+                                    </div>
+                                    <p class="mb-3 text-xs text-slate-600 bg-purple-50/70 border border-purple-100 rounded-xl px-3.5 py-2.5">
+                                        ✏️ Cukup ubah kolom yang diperlukan lalu tekan <b>Simpan</b>. Kolom lain boleh dibiarkan kosong.
+                                    </p>
+                                    <form method="POST" action="{{ route('admin.pegawai.update', $p) }}" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                        @csrf @method('PATCH')
+                                        <label class="block sm:col-span-2">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Nama Lengkap <span class="text-rose-500">*</span></span>
+                                            <input name="nama" value="{{ $p->nama }}" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">NIP <span class="text-rose-500">*</span></span>
+                                            <input name="nip" value="{{ $p->nip }}" required class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-mono focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Status Kepegawaian</span>
+                                            <select name="status" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                                                @foreach (['aktif','nonaktif','pensiun'] as $s)
+                                                    <option value="{{ $s }}" @selected($p->status === $s)>{{ ucfirst($s) }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Jenis ASN</span>
+                                            <select name="jenis_asn" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                                                <option value="">— Belum Diketahui —</option>
+                                                @foreach (['PNS','PPPK'] as $j)
+                                                    <option value="{{ $j }}" @selected($p->jenis_asn === $j)>{{ $j }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Jenis Kelamin</span>
+                                            <select name="jenis_kelamin" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                                                <option value="">— Belum Diketahui —</option>
+                                                @foreach (['L' => 'Laki-laki', 'P' => 'Perempuan'] as $k => $v)
+                                                    <option value="{{ $k }}" @selected($p->jenis_kelamin === $k)>{{ $v }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Tempat Lahir</span>
+                                            <input name="tempat_lahir" value="{{ $p->tempat_lahir }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Tanggal Lahir</span>
+                                            <input type="date" name="tanggal_lahir" value="{{ $p->tanggal_lahir?->format('Y-m-d') }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Pangkat/Gol. Awal</span>
+                                            <input name="pangkat_awal" value="{{ $p->pangkat_awal }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Pengatur Muda (II/a)">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">TMT CPNS</span>
+                                            <input type="date" name="tmt_cpns" value="{{ $p->tmt_cpns?->format('Y-m-d') }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Pangkat/Gol. Terakhir</span>
+                                            <input name="pangkat_golongan" value="{{ $p->pangkat_golongan }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Penata (III/c)">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">TMT Pangkat Sekarang</span>
+                                            <input type="date" name="tmt_sekarang" value="{{ $p->tmt_sekarang?->format('Y-m-d') }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block sm:col-span-2">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Jabatan <span class="normal-case font-medium text-slate-400">(sesuai SK resmi)</span></span>
+                                            <input name="jabatan" value="{{ $p->jabatan }}" class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Kepala Sub Bagian Umum dan Kepegawaian...">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">TMT Jabatan</span>
+                                            <input type="date" name="tmt_jabatan" value="{{ $p->tmt_jabatan?->format('Y-m-d') }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Pendidikan Terakhir</span>
+                                            <input name="pendidikan" value="{{ $p->pendidikan }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. S-1 Pariwisata">
+                                        </label>
+                                        <label class="block sm:col-span-2">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Unit Kerja <span class="normal-case font-medium text-slate-400">(sesuai data berkas)</span></span>
+                                            <input name="unit_kerja" value="{{ $p->unit_kerja }}" class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block sm:col-span-2">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Penempatan Bidang <span class="normal-case font-medium text-slate-400">(menentukan agenda &amp; modul bidang)</span></span>
+                                            <select name="id_bidang" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                                                <option value="">— Belum Ditempatkan —</option>
+                                                @foreach ($bidangs as $b)
+                                                    <option value="{{ $b->id }}" @selected($p->id_bidang == $b->id)>{{ $b->nama }}</option>
+                                                @endforeach
+                                            </select>
+                                        </label>
+                                        <label class="block sm:col-span-2">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Diklat Struktural</span>
+                                            <input name="diklat_struktural" value="{{ $p->diklat_struktural }}" class="w-full rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Diklat PIM Tk. III 2021">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Diklat Fungsional</span>
+                                            <input name="diklat_fungsional" value="{{ $p->diklat_fungsional }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+                                        <label class="block">
+                                            <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Diklat Teknis</span>
+                                            <input name="diklat_teknis" value="{{ $p->diklat_teknis }}" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+                                        </label>
+
+                                        <button type="submit" class="sm:col-span-2 w-full rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 active:scale-[.98] transition shadow-sm shadow-purple-500/30 mt-2">
+                                            Simpan Perubahan Pegawai
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="py-10 text-center">
+                                    <x-empty icon="pegawai" title="Tidak ada data pegawai" desc="Impor berkas daftar pegawai di panel sebelah kanan atau tambahkan secara manual." />
+                                </td>
+                            </tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                @if ($pegawai->hasPages())
+                    <div class="p-3.5 border-t border-slate-100 bg-slate-50/50">
+                        {{ $pegawai->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Kolom Kanan: Panel Impor & Catatan -->
+        <div class="space-y-4">
+            <x-import-card :action="route('admin.pegawai.import')" title="Impor Berkas Daftar Pegawai (Excel/CSV)"
+                desc="Format: kolom No., NAMA LENGKAP, N I P, tempat/tanggal lahir, pangkat, TMT CPNS, jabatan, dst. Data lama dengan NIP sama diperbarui secara otomatis; pegawai baru otomatis memperoleh akun akses login SIPARDIS." />
+
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm text-sm">
+                <h3 class="font-extrabold text-[14px] text-slate-900 mb-2.5 flex items-center gap-2">
+                    <span>💡</span> Info Penempatan &amp; Akun
+                </h3>
+                <ul class="space-y-2 text-xs text-slate-500 leading-relaxed list-disc pl-4">
+                    <li>Penempatan bidang menentukan filter agenda internal dan izin input sub-kegiatan bidang kerja.</li>
+                    <li>NIP digunakan sebagai username login awal pegawai baru.</li>
+                    <li>Riwayat diklat dan TMT otomatis dihitung untuk indikator masa kerja.</li>
+                </ul>
+            </div>
+        </div>
     </div>
+
 </div>
 
-<div id="modal-pegawai" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 p-4 grid place-items-center overflow-y-auto">
-    <div class="card w-full max-w-lg p-6 text-sm">
-        <div class="flex justify-between mb-2"><h3 class="font-bold">Tambah Pegawai Manual</h3><button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400">✕</button></div>
-        <p class="mb-3 text-[11.5px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">Wajib hanya <b>Nama</b> &amp; <b>NIP</b> — kolom lain boleh diisi nanti lewat tombol Edit.</p>
-        @if ($errors->any())<div class="mb-3 rounded-lg bg-rose-50 border border-rose-200 px-3 py-2 text-rose-700 text-[13px]">{{ $errors->first() }}</div>@endif
+{{-- Modal Tambah Pegawai Manual --}}
+<div id="modal-pegawai" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
+    <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-2xl text-sm">
+        <div class="flex justify-between items-center mb-3 pb-3 border-b border-slate-100">
+            <div>
+                <h3 class="font-extrabold text-base text-slate-900">Tambah Pegawai Manual</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Input data aparatur sipil dinas baru.</p>
+            </div>
+            <button data-modal-close class="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-400 grid place-items-center transition">✕</button>
+        </div>
+        <p class="mb-3 text-xs text-slate-600 bg-purple-50/70 border border-purple-100 rounded-xl px-3.5 py-2.5">
+            Wajib hanya <b>Nama Lengkap</b> &amp; <b>NIP</b> — kolom lain boleh dilengkapi nanti lewat tombol Edit.
+        </p>
+        @if ($errors->any())
+            <div class="mb-3 rounded-xl bg-rose-50 border border-rose-200 px-3.5 py-2.5 text-rose-700 text-xs font-medium">
+                {{ $errors->first() }}
+            </div>
+        @endif
         <form method="POST" action="{{ route('admin.pegawai.store') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             @csrf
-            <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Nama lengkap <span class="text-rose-500">*</span></span>
-                <input name="nama" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">NIP <span class="text-rose-500">*</span></span>
-                <input name="nip" required class="w-full rounded-lg border border-slate-300 px-3 py-2.5 font-mono"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Status kepegawaian</span>
-                <select name="status" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white">@foreach (['aktif','nonaktif','pensiun'] as $s)<option>{{ $s }}</option>@endforeach</select></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Jenis ASN</span>
-                <select name="jenis_asn" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option value="">— belum diketahui —</option><option>PNS</option><option>PPPK</option></select></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Jenis kelamin</span>
-                <select name="jenis_kelamin" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option value="">— belum diketahui —</option><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Tempat lahir</span>
-                <input name="tempat_lahir" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Tanggal lahir</span>
-                <input type="date" name="tanggal_lahir" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Pangkat/gol. awal</span>
-                <input name="pangkat_awal" class="w-full rounded-lg border border-slate-300 px-3 py-2.5" placeholder="mis. Pengatur Muda (II/a)"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">TMT CPNS <span class="normal-case font-medium text-slate-400">(awal pengangkatan)</span></span>
-                <input type="date" name="tmt_cpns" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Pangkat/gol. terakhir</span>
-                <input name="pangkat_golongan" class="w-full rounded-lg border border-slate-300 px-3 py-2.5" placeholder="mis. Penata (III/c)"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">TMT pangkat sekarang</span>
-                <input type="date" name="tmt_sekarang" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Jabatan <span class="normal-case font-medium text-slate-400">(tulis persis sesuai SK)</span></span>
-                <input name="jabatan" class="w-full rounded-lg border border-slate-300 px-3 py-2.5" placeholder="mis. Pengadministrasi Umum Pada Dinas Pariwisata"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">TMT jabatan</span>
-                <input type="date" name="tmt_jabatan" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Pendidikan terakhir</span>
-                <input name="pendidikan" class="w-full rounded-lg border border-slate-300 px-3 py-2.5" placeholder="mis. S-1"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Unit kerja <span class="normal-case font-medium text-slate-400">(sesuai file Excel)</span></span>
-                <input name="unit_kerja" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Penempatan bidang <span class="normal-case font-medium text-slate-400">(kelompok kerja — menentukan "Bidang Saya" &amp; agenda bidang)</span></span>
-                <select name="id_bidang" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 bg-white"><option value="">— belum ditempatkan —</option>@foreach ($bidangs as $b)<option value="{{ $b->id }}">{{ $b->nama }}</option>@endforeach</select></label>
-            <label class="block sm:col-span-2"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Diklat struktural</span>
-                <input name="diklat_struktural" class="w-full rounded-lg border border-slate-300 px-3 py-2.5" placeholder="mis. Diklat PIM Tk. III 2021"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Diklat fungsional</span>
-                <input name="diklat_fungsional" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <label class="block"><span class="mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Diklat teknis</span>
-                <input name="diklat_teknis" class="w-full rounded-lg border border-slate-300 px-3 py-2.5"></label>
-            <button class="sm:col-span-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 transition">Simpan</button>
+            <label class="block sm:col-span-2">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Nama Lengkap <span class="text-rose-500">*</span></span>
+                <input name="nama" required placeholder="Nama lengkap beserta gelar" class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">NIP <span class="text-rose-500">*</span></span>
+                <input name="nip" required placeholder="19XXXXXXXXXXXXXX" class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-mono focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Status Kepegawaian</span>
+                <select name="status" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                    @foreach (['aktif','nonaktif','pensiun'] as $s)
+                        <option value="{{ $s }}">{{ ucfirst($s) }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Jenis ASN</span>
+                <select name="jenis_asn" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                    <option value="">— Belum Diketahui —</option>
+                    <option value="PNS">PNS</option>
+                    <option value="PPPK">PPPK</option>
+                </select>
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Jenis Kelamin</span>
+                <select name="jenis_kelamin" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                    <option value="">— Belum Diketahui —</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                </select>
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Tempat Lahir</span>
+                <input name="tempat_lahir" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Tanggal Lahir</span>
+                <input type="date" name="tanggal_lahir" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Pangkat/Gol. Awal</span>
+                <input name="pangkat_awal" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Pengatur Muda (II/a)">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">TMT CPNS</span>
+                <input type="date" name="tmt_cpns" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Pangkat/Gol. Terakhir</span>
+                <input name="pangkat_golongan" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Penata (III/c)">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">TMT Pangkat Sekarang</span>
+                <input type="date" name="tmt_sekarang" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block sm:col-span-2">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Jabatan <span class="normal-case font-medium text-slate-400">(sesuai SK resmi)</span></span>
+                <input name="jabatan" class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Pengadministrasi Umum Pada Dinas Pariwisata">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">TMT Jabatan</span>
+                <input type="date" name="tmt_jabatan" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Pendidikan Terakhir</span>
+                <input name="pendidikan" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. S-1">
+            </label>
+            <label class="block sm:col-span-2">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Unit Kerja <span class="normal-case font-medium text-slate-400">(sesuai file Excel)</span></span>
+                <input name="unit_kerja" class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block sm:col-span-2">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Penempatan Bidang <span class="normal-case font-medium text-slate-400">(menentukan kelompok kerja)</span></span>
+                <select name="id_bidang" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                    <option value="">— Belum Ditempatkan —</option>
+                    @foreach ($bidangs as $b)
+                        <option value="{{ $b->id }}">{{ $b->nama }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <label class="block sm:col-span-2">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Diklat Struktural</span>
+                <input name="diklat_struktural" class="w-full rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs focus:outline-none focus:border-purple-400" placeholder="mis. Diklat PIM Tk. III 2021">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Diklat Fungsional</span>
+                <input name="diklat_fungsional" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+            <label class="block">
+                <span class="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Diklat Teknis</span>
+                <input name="diklat_teknis" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs focus:outline-none focus:border-purple-400">
+            </label>
+
+            <button type="submit" class="sm:col-span-2 w-full rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 active:scale-[.98] transition shadow-sm shadow-purple-500/30 mt-2">
+                Simpan Data Pegawai
+            </button>
         </form>
     </div>
 </div>
