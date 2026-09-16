@@ -181,8 +181,8 @@
 @if ($punyaBidang)
 <div class="flex flex-wrap items-center gap-1.5 mb-4">
     <span class="text-[11px] font-bold uppercase tracking-wide text-slate-400 mr-1">Lingkup data:</span>
-    <a href="{{ route('dashboard', array_merge(request()->query(), ['lingkup' => 'semua'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', ! $lingkupSaya ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏛 Sedinas (Semua Bidang)</a>
-    <a href="{{ route('dashboard', array_merge(request()->query(), ['lingkup' => 'saya'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', $lingkupSaya ? 'bg-teal-600 text-white border-teal-600' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-400'])>🏢 Bidang Saya</a>
+    <a href="{{ route('dashboard', array_merge(request()->query(), ['lingkup' => 'semua'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', ! $lingkupSaya ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-600'])>🏛 Sedinas (Semua Bidang)</a>
+    <a href="{{ route('dashboard', array_merge(request()->query(), ['lingkup' => 'saya'])) }}" @class(['rounded-lg px-3 py-1.5 text-[12.5px] font-bold border transition active:scale-95', $lingkupSaya ? 'bg-purple-600 text-white border-purple-600' : 'bg-white border-slate-200 text-slate-600 hover:border-purple-300 hover:text-purple-600'])>🏢 Bidang Saya</a>
 </div>
 @endif
 
@@ -193,10 +193,10 @@
         <div class="flex items-center justify-between mb-2">
             @if ($ringkas)
                 <h3 class="font-bold">Tingkat Capaian Keseluruhan per Tahun <span class="text-xs font-semibold text-slate-400">{{ $ringkas['labels'][0] }}–{{ $ringkas['labels'][count($ringkas['labels']) - 1] }}</span></h3>
-                <a href="{{ route('kinerja.capaian', ['tampilan' => 'statistik']) }}" class="text-xs font-semibold text-teal-600 hover:underline">Statistik capaian →</a>
+                <a href="{{ route('kinerja.capaian', ['tampilan' => 'statistik']) }}" class="text-xs font-semibold text-purple-600 hover:underline">Statistik capaian →</a>
             @else
                 <h3 class="font-bold">Capaian Kinerja per Bulan <span class="text-xs font-semibold text-slate-400">TA {{ $chart['tahun'] }}</span></h3>
-                <a href="{{ route('admin.capaian.index') }}" class="text-xs font-semibold text-teal-600 hover:underline">Impor capaian →</a>
+                <a href="{{ route('admin.capaian.index') }}" class="text-xs font-semibold text-purple-600 hover:underline">Impor capaian →</a>
             @endif
         </div>
         @if ($ringkas)
@@ -211,12 +211,12 @@
     <div class="clean-card p-5">
         <div class="flex items-center justify-between mb-3">
             <h3 class="font-bold">Pengingat Kegiatan</h3>
-            <a href="{{ route('agenda.index') }}" class="text-xs font-semibold text-teal-600 hover:underline">Semua agenda →</a>
+            <a href="{{ route('agenda.index') }}" class="text-xs font-semibold text-purple-600 hover:underline">Semua agenda →</a>
         </div>
         @forelse ($agendaMendatang as $a)
             @php $hariIni = $a->tanggal->isToday(); $lewat = $a->tanggal->lt(now()->startOfDay()); @endphp
             <div class="flex items-start gap-3 {{ $loop->last ? '' : 'pb-3 border-b border-slate-100' }}">
-                <div class="h-11 w-11 shrink-0 rounded-xl grid place-items-center text-center leading-none {{ $lewat ? 'bg-rose-50 text-rose-600' : ($hariIni ? 'bg-amber-50 text-amber-600' : 'bg-teal-50 text-teal-700') }}">
+                <div class="h-11 w-11 shrink-0 rounded-xl grid place-items-center text-center leading-none {{ $lewat ? 'bg-rose-50 text-rose-600' : ($hariIni ? 'bg-amber-50 text-amber-600' : 'bg-purple-50 text-purple-700') }}">
                     <div><p class="text-base font-extrabold">{{ $a->tanggal->format('d') }}</p><p class="text-[9px] font-bold uppercase">{{ $a->tanggal->translatedFormat('M') }}</p></div>
                 </div>
                 <div class="min-w-0 flex-1">
@@ -237,8 +237,8 @@
         <h3 class="font-bold text-[15px]">Kegiatan &amp; Kinerja Dinas <span class="text-xs font-semibold text-slate-400">TA {{ $kinerjaTahun }}</span>
             <span class="ml-1 text-[11px] font-bold bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">{{ $kinerjaSelesai }}/{{ $kinerjaTotal }} tuntas</span></h3>
         <div class="flex items-center gap-3 text-xs font-semibold">
-            @if ($u->isAdmin())<a href="{{ route('admin.kinerja.index') }}" class="text-teal-600 hover:underline">Kelola data →</a>@endif
-            <a href="{{ route('kinerja.publik') }}" class="text-teal-600 hover:underline">Lihat semua →</a>
+            @if ($u->isAdmin())<a href="{{ route('admin.kinerja.index') }}" class="text-purple-600 hover:underline">Kelola data →</a>@endif
+            <a href="{{ route('kinerja.publik') }}" class="text-purple-600 hover:underline">Lihat semua →</a>
         </div>
     </div>
     @if ($kinerja->count())
@@ -265,7 +265,7 @@
             </table>
         </div>
         @if ($kinerjaTotal > $kinerja->count())
-            <div class="px-5 py-2.5 bg-slate-50 text-xs text-slate-500">Menampilkan {{ $kinerja->count() }} dari {{ $kinerjaTotal }} kegiatan — <a class="font-semibold text-teal-600 hover:underline" href="{{ route('kinerja.publik', ['tahun' => $kinerjaTahun]) }}">lihat semuanya</a>.</div>
+            <div class="px-5 py-2.5 bg-slate-50 text-xs text-slate-500">Menampilkan {{ $kinerja->count() }} dari {{ $kinerjaTotal }} kegiatan — <a class="font-semibold text-purple-600 hover:underline" href="{{ route('kinerja.publik', ['tahun' => $kinerjaTahun]) }}">lihat semuanya</a>.</div>
         @endif
     @else
         <x-empty icon="kinerja" title="Belum ada data kinerja TA {{ $kinerjaTahun }}"

@@ -57,7 +57,7 @@
 
             <!-- Tombol Utama (Hanya Admin: Kelola Kinerja) -->
             @if($u->isAdmin())
-            <a href="{{ route('admin.kinerja.index') }}" 
+            <a href="{{ route('admin.kinerja.index', ['tahun' => $tahun]) }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
@@ -87,7 +87,7 @@
 
     <!-- 4. Stat Cards Ringkasan Kinerja -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Sub Kegiatan</p>
                 <p class="text-2xl font-black text-slate-900 mt-0.5">{{ (int) $ringkas->total }}</p>
@@ -98,7 +98,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tuntas (≥100%)</p>
                 <p class="text-2xl font-black text-emerald-600 mt-0.5">{{ (int) $ringkas->tuntas }}</p>
@@ -109,7 +109,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Berjalan (60–99%)</p>
                 <p class="text-2xl font-black text-sky-600 mt-0.5">{{ (int) $ringkas->berjalan }}</p>
@@ -120,7 +120,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Perlu Perhatian (&lt;60%)</p>
                 <p class="text-2xl font-black text-rose-600 mt-0.5">{{ (int) $ringkas->lambat }}</p>
@@ -135,7 +135,7 @@
     <!-- 5. Kontainer Data Tabel & Filter -->
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <!-- Toolbar Filter & Pencarian -->
-        <div class="p-4 border-b border-slate-100 bg-slate-50/50">
+        <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50">
             <form method="GET" class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
                 <input type="hidden" name="tahun" value="{{ $tahun }}">
                 @if (request('lingkup'))
@@ -149,24 +149,19 @@
                         </svg>
                     </span>
                     <input name="q" value="{{ request('q') }}" placeholder="Cari kegiatan atau indikator…" 
-                           class="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-white focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                           class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-white placeholder-slate-400 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <select name="status" class="px-3 py-2 border border-slate-200 rounded-xl text-xs md:text-sm bg-white text-slate-700 focus:outline-none focus:border-purple-400">
-                        <option value="">Semua Status</option>
-                        @foreach (['tuntas' => 'Tuntas (≥100%)', 'berjalan' => 'Berjalan (60–99%)', 'lambat' => 'Perlu perhatian (<60%)'] as $kv => $lab)
-                            <option value="{{ $kv }}" @selected(request('status') == $kv)>{{ $lab }}</option>
-                        @endforeach
-                    </select>
+                    <x-select name="status" :options="['' => 'Semua Status', 'tuntas' => 'Tuntas (≥100%)', 'berjalan' => 'Berjalan (60–99%)', 'lambat' => 'Perlu perhatian (<60%)']" :value="request('status')" class="w-48 sm:w-56" />
 
                     <button type="submit" 
                             class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs md:text-sm font-semibold hover:bg-slate-800 active:scale-95 transition shadow-sm">
                         Cari
                     </button>
                     @if (request('q') || request('status'))
-                        <a href="{{ route('kinerja.publik', ['tahun' => $tahun, 'lingkup' => request('lingkup')]) }}" 
-                           class="px-3 py-2 border border-slate-200 bg-white text-slate-500 hover:text-slate-800 rounded-xl text-xs md:text-sm font-semibold transition">
+                        <a href="{{ route('kinerja.publik', array_filter(['tahun' => $tahun, 'lingkup' => request('lingkup')])) }}" 
+                           class="px-3.5 py-2 border border-slate-200 bg-white text-slate-500 hover:text-slate-800 rounded-xl text-xs md:text-sm font-semibold transition">
                             Reset
                         </a>
                     @endif
@@ -179,20 +174,20 @@
             <table class="data w-full min-w-[860px]">
                 <thead>
                     <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
-                        <th class="w-10 text-center">#</th>
-                        <th>Kegiatan &amp; Catatan</th>
-                        <th>Indikator &amp; Pagu</th>
-                        <th>Pelaksana</th>
-                        <th>Target</th>
-                        <th class="min-w-[190px]">Capaian</th>
-                        <th class="text-center">Status</th>
+                        <th class="w-12 text-center py-3 px-4">#</th>
+                        <th class="py-3 px-4 min-w-[260px]">Kegiatan &amp; Catatan</th>
+                        <th class="py-3 px-4 min-w-[200px]">Indikator &amp; Pagu</th>
+                        <th class="py-3 px-4">Pelaksana</th>
+                        <th class="py-3 px-4">Target</th>
+                        <th class="py-3 px-4 min-w-[190px]">Capaian</th>
+                        <th class="py-3 px-4 text-center">Status</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                 @forelse ($items as $k)
                     <tr class="hover:bg-slate-50/70 transition">
-                        <td class="text-slate-400 text-xs text-center font-mono">{{ $items->firstItem() + $loop->index }}</td>
-                        <td>
+                        <td class="text-slate-400 text-xs text-center font-mono py-3.5 px-4">{{ $items->firstItem() + $loop->index }}</td>
+                        <td class="py-3.5 px-4">
                             <p class="font-semibold text-[13px] text-slate-900 leading-snug">{{ $k->nama }}</p>
                             @if ($k->catatan)
                                 <p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-200/60 rounded-md px-2 py-0.5 mt-1 inline-block">
@@ -200,23 +195,23 @@
                                 </p>
                             @endif
                         </td>
-                        <td class="text-xs text-slate-600 max-w-[260px]">
-                            <span class="font-medium text-slate-800">{{ $k->indikator ?? '—' }}</span>
+                        <td class="py-3.5 px-4 text-xs text-slate-600">
+                            <span class="font-medium text-slate-800 block">{{ $k->indikator ?? '—' }}</span>
                             <span class="block text-slate-400 font-mono mt-0.5">Pagu: Rp {{ number_format($k->pagu_anggaran, 0, ',', '.') }}</span>
                         </td>
-                        <td class="text-xs text-slate-600">
+                        <td class="py-3.5 px-4 text-xs text-slate-600">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">
                                 {{ $k->bidang?->nama ?? 'Dinas' }}
                             </span>
                         </td>
-                        <td class="text-xs font-semibold whitespace-nowrap text-slate-800">
+                        <td class="py-3.5 px-4 text-xs font-semibold whitespace-nowrap text-slate-800">
                             {{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} 
                             <span class="font-normal text-slate-400">{{ $k->satuan }}</span>
                         </td>
-                        <td>
+                        <td class="py-3.5 px-4">
                             <x-prog :persen="$k->persentase" />
                         </td>
-                        <td class="text-center whitespace-nowrap">
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
                             @php $st = $k->label_status; @endphp
                             @if ($st === 'Tuntas')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -227,7 +222,7 @@
                                     Berjalan
                                 </span>
                             @else
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                                     Perlu Perhatian
                                 </span>
                             @endif
@@ -235,7 +230,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="py-8">
+                        <td colspan="7" class="py-10 text-center">
                             <x-empty icon="kinerja" title="Tidak ada kegiatan yang cocok" desc="Coba kata kunci lain atau pilih tahun anggaran yang sesuai." />
                         </td>
                     </tr>

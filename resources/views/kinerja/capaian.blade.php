@@ -78,7 +78,7 @@
 
     <!-- 3. Stat Cards Ringkasan -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Sasaran Strategis</p>
                 <p class="text-2xl font-black text-slate-900 mt-0.5">{{ $sasarans->count() }}</p>
@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Indikator Kinerja</p>
                 <p class="text-2xl font-black text-sky-600 mt-0.5">{{ $totalIndikator }}</p>
@@ -100,7 +100,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tuntas {{ $last }}</p>
                 <p class="text-2xl font-black text-emerald-600 mt-0.5">{{ $tercapai }}/{{ $dinilai }}</p>
@@ -111,7 +111,7 @@
             </div>
         </div>
 
-        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Rentang Tahun</p>
                 <p class="text-2xl font-black text-slate-800 mt-0.5">{{ $years[0] }}–{{ $last }}</p>
@@ -130,21 +130,21 @@
             <table class="data w-full min-w-[1080px]">
                 <thead>
                     <tr class="text-left bg-slate-50/75 border-b border-slate-200 text-[11px] uppercase tracking-wider font-extrabold text-slate-600">
-                        <th rowspan="2" class="align-bottom w-12 text-center">No.</th>
-                        <th rowspan="2" class="align-bottom min-w-[240px]">Sasaran Strategis</th>
-                        <th rowspan="2" class="align-bottom min-w-[240px]">Indikator Kinerja</th>
-                        <th rowspan="2" class="align-bottom w-20">Satuan</th>
+                        <th rowspan="2" class="align-bottom w-12 text-center py-3 px-4">No.</th>
+                        <th rowspan="2" class="align-bottom min-w-[240px] py-3 px-4">Sasaran Strategis</th>
+                        <th rowspan="2" class="align-bottom min-w-[240px] py-3 px-4">Indikator Kinerja</th>
+                        <th rowspan="2" class="align-bottom w-20 py-3 px-4">Satuan</th>
                         @foreach ($years as $y)
-                            <th colspan="3" class="align-bottom text-center border-l border-slate-200 @if($y == $last) bg-purple-50/60 text-purple-900 font-extrabold @endif">
+                            <th colspan="3" class="align-bottom text-center border-l border-slate-200 py-2.5 px-3 @if($y == $last) bg-purple-50/60 text-purple-900 font-extrabold @endif">
                                 {{ $y }}
                             </th>
                         @endforeach
                     </tr>
                     <tr class="text-[10.5px] uppercase tracking-wide text-slate-400 bg-slate-50/50 border-b border-slate-200">
                         @foreach ($years as $y)
-                            <th class="text-right border-l border-slate-200 @if($y == $last) bg-purple-50/40 text-purple-800 @endif">Target</th>
-                            <th class="text-right @if($y == $last) bg-purple-50/40 text-purple-800 @endif">Realisasi</th>
-                            <th class="text-center @if($y == $last) bg-purple-50/40 text-purple-800 @endif">%</th>
+                            <th class="text-right border-l border-slate-200 py-2 px-3 @if($y == $last) bg-purple-50/40 text-purple-800 @endif">Target</th>
+                            <th class="text-right py-2 px-3 @if($y == $last) bg-purple-50/40 text-purple-800 @endif">Realisasi</th>
+                            <th class="text-center py-2 px-3 @if($y == $last) bg-purple-50/40 text-purple-800 @endif">%</th>
                         @endforeach
                     </tr>
                 </thead>
@@ -155,10 +155,10 @@
                             @php $by = $ind->tahunan->keyBy('tahun'); @endphp
                             <tr class="hover:bg-slate-50/70 transition">
                                 @if ($k === 0)
-                                    <td rowspan="{{ $n }}" class="align-top font-mono font-bold text-center text-slate-500 bg-slate-50/30">
+                                    <td rowspan="{{ $n }}" class="align-top font-mono font-bold text-center text-slate-500 bg-slate-50/30 py-3.5 px-4">
                                         {{ $s->nomor }}
                                     </td>
-                                    <td rowspan="{{ $n }}" class="align-top font-semibold text-slate-900 bg-slate-50/30">
+                                    <td rowspan="{{ $n }}" class="align-top font-semibold text-slate-900 bg-slate-50/30 py-3.5 px-4">
                                         {{ $s->judul }}
                                         <div class="mt-1.5 flex flex-wrap gap-1">
                                             <span class="rounded-md px-2 py-0.5 text-[10px] font-bold {{ $s->id_bidang ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
@@ -172,20 +172,20 @@
                                         </div>
                                     </td>
                                 @endif
-                                <td class="align-top text-slate-800 font-medium">{{ $ind->nama }}</td>
-                                <td class="align-top text-xs text-slate-500">{{ $ind->satuan ?: '—' }}</td>
+                                <td class="align-top text-slate-800 font-medium py-3.5 px-4">{{ $ind->nama }}</td>
+                                <td class="align-top text-xs text-slate-500 py-3.5 px-4">{{ $ind->satuan ?: '—' }}</td>
                                 @foreach ($years as $y)
                                     @php 
                                         $nilai = $by->get($y); 
                                         $num = $nilai ? \App\Models\CapaianIndikator::persenNum($nilai->persen) : null; 
                                     @endphp
-                                    <td class="text-right border-l border-slate-100 align-top text-xs tabular-nums text-slate-600 @if($y == $last) bg-purple-50/10 @endif">
+                                    <td class="text-right border-l border-slate-100 align-top text-xs tabular-nums text-slate-600 py-3.5 px-3 @if($y == $last) bg-purple-50/10 @endif">
                                         {{ $nilai?->target ?? '—' }}
                                     </td>
-                                    <td class="text-right align-top text-xs font-bold tabular-nums text-slate-900 @if($y == $last) bg-purple-50/10 @endif">
+                                    <td class="text-right align-top text-xs font-bold tabular-nums text-slate-900 py-3.5 px-3 @if($y == $last) bg-purple-50/10 @endif">
                                         {{ $nilai?->realisasi ?? '—' }}
                                     </td>
-                                    <td class="text-center align-top @if($y == $last) bg-purple-50/10 @endif">
+                                    <td class="text-center align-top py-3.5 px-3 @if($y == $last) bg-purple-50/10 @endif">
                                         @if ($nilai && $nilai->persen !== null)
                                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold border {{ $warnaPersen($num) }}">
                                                 {{ $nilai->persen }}
@@ -199,14 +199,14 @@
                         @endforeach
                         @if ($inds->isEmpty())
                             <tr class="hover:bg-slate-50/70">
-                                <td class="font-mono font-bold text-center text-slate-500 bg-slate-50/30">{{ $s->nomor }}</td>
-                                <td class="font-semibold text-slate-900 bg-slate-50/30">
+                                <td class="font-mono font-bold text-center text-slate-500 bg-slate-50/30 py-3.5 px-4">{{ $s->nomor }}</td>
+                                <td class="font-semibold text-slate-900 bg-slate-50/30 py-3.5 px-4">
                                     {{ $s->judul }}
                                     <span class="mt-1 block w-fit rounded-md px-2 py-0.5 text-[10px] font-bold {{ $s->id_bidang ? 'bg-sky-50 text-sky-700 border border-sky-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
                                         {{ $s->bidang?->nama ?: 'LINTAS DINAS' }}
                                     </span>
                                 </td>
-                                <td colspan="{{ 2 + 3 * count($years) }}" class="text-slate-400 italic text-xs py-3">
+                                <td colspan="{{ 2 + 3 * count($years) }}" class="text-slate-400 italic text-xs py-3 px-4">
                                     Belum ada indikator terdaftar untuk sasaran ini.
                                 </td>
                             </tr>
@@ -292,4 +292,3 @@
 
 </div>
 @endsection
-
