@@ -9,16 +9,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-    /* ===== Latar "Tatar Galuh Ciamis" v4 (14 Sep 2026) ============================
+    /* ===== Latar "Tatar Galuh Ciamis" v4 ===================================
        Selaras dengan tema dashboard: TERANG + aksen UNGU (identitas Kab. Ciamis).
-       Siluet khas Ciamis tetap dipertahankan di sekitar kartu, kini berwarna
-       ungu/indigo muda agar menyatu dengan latar terang:
+       Siluet khas Ciamis di sekitar kartu:
        • GUNUNG SAWAL — puncak dominan kiri & punggungan kanan, tengah lembah rendah.
        • SITU LENGKONG PANJALU — air + tepian + Nusa Larang + perahu beralayar.
-       • SAWAH BERUNDAK — terasering di garis paling bawah.
-       Semua murni CSS, opacity rendah (hanya "napas"), parallax perspective+
-
-       translateZ dengan SATU induk beranimasi. Hormat prefers-reduced-motion. */
+       • SAWAH BERUNDAK — terasering di garis paling bawah. */
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .panggung { position: fixed; inset: 0; z-index: 0; overflow: hidden; perspective: 10rem;
         background:
@@ -32,14 +28,12 @@
 
     .lapisan { position: absolute; left: -25%; width: 150%; bottom: 0; }
 
-    /* — GUNUNG SAWAL (belakang): puncak dominan kiri (~x19%) + puncak sekunder
-       kanan (~x73%) — keduanya di SISI kartu; tengah (x40-60%) lembah rendah. */
+    /* — GUNUNG SAWAL (belakang) */
     .sawal { height: 38%; z-index: 1; transform: translateZ(6px); background: #c4b5fd; opacity: .30;
         clip-path: polygon(0% 72%, 6% 56%, 12% 63%, 19% 26%, 25% 40%, 32% 64%, 40% 78%, 50% 84%, 58% 78%, 66% 62%, 73% 36%, 80% 44%, 86% 58%, 92% 66%, 100% 72%, 100% 100%, 0% 100%); }
 
-    /* — SITU LENGKONG PANJALU (tengah): air, barisan pohon tepian, pulau
-       Nusa Larang (kiri-tengah) dengan pepohonan, + perahu beralayar. */
-     .situ { height: 17%; z-index: 2; transform: translateZ(20px); opacity: .24; }
+    /* — SITU LENGKONG PANJALU (tengah) */
+    .situ { height: 17%; z-index: 2; transform: translateZ(20px); opacity: .24; }
     .situ .air { position: absolute; bottom: 0; left: 0; width: 100%; height: 55%; background: #a5b4fc;
         border-top: 1px solid rgba(99,102,241,.30); }
     .situ .tepian { position: absolute; bottom: 54%; left: 0; width: 100%; height: 26%; background: #93a5f3;
@@ -51,11 +45,11 @@
     .situ .batu { position: absolute; bottom: 53%; left: 66%; width: 2.4%; height: 12%; background: #818cf8;
         border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
 
-    /* — SAWAH BERUNDAK (depan): tangga terasering memusat, garis paling bawah. */
+    /* — SAWAH BERUNDAK (depan) */
     .sawah { height: 11%; z-index: 3; transform: translateZ(38px); background: #ddd6fe; opacity: .30;
         clip-path: polygon(0% 74%, 12% 74%, 12% 62%, 26% 62%, 26% 50%, 41% 50%, 41% 36%, 58% 36%, 58% 50%, 73% 50%, 73% 62%, 87% 62%, 87% 74%, 100% 74%, 100% 100%, 0% 100%); }
 
-    /* — perahu beralayar di Situ Lengkong: meluncur sangat pelan (parallax ikut danau) */
+    /* — perahu beralayar di Situ Lengkong */
     .perahu { position: absolute; bottom: 3%; left: 42%; width: 28px; height: 18px; z-index: 4;
         transform: translateZ(26px);
         animation: meluncur 26s ease-in-out infinite alternate; }
@@ -65,7 +59,7 @@
         border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 12px solid #7c3aed; }
     @keyframes meluncur { from { transform: translate3d(-12px, 0, 0); } to { transform: translate3d(18px, -1px, 0); } }
 
-    /* — burung melintas di langit atas: kecil, jauh, pucat */
+    /* — burung melintas di langit atas */
     .burung { position: absolute; left: -12%; opacity: 0; line-height: 0;
         animation: terbang 95s linear infinite; }
     @keyframes terbang {
@@ -75,7 +69,7 @@
         100% { transform: translate3d(130vw, -1vh, 0); opacity: 0; }
     }
 
-    /* — kunang-kunang: 4 titik redup, tenang, kini ungu */
+    /* — kunang-kunang */
     .kunang { position: absolute; width: 4px; height: 4px; border-radius: 9999px;
         background: rgba(168,85,247,.8); box-shadow: 0 0 5px rgba(168,85,247,.5);
         animation: melayang 19s ease-in-out infinite alternate, kedip 7s ease-in-out infinite; }
@@ -84,7 +78,7 @@
 
     .konten { position: relative; z-index: 10; }
 
-    /* WAJIB: hormati pengaturan "kurangi gerakan" — semua diam, burung sembunyi */
+    /* Hormati prefers-reduced-motion */
     @media (prefers-reduced-motion: reduce) {
         .dunia, .kunang, .perahu, .burung { animation: none !important; }
         .kunang { opacity: .4; }
@@ -140,13 +134,30 @@
             </div>
             <div>
                 <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Password</label>
-                <input type="password" name="password" required autocomplete="current-password"
-                    class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition shadow-sm">
+                <div class="relative mt-1.5">
+                    <input id="password-field" type="password" name="password" required autocomplete="current-password"
+                        placeholder="••••••••"
+                        class="w-full rounded-xl border border-slate-200 bg-white pl-3.5 pr-11 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition shadow-sm">
+                    <button type="button" id="toggle-password" title="Lihat / Sembunyikan Password"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-purple-600 focus:outline-none transition cursor-pointer">
+                        <!-- Ikon Mata Terbuka (saat terlihat) -->
+                        <svg id="eye-open" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <!-- Ikon Mata Tertutup (saat tersembunyi) -->
+                        <svg id="eye-closed" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            <label class="flex items-center gap-2 text-sm text-slate-600">
+            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                 <input type="checkbox" name="remember" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500/30"> Ingat saya di perangkat ini
             </label>
-            <button class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[.99] text-white font-bold py-2.5 text-sm shadow-sm shadow-purple-500/30 transition">Masuk</button>
+            <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[.99] text-white font-bold py-2.5 text-sm shadow-sm shadow-purple-500/30 transition">
+                Masuk ke Sistem
+            </button>
         </form>
     </div>
 
@@ -156,5 +167,20 @@
     </p>
     <p class="text-center text-[10.5px] text-amber-600/80 font-semibold tracking-wide mt-3">✦ Mahayunan Ayunan Kadatuan — Tatar Galuh Ciamis ✦</p>
 </div>
+
+<script>
+    document.getElementById('toggle-password')?.addEventListener('click', function () {
+        const input = document.getElementById('password-field');
+        const eyeOpen = document.getElementById('eye-open');
+        const eyeClosed = document.getElementById('eye-closed');
+        if (!input) return;
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        if (eyeOpen && eyeClosed) {
+            eyeOpen.classList.toggle('hidden', !isPassword);
+            eyeClosed.classList.toggle('hidden', isPassword);
+        }
+    });
+</script>
 </body>
 </html>
