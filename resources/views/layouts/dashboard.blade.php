@@ -181,50 +181,51 @@
 
         <!-- ============ TOPBAR ============ -->
         <header
-            class="topbar fixed inset-x-0 top-0 z-30 flex h-16 items-center gap-2.5 sm:gap-4 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl px-3 sm:px-6">
+            class="topbar fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between gap-3 sm:gap-6 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl px-3.5 sm:px-6">
             
-            <!-- Sidebar Toggle Button (Mobile & Tablet) -->
-            <button data-sb-toggle title="Menu"
-                class="lg:hidden h-9 w-9 shrink-0 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
-                <x-icon name="menu" class="h-5 w-5" />
-            </button>
+            <!-- Sisi Kiri: Menu Toggle (Mobile/Tablet) + Judul Header (Desktop) -->
+            <div class="flex items-center gap-3 shrink-0">
+                <button data-sb-toggle title="Buka menu sidebar"
+                    class="lg:hidden h-9 w-9 shrink-0 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
+                    <x-icon name="menu" class="h-5 w-5" />
+                </button>
 
-            <!-- Title & Subtitle (Desktop / Tablet Luas) -->
-            <div class="min-w-0 shrink-0 hidden lg:block">
-                <h1 class="font-bold text-[15px] leading-tight truncate text-slate-900">
-                    @hasSection('header_title')
-                        @yield('header_title')
-                    @else
-                        @yield('title', 'Dashboard')
-                    @endif
-                </h1>
-                <p class="text-[11px] text-slate-400 truncate">
-                    @yield('subtitle', now()->translatedFormat('l, d F Y'))
-                </p>
+                <div class="min-w-0 shrink-0 hidden lg:block">
+                    <h1 class="font-bold text-[15px] leading-tight truncate text-slate-900">
+                        @hasSection('header_title')
+                            @yield('header_title')
+                        @else
+                            @yield('title', 'Dashboard')
+                        @endif
+                    </h1>
+                    <p class="text-[11px] text-slate-400 truncate">
+                        @yield('subtitle', now()->translatedFormat('l, d F Y'))
+                    </p>
+                </div>
             </div>
 
-            <!-- Global Search Box: LANGSUNG TAMPIL & BISA DIKETIK DI SEMUA UKURAN LAYAR (Mobile, Tablet, Desktop) -->
+            <!-- Sisi Tengah: Global Search Box (Responsif di Seluruh Layar) -->
             @unless (request()->routeIs('search'))
-                <div class="flex-1 min-w-0 max-w-md">
+                <div class="flex-1 min-w-0 max-w-md mx-2 sm:mx-4">
                     <form action="{{ route('search') }}" method="GET" class="relative w-full">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </span>
                         <input type="text" name="q" value="{{ request('q') }}" placeholder="Cari pegawai, agenda, dokumen..."
-                            class="block w-full pl-9 pr-3.5 py-1.5 sm:py-2 border border-slate-200 rounded-full bg-slate-100/90 text-xs sm:text-[13px] text-slate-800 placeholder-slate-400 focus:bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition cursor-text shadow-sm">
+                            class="block w-full pl-10 pr-4 py-2 border border-slate-200 rounded-full bg-slate-100/80 text-xs sm:text-[13px] text-slate-800 placeholder-slate-400 focus:bg-white focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition cursor-text shadow-sm">
                     </form>
                 </div>
             @else
                 <div class="flex-1 min-w-0"></div>
             @endunless
 
-            <!-- Right Actions (Role Badge, Bell, Profile) -->
-            <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto lg:ml-0">
+            <!-- Sisi Kanan: Role Badge, Notifikasi, Profile Avatar (Selalu Menempel Rapi di Kanan) -->
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
                 <span
-                    class="hidden xl:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[200px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}"
+                    class="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[200px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}"
                     title="{{ $u->isAdmin() ? 'Seluruh Dinas' : ($u->bidang?->nama ?? ('Belum tertaut ke bidang tertentu' . ($u->jabatan ? ' — jabatan: ' . $u->jabatan : '') . '. Tetapkan di Admin › Akun & Akses.')) }}">
                     {{ $u->isAdmin() ? 'Admin' : ($bidangBadge ?? 'Bidang: belum tertentu') }}
                 </span>
