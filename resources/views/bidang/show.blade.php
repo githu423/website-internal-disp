@@ -232,7 +232,8 @@
                     <span class="text-pink-600">♀ <b>{{ $statistik['p'] }}</b> Perempuan</span>
                     <span class="text-purple-700"><b>{{ $statistik['pns'] }}</b> PNS</span>
                     <span class="text-indigo-700"><b>{{ $statistik['nonpns'] }}</b> Non-PNS</span>
-                    <span class="text-emerald-700"><b>{{ $statistik['aktif'] }}</b> Aktif</span>
+                    <span class="text-amber-700"><b>{{ $statistik['nonaktif'] }}</b> Non-Aktif</span>
+                    <span class="text-slate-500"><b>{{ $statistik['pensiun'] }}</b> Pensiun</span>
                 </div>
             </div>
         </div>
