@@ -148,7 +148,7 @@
                 @endif
             </nav>
 
-            <div class="border-t border-slate-100 p-2.5 shrink-0 flex items-center gap-1.5">
+            <div class="border-t border-slate-100 p-2.5 shrink-0 flex items-center gap-1.5 relative z-20">
                 <a href="{{ route('profil.index') }}" title="Buka profil saya"
                     class="group flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-slate-50 transition flex-1 min-w-0">
                     <div class="relative shrink-0">
@@ -170,9 +170,9 @@
                         </p>
                     </div>
                 </a>
-                <form method="POST" action="{{ route('logout') }}" class="shrink-0 sb-hide">@csrf
-                    <button title="Keluar"
-                        class="h-9 w-9 grid place-items-center rounded-lg text-slate-400 hover:bg-rose-50 hover:text-rose-600 active:scale-90 transition"><x-icon
+                <form method="POST" action="{{ route('logout') }}" class="shrink-0 sb-hide relative z-30">@csrf
+                    <button type="submit" title="Keluar / Logout"
+                        class="h-9 w-9 grid place-items-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 active:scale-90 transition cursor-pointer shadow-xs"><x-icon
                             name="logout" class="h-4 w-4" /></button>
                 </form>
             </div>
@@ -255,26 +255,45 @@
 
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
-                <!-- User Avatar / Profile -->
-                <a href="{{ route('profil.index') }}" title="Profil saya"
-                    class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-purple-300 p-0.5 sm:pl-1.5 sm:pr-3 sm:py-1 transition active:scale-95">
-                    <div class="relative shrink-0 flex items-center justify-center">
-                        <span style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;"
-                            class="rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white shadow-sm shrink-0">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
-                        <span
-                            class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                <!-- User Avatar / Profile Dropdown -->
+                <div class="relative" id="user-menu-root">
+                    <button id="user-menu-btn" title="Menu Pengguna"
+                        class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-purple-300 p-0.5 sm:pl-1.5 sm:pr-3 sm:py-1 transition active:scale-95 cursor-pointer">
+                        <div class="relative shrink-0 flex items-center justify-center">
+                            <span style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;"
+                                class="rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white shadow-sm shrink-0">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
+                            <span
+                                class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white"></span>
+                        </div>
+                        <div class="hidden sm:flex flex-col text-left leading-tight">
+                            <span
+                                class="text-[12.5px] font-semibold text-slate-800 group-hover:text-purple-700 transition truncate max-w-[125px]">{{ $u->name }}</span>
+                            <span
+                                class="text-[10px] text-slate-400 capitalize">{{ $u->isAdmin() ? 'Super Admin' : ($bidangBadge ?? 'Pegawai Dinas') }}</span>
+                        </div>
+                        <svg class="hidden sm:block w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform group-hover:translate-y-0.5 ml-0.5"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Panel -->
+                    <div id="user-menu-panel" class="hidden absolute right-0 top-[52px] w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-[90] text-xs">
+                        <div class="px-3.5 py-2.5 border-b border-slate-100">
+                            <p class="font-extrabold text-slate-900 truncate">{{ $u->name }}</p>
+                            <p class="text-[11px] text-slate-400 truncate mt-0.5">{{ $u->nip ?: 'Tanpa NIP' }} · {{ $u->isAdmin() ? 'Super Admin' : ucfirst($u->role) }}</p>
+                        </div>
+                        <a href="{{ route('profil.index') }}" class="flex items-center gap-2.5 px-3.5 py-2 text-slate-700 hover:bg-purple-50 hover:text-purple-700 font-semibold transition">
+                            <span>👤</span> Profil Saya
+                        </a>
+                        <form method="POST" action="{{ route('logout') }}" class="border-t border-slate-100 mt-1 pt-1">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-600 hover:bg-rose-50 font-semibold transition text-left cursor-pointer">
+                                <span>🚪</span> Keluar (Logout)
+                            </button>
+                        </form>
                     </div>
-                    <div class="hidden sm:flex flex-col text-left leading-tight">
-                        <span
-                            class="text-[12.5px] font-semibold text-slate-800 group-hover:text-purple-700 transition truncate max-w-[125px]">{{ $u->name }}</span>
-                        <span
-                            class="text-[10px] text-slate-400 capitalize">{{ $u->isAdmin() ? 'Super Admin' : ($bidangBadge ?? 'Pegawai Dinas') }}</span>
-                    </div>
-                    <svg class="hidden sm:block w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform group-hover:translate-y-0.5 ml-0.5"
-                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </a>
+                </div>
             </div>
         </header>
 

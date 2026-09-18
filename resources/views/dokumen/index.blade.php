@@ -327,10 +327,11 @@
             </div>
 
             <label class="block border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-purple-400 transition cursor-pointer bg-slate-50/50">
-                <input type="file" name="file" required class="block w-full text-sm text-slate-500 file:mx-auto file:mb-2.5 file:rounded-xl file:border-0 file:bg-purple-600 file:hover:bg-purple-700 file:px-4 file:py-2 file:text-white file:font-bold file:cursor-pointer transition" 
-                       onchange="const n=this.parentElement.querySelector('.file-name');if(this.files[0]){n.textContent='📎 '+this.files[0].name;n.classList.remove('hidden')}else{n.classList.add('hidden')}">
+                <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg" required 
+                       class="block w-full text-sm text-slate-500 file:mx-auto file:mb-2.5 file:rounded-xl file:border-0 file:bg-purple-600 file:hover:bg-purple-700 file:px-4 file:py-2 file:text-white file:font-bold file:cursor-pointer transition" 
+                       onchange="const n=this.parentElement.querySelector('.file-name');if(this.files[0]){const ext=this.files[0].name.split('.').pop().toLowerCase();if(!['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg'].includes(ext)){alert('Format file tidak didukung. Harap pilih file dokumen PDF, Word, Excel, PowerPoint, atau Gambar.');this.value='';n.classList.add('hidden');return;}n.textContent='📎 '+this.files[0].name;n.classList.remove('hidden')}else{n.classList.add('hidden')}">
                 <p class="file-name hidden mt-2 text-xs font-semibold text-purple-700 truncate"></p>
-                <span class="text-xs text-slate-400 block mt-1">PDF, Word, Excel, Gambar (Maks. 20 MB). Otomatis tercatat di bidang Anda.</span>
+                <span class="text-xs text-slate-400 block mt-1">PDF, Word, Excel, PPT, Gambar (Maks. 20 MB). Otomatis tercatat di bidang Anda.</span>
             </label>
 
             <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 active:scale-[.98] transition shadow-sm shadow-purple-500/30 mt-2">

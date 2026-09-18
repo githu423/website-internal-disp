@@ -385,7 +385,7 @@
 (function () {
     var els = document.querySelectorAll('[data-kartu]');
     if (!els.length) return;
-    var url = {{ json_encode(route('dashboard.kartu')) }};
+    var url = {!! json_encode(route('dashboard.kartu')) !!};
     setInterval(function () {
         fetch(url, { headers: { Accept: 'application/json' } })
             .then(function (r) { return r.ok ? r.json() : null; })

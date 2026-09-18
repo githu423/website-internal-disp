@@ -118,9 +118,30 @@ async function renderBellList() {
         });
     } catch (e) { box.innerHTML = '<p class="px-4 py-4 text-center text-xs text-slate-400">Gagal memuat.</p>'; }
 }
-bell?.addEventListener('click', (e) => { e.stopPropagation(); bellPanel.classList.toggle('hidden'); if (!bellPanel.classList.contains('hidden')) { renderBellList(); pollNotifs(); } });
+bell?.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    document.getElementById('user-menu-panel')?.classList.add('hidden');
+    bellPanel?.classList.toggle('hidden'); 
+    if (bellPanel && !bellPanel.classList.contains('hidden')) { renderBellList(); pollNotifs(); } 
+});
 document.addEventListener('click', () => bellPanel?.classList.add('hidden'));
 bellPanel?.addEventListener('click', (e) => e.stopPropagation());
+
+/* ===== user profile menu dropdown (topbar) ===== */
+const userMenuBtn = document.getElementById('user-menu-btn');
+const userMenuPanel = document.getElementById('user-menu-panel');
+if (userMenuBtn && userMenuPanel) {
+    userMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bellPanel?.classList.add('hidden');
+        userMenuPanel.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+        if (!userMenuPanel.contains(e.target) && e.target !== userMenuBtn && !userMenuBtn.contains(e.target)) {
+            userMenuPanel.classList.add('hidden');
+        }
+    });
+}
 
 /* ===== flash auto-dismiss ===== */
 document.querySelectorAll('[data-flash]').forEach((el) => setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .5s'; setTimeout(() => el.remove(), 500); }, 6000));
@@ -130,9 +151,10 @@ document.querySelectorAll('form[data-confirm]').forEach((f) => f.addEventListene
     if (!confirm(f.dataset.confirm)) e.preventDefault();
 }));
 
-/* ===== polling notifikasi + floating toast ===== */
+/* ===== polling notifikasi + floating toast (HANYA dijalankan bila user sudah login) ===== */
 const seen = JSON.parse(localStorage.getItem('sb-seen-notifs') || '[]');
 async function pollNotifs() {
+    if (!document.getElementById('bell-btn') && !document.getElementById('sidebar')) return;
     try {
         const r = await fetch('/notifikasi/unread', { headers: { 'Accept': 'application/json' } });
         if (!r.ok) return;
@@ -146,7 +168,7 @@ async function pollNotifs() {
             localStorage.setItem('sb-seen-notifs', JSON.stringify(seen));
             showToast(it);
         });
-    } catch (e) { /* offline */ }
+    } catch (e) { /* offline / unauthenticated */ }
 }
 function showToast(it) {
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -158,7 +180,7 @@ function showToast(it) {
     if (!wrap) return;
     const t = document.createElement('div');
     t.className = 'toast card px-4 py-3 flex items-start gap-3 shadow-lg pointer-events-auto cursor-pointer max-w-sm';
-    t.innerHTML = `<span class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-600">🔔</span>
+    t.innerHTML = `<span class="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-purple-50 text-purple-600">🔔</span>
         <div class="min-w-0"><p class="text-sm font-semibold text-slate-800 truncate"></p><p class="text-xs text-slate-500 mt-0.5 line-clamp-2"></p></div>`;
     t.querySelector('p').textContent = it.judul;
     t.querySelectorAll('p')[1].textContent = it.isi || '';
@@ -176,11 +198,15 @@ document.getElementById('notif-permit')?.addEventListener('click', async (e) => 
     if ('Notification' in window) await Notification.requestPermission();
     pollNotifs();
 });
-pollNotifs();
-setInterval(pollNotifs, 30000);
-/* badge reaktif: langsung segar saat tab kembali difokuskan / kembali dari halaman lain */
-window.addEventListener('focus', () => pollNotifs());
-document.addEventListener('visibilitychange', () => { if (!document.hidden) pollNotifs(); });
+
+// Inisialisasi polling HANYA pada halaman yang memiliki bell/sidebar (user terautentikasi)
+if (document.getElementById('bell-btn') || document.getElementById('sidebar')) {
+    pollNotifs();
+    setInterval(pollNotifs, 30000);
+    /* badge reaktif: langsung segar saat tab kembali difokuskan / kembali dari halaman lain */
+    window.addEventListener('focus', () => pollNotifs());
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) pollNotifs(); });
+}
 
 /* ===== grafik ===== */
 document.querySelectorAll('canvas[data-chart]').forEach((cv) => {
