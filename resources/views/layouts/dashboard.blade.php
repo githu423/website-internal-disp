@@ -148,32 +148,39 @@
                 @endif
             </nav>
 
-            <div class="border-t border-slate-100 p-2.5 shrink-0 flex items-center gap-1.5 relative z-20">
-                <a href="{{ route('profil.index') }}" title="Buka profil saya"
-                    class="group flex items-center gap-2.5 rounded-xl p-1.5 hover:bg-slate-50 transition flex-1 min-w-0">
-                    <div class="relative shrink-0">
-                        <span style="width: 36px; height: 36px; min-width: 36px; min-height: 36px;"
-                            class="rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md shadow-purple-500/20">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
+            <!-- ============ SIDEBAR FOOTER (PROFIL & LOGOUT) ============ -->
+            <div class="border-t border-slate-100 p-2 shrink-0 space-y-1 relative z-30 bg-white">
+                <!-- Link Profil Pengguna -->
+                <a href="{{ route('profil.index') }}" title="Buka profil saya: {{ $u->name }}" data-label="Profil Saya"
+                    class="nav-link group flex items-center gap-2.5 rounded-xl p-2 hover:bg-purple-50 transition min-w-0 {{ $r('profil.*') ? 'is-active bg-purple-50' : '' }}">
+                    <div class="relative shrink-0 flex items-center justify-center">
+                        <span style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;"
+                            class="rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm shadow-purple-500/20">{{ strtoupper(mb_substr($u->name, 0, 2)) }}</span>
                         <span
-                            class="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white"></span>
+                            class="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-white"></span>
                     </div>
-                    <div class="sb-hide flex-1 min-w-0">
-                        <p
-                            class="text-[13px] font-semibold text-slate-800 group-hover:text-purple-700 transition truncate">
-                            {{ $u->name }}</p>
-                        <p class="text-[11px] text-slate-500 truncate">{{ $u->nip ?: 'Tanpa NIP' }} ·
-                            {{ $u->isAdmin() ? 'Super Admin' : ucfirst($u->role) }}</p>
-                        <p class="text-[10.5px] font-semibold {{ $belumTertaut ? 'text-rose-500' : 'text-purple-600' }} truncate"
-                            title="{{ $u->bidang?->nama ?? ($u->isAdmin() ? 'Seluruh Dinas' : 'Belum tertaut ke bidang tertentu') }}">
-                            <span class="opacity-70">Bidang:</span>
-                            {{ $u->bidang?->nama ?? ($u->isAdmin() ? 'Seluruh Dinas' : 'belum tertaut — tetapkan di Admin ▸ Akun') }}
+                    <div class="sb-hide flex-1 min-w-0 leading-tight">
+                        <p class="text-[13px] font-bold text-slate-800 group-hover:text-purple-700 transition truncate">
+                            {{ $u->name }}
+                        </p>
+                        <p class="text-[10.5px] text-slate-400 truncate mt-0.5">
+                            {{ $u->nip ?: 'Tanpa NIP' }} · {{ $u->isAdmin() ? 'Super Admin' : ucfirst($u->role) }}
                         </p>
                     </div>
                 </a>
-                <form method="POST" action="{{ route('logout') }}" class="shrink-0 relative z-30">@csrf
-                    <button type="submit" id="sidebar-logout-btn" title="Keluar / Logout"
-                        class="h-9 w-9 grid place-items-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 active:scale-90 transition cursor-pointer shadow-xs"><x-icon
-                            name="logout" class="h-4 w-4" /></button>
+
+                <!-- Tombol Logout Khusus Sidebar -->
+                <form method="POST" action="{{ route('logout') }}" id="sidebar-logout-form" class="w-full">
+                    @csrf
+                    <button type="submit" id="sidebar-logout-btn" title="Keluar / Logout dari Sistem" data-label="Keluar (Logout)"
+                        class="nav-link group w-full flex items-center gap-2.5 rounded-xl p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 active:scale-95 transition cursor-pointer border-transparent">
+                        <span class="nav-ico shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 group-hover:text-rose-600 group-hover:bg-rose-100/50 transition">
+                            <x-icon name="logout" class="h-4 w-4" />
+                        </span>
+                        <div class="sb-hide flex-1 min-w-0 text-left">
+                            <span class="font-bold text-[13px] text-rose-600">Keluar (Logout)</span>
+                        </div>
+                    </button>
                 </form>
             </div>
         </aside>
