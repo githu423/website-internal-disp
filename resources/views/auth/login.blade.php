@@ -1,186 +1,304 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Masuk · SIPARDIS</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Masuk ke Sistem · SIPARDIS Dispar Ciamis</title>
+    <link rel="icon" href="{{ asset('images/logo-dispar.jpg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-    /* ===== Latar "Tatar Galuh Ciamis" v4 ===================================
-       Selaras dengan tema dashboard: TERANG + aksen UNGU (identitas Kab. Ciamis).
-       Siluet khas Ciamis di sekitar kartu:
-       • GUNUNG SAWAL — puncak dominan kiri & punggungan kanan, tengah lembah rendah.
-       • SITU LENGKONG PANJALU — air + tepian + Nusa Larang + perahu beralayar.
-       • SAWAH BERUNDAK — terasering di garis paling bawah. */
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .panggung { position: fixed; inset: 0; z-index: 0; overflow: hidden; perspective: 10rem;
-        background:
-            radial-gradient(60rem 30rem at 50% -10%, rgba(168,85,247,.14), transparent 70%),
-            radial-gradient(40rem 20rem at 88% 104%, rgba(99,102,241,.12), transparent 70%),
-            linear-gradient(180deg, #faf5ff 0%, #f5f3ff 42%, #ede9fe 66%, #e0e7ff 100%);
-    }
-    .dunia { position: absolute; inset: 0; transform-style: preserve-3d;
-        animation: goyang 34s ease-in-out infinite alternate; }
-    @keyframes goyang { from { transform: translate3d(-1.4%, 0, 0); } to { transform: translate3d(1.4%, .4%, 0); } }
-
-    .lapisan { position: absolute; left: -25%; width: 150%; bottom: 0; }
-
-    /* — GUNUNG SAWAL (belakang) */
-    .sawal { height: 38%; z-index: 1; transform: translateZ(6px); background: #c4b5fd; opacity: .30;
-        clip-path: polygon(0% 72%, 6% 56%, 12% 63%, 19% 26%, 25% 40%, 32% 64%, 40% 78%, 50% 84%, 58% 78%, 66% 62%, 73% 36%, 80% 44%, 86% 58%, 92% 66%, 100% 72%, 100% 100%, 0% 100%); }
-
-    /* — SITU LENGKONG PANJALU (tengah) */
-    .situ { height: 17%; z-index: 2; transform: translateZ(20px); opacity: .24; }
-    .situ .air { position: absolute; bottom: 0; left: 0; width: 100%; height: 55%; background: #a5b4fc;
-        border-top: 1px solid rgba(99,102,241,.30); }
-    .situ .tepian { position: absolute; bottom: 54%; left: 0; width: 100%; height: 26%; background: #93a5f3;
-        clip-path: polygon(0% 100%, 3% 62%, 6% 100%, 10% 70%, 14% 100%, 18% 58%, 22% 100%, 26% 68%, 30% 100%, 34% 60%, 38% 100%, 42% 72%, 46% 100%, 50% 62%, 54% 100%, 58% 70%, 62% 100%, 66% 58%, 70% 100%, 74% 68%, 78% 100%, 82% 62%, 86% 100%, 90% 70%, 94% 100%, 97% 74%, 100% 100%); }
-    .situ .pulau { position: absolute; bottom: 53%; left: 30%; width: 8%; height: 34%; background: #818cf8;
-        border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
-    .situ .pohonl { position: absolute; bottom: 24%; width: 0; height: 0;
-        border-left: 3px solid transparent; border-right: 3px solid transparent; border-bottom: 9px solid #818cf8; }
-    .situ .batu { position: absolute; bottom: 53%; left: 66%; width: 2.4%; height: 12%; background: #818cf8;
-        border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
-
-    /* — SAWAH BERUNDAK (depan) */
-    .sawah { height: 11%; z-index: 3; transform: translateZ(38px); background: #ddd6fe; opacity: .30;
-        clip-path: polygon(0% 74%, 12% 74%, 12% 62%, 26% 62%, 26% 50%, 41% 50%, 41% 36%, 58% 36%, 58% 50%, 73% 50%, 73% 62%, 87% 62%, 87% 74%, 100% 74%, 100% 100%, 0% 100%); }
-
-    /* — perahu beralayar di Situ Lengkong */
-    .perahu { position: absolute; bottom: 3%; left: 42%; width: 28px; height: 18px; z-index: 4;
-        transform: translateZ(26px);
-        animation: meluncur 26s ease-in-out infinite alternate; }
-    .perahu .lambung { position: absolute; bottom: 0; left: 0; width: 28px; height: 7px; background: #7c3aed; opacity: .45;
-        clip-path: polygon(0% 35%, 100% 35%, 80% 100%, 20% 100%); }
-    .perahu .layar { position: absolute; bottom: 6px; left: 13px; width: 0; height: 0; opacity: .5;
-        border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 12px solid #7c3aed; }
-    @keyframes meluncur { from { transform: translate3d(-12px, 0, 0); } to { transform: translate3d(18px, -1px, 0); } }
-
-    /* — burung melintas di langit atas */
-    .burung { position: absolute; left: -12%; opacity: 0; line-height: 0;
-        animation: terbang 95s linear infinite; }
-    @keyframes terbang {
-        0%   { transform: translate3d(0, 0, 0); opacity: 0; }
-        6%   { opacity: .5; }
-        94%  { opacity: .5; }
-        100% { transform: translate3d(130vw, -1vh, 0); opacity: 0; }
-    }
-
-    /* — kunang-kunang */
-    .kunang { position: absolute; width: 4px; height: 4px; border-radius: 9999px;
-        background: rgba(168,85,247,.8); box-shadow: 0 0 5px rgba(168,85,247,.5);
-        animation: melayang 19s ease-in-out infinite alternate, kedip 7s ease-in-out infinite; }
-    @keyframes melayang { from { transform: translate3d(0,0,0); } to { transform: translate3d(2.5vw,-3vh,0); } }
-    @keyframes kedip { 0%,100% { opacity: .08; } 50% { opacity: .5; } }
-
-    .konten { position: relative; z-index: 10; }
-
-    /* Hormati prefers-reduced-motion */
-    @media (prefers-reduced-motion: reduce) {
-        .dunia, .kunang, .perahu, .burung { animation: none !important; }
-        .kunang { opacity: .4; }
-        .burung { display: none; }
-    }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 grid place-items-center p-4 relative overflow-hidden">
-<div class="panggung" aria-hidden="true">
-    <div class="dunia">
-        <div class="lapisan sawal"></div>
-        <div class="lapisan situ">
-            <div class="air"></div>
-            <div class="tepian"></div>
-            <div class="pulau"><span class="pohonl" style="left: 26%;"></span><span class="pohonl" style="left: 55%; bottom: 32%;"></span></div>
-            <span class="batu"></span>
-        </div>
-        <div class="lapisan sawah"></div>
-        <div class="perahu"><span class="lambung"></span><span class="layar"></span></div>
-    </div>
-    <span class="burung" style="top: 9%; animation-duration: 95s; animation-delay: -38s;"><svg width="17" height="8" viewBox="0 0 18 8" fill="none"><path d="M1 6 Q5 1 9 6 Q13 1 17 6" stroke="rgba(100,116,139,.45)" stroke-width="1.3" stroke-linecap="round"/></svg></span>
-    <span class="burung" style="top: 13%; animation-duration: 115s; animation-delay: -72s;"><svg width="13" height="6" viewBox="0 0 18 8" fill="none"><path d="M1 6 Q5 1 9 6 Q13 1 17 6" stroke="rgba(100,116,139,.4)" stroke-width="1.4" stroke-linecap="round"/></svg></span>
-    <span class="burung" style="top: 7%; animation-duration: 130s; animation-delay: -12s;"><svg width="10" height="5" viewBox="0 0 18 8" fill="none"><path d="M1 6 Q5 1 9 6 Q13 1 17 6" stroke="rgba(100,116,139,.35)" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-    <span class="kunang" style="top: 62%; left: 7%;  animation-delay: -2s, -1s;"></span>
-    <span class="kunang" style="top: 71%; left: 15%; animation-delay: -8s, -4s; animation-duration: 23s, 9s;"></span>
-    <span class="kunang" style="top: 58%; left: 84%; animation-delay: -13s, -2s;"></span>
-    <span class="kunang" style="top: 68%; left: 91%; animation-delay: -5s, -6s; animation-duration: 21s, 8s;"></span>
-</div>
+<body class="h-full bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-gray-800 antialiased selection:bg-purple-500 selection:text-white relative min-h-screen flex flex-col justify-center overflow-x-hidden">
 
-<div class="w-full max-w-md konten">
-    <div class="text-center mb-6">
-        <div class="inline-flex items-center justify-center h-14 w-14 rounded-2xl bg-white border border-slate-200 shadow-sm">
-            <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo SIPARDIS" class="h-12 w-12 rounded-xl object-cover" />
-        </div>
-        <h1 class="mt-4 text-2xl font-extrabold tracking-tight text-purple-700">SIPARDIS</h1>
-        <div class="mx-auto mt-1.5 h-1 w-12 rounded-full bg-gradient-to-r from-purple-500 to-amber-400"></div>
-        <p class="text-sm mt-3 text-slate-500">Sistem Informasi Pariwisata Dispar<br><span class="text-slate-400">Dinas Pariwisata Kabupaten Ciamis</span></p>
+    <!-- ================= LATAR BELAKANG GLOBAL SEAMLESS ================= -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <!-- Subtle SVG Dot Pattern (opacity-10) di seluruh layar -->
+        <svg class="absolute inset-0 w-full h-full opacity-10 text-white fill-current" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="dot-pattern" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1.5" />
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dot-pattern)" />
+        </svg>
+
+        <!-- Ambient Light Glow Global Halus -->
+        <div class="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-purple-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 -right-32 w-[32rem] h-[32rem] bg-indigo-700/20 rounded-full blur-3xl"></div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
-        <h2 class="text-lg font-bold text-slate-800">Masuk ke akun dinas</h2>
-        <p class="text-sm text-slate-500 mt-0.5 mb-5">Gunakan <b class="text-slate-700">NIP</b> (atau user admin) dan password Anda.</p>
-        @if ($errors->any())
-            <div class="mb-4 rounded-xl bg-rose-50 border border-rose-200 px-3.5 py-2.5 text-sm text-rose-700">{{ $errors->first() }}</div>
-        @endif
-        <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
-            @csrf
+    <!-- ================= KONTEN UTAMA ================= -->
+    <div class="relative z-10 w-full min-h-screen flex flex-col lg:flex-row justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        
+        <!-- ================= PANEL KIRI (Branding Minimalis & Kontras Tinggi) ================= -->
+        <div class="w-full lg:w-1/2 max-w-lg text-white mb-8 lg:mb-0 px-4 sm:px-0 lg:pr-8 xl:pr-12 flex flex-col justify-between h-auto lg:min-h-[500px]">
             <div>
-                <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">NIP / Username</label>
-                <input name="nip" value="{{ old('nip') }}" required autofocus autocomplete="username"
-                    class="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition shadow-sm"
-                    placeholder="cth: 1975021119960110 01">
-            </div>
-            <div>
-                <label class="text-xs font-semibold uppercase tracking-wide text-slate-500">Password</label>
-                <div class="relative mt-1.5">
-                    <input id="password-field" type="password" name="password" required autocomplete="current-password"
-                        placeholder="••••••••"
-                        class="w-full rounded-xl border border-slate-200 bg-white pl-3.5 pr-11 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 outline-none transition shadow-sm">
-                    <button type="button" id="toggle-password" title="Lihat / Sembunyikan Password"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-purple-600 focus:outline-none transition cursor-pointer">
-                        <!-- Ikon Mata Terbuka (saat terlihat) -->
-                        <svg id="eye-open" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                        </svg>
-                        <!-- Ikon Mata Tertutup (saat tersembunyi) -->
-                        <svg id="eye-closed" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
-                        </svg>
-                    </button>
+                <!-- Logo Instansi Ciamis & Badge Pemerintah -->
+                <div class="flex items-center gap-3.5">
+                    <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/95 p-2 shadow-xl shadow-black/30 flex items-center justify-center flex-shrink-0 border border-white/20 backdrop-blur-sm">
+                        <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo Dinas Pariwisata Ciamis" class="w-full h-full object-contain rounded-xl">
+                    </div>
+                    <div>
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-800/80 text-slate-200 border border-purple-500/30 tracking-wide">
+                            Pemerintah Kabupaten Ciamis
+                        </span>
+                        <p class="text-sm font-medium text-slate-200 mt-1">Dinas Pariwisata</p>
+                    </div>
+                </div>
+
+                <!-- Judul Utama SIPARDIS & Deskripsi -->
+                <div class="mt-6 md:mt-12 xl:mt-16">
+                    <h1 class="text-3xl sm:text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                        SIPARDIS
+                    </h1>
+                    <div class="mt-3 md:mt-3.5 h-1.5 w-16 rounded-full bg-gradient-to-r from-amber-400 to-purple-400"></div>
+                    <p class="mt-3 md:mt-4 text-lg sm:text-xl font-medium text-slate-200">
+                        Sistem Informasi Pariwisata Terpadu
+                    </p>
+                    {{-- Sembunyikan paragraf deskripsi panjang di mobile, tetap tampil di tablet dan desktop --}}
+                    <p class="mt-3 text-slate-200 text-sm leading-relaxed max-w-md hidden md:block">
+                        Portal resmi tata kelola administrasi, persuratan digital, dan pelayanan internal aparatur Dinas Pariwisata Kabupaten Ciamis.
+                    </p>
                 </div>
             </div>
-            <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                <input type="checkbox" name="remember" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500/30"> Ingat saya di perangkat ini
-            </label>
-            <button type="submit" class="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 active:scale-[.99] text-white font-bold py-2.5 text-sm shadow-sm shadow-purple-500/30 transition">
-                Masuk ke Sistem
-            </button>
-        </form>
+
+            <!-- Footer Slogan Sisi Kiri (Tampil di layar besar) -->
+            <div class="mt-8 lg:mt-0 pb-2 lg:pb-6 hidden lg:block">
+                <p class="text-sm text-slate-200 font-medium tracking-wide flex items-center gap-2">
+                    <span class="text-amber-400">✦</span> Mahayunan Ayunan Kadatuan — Tatar Galuh Ciamis
+                </p>
+                <p class="text-xs text-slate-300/90 mt-1">
+                    &copy; {{ date('Y') }} Dinas Pariwisata Kabupaten Ciamis. Hak cipta dilindungi.
+                </p>
+            </div>
+        </div>
+
+        <!-- ================= PANEL KANAN / FLOATING CARD (Pemeran Utama) ================= -->
+        <div class="w-full lg:w-1/2 flex items-center justify-center lg:justify-end relative px-4 sm:px-0">
+            
+            <!-- Ambient Light Glow Besar di Belakang Kartu Login -->
+            <div class="absolute -top-12 -left-12 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-12 -right-12 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Kartu Login Putih Murni dengan Aksen Garis Emas di Atas -->
+            <div class="w-full max-w-md bg-white p-6 sm:p-8 md:p-10 rounded-2xl rounded-t-2xl border-t-4 border-amber-400 shadow-2xl shadow-black/40 border-x border-b border-slate-100 relative z-10 overflow-hidden">
+
+                <!-- Form Header & Badge -->
+                <div class="mb-6">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-100 mb-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                        Portal Akses Aparatur
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-1.5">Masuk ke Sistem</h2>
+                    <p class="text-sm text-gray-500">Silakan masukkan NIP dan kata sandi Anda untuk melanjutkan ke dashboard.</p>
+                </div>
+
+                <!-- Pesan Error Validasi -->
+                @if ($errors->any())
+                    <div class="mb-5 rounded-xl bg-red-50 border border-red-200 p-3.5 text-sm text-red-700 flex items-start gap-2.5">
+                        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <div>
+                            <span class="font-semibold block text-xs uppercase tracking-wide">Gagal Masuk</span>
+                            <span class="text-xs">{{ $errors->first() }}</span>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Form Login -->
+                <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
+                    @csrf
+
+                    <!-- Input NIP / Username dengan Ikon User & Focus Glow Lembut -->
+                    <div>
+                        <label for="nip" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                            NIP / Username
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            {{-- autofocus: kursor otomatis aktif di kolom NIP saat halaman dimuat --}}
+                            <input id="nip" name="nip" type="text" value="{{ old('nip') }}" required autofocus autocomplete="username"
+                                class="w-full pl-11 pr-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder:text-slate-500 outline-none transition text-sm shadow-sm"
+                                placeholder="cth: 1975021119960110 01">
+                        </div>
+                    </div>
+
+                    <!-- Input Password dengan Ikon Lock & Focus Glow Lembut -->
+                    <div>
+                        <label for="password-field" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
+                            Password
+                        </label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
+                            <input id="password-field" type="password" name="password" required autocomplete="current-password"
+                                placeholder="••••••••"
+                                class="w-full pl-11 pr-11 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder:text-slate-500 outline-none transition text-sm shadow-sm">
+                            <button type="button" id="toggle-password" title="Lihat / Sembunyikan Password"
+                                class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-purple-600 focus:outline-none transition cursor-pointer">
+                                <!-- Ikon Mata Terbuka -->
+                                <svg id="eye-open" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                </svg>
+                                <!-- Ikon Mata Tertutup -->
+                                <svg id="eye-closed" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                </svg>
+                            </button>
+                        </div>
+                        {{-- Peringatan Caps Lock: muncul hanya saat input fokus & Caps Lock aktif --}}
+                        <p id="caps-lock-warning" class="hidden mt-1.5 text-xs text-amber-600 flex items-center gap-1">
+                            <span>⚠</span> <span>Caps Lock menyala — pastikan huruf kecil/besar sudah benar</span>
+                        </p>
+                    </div>
+
+                    <!-- Baris Flex: Checkbox "Ingat saya" & "Lupa password?" -->
+                    <div class="flex items-center justify-between pt-0.5">
+                        <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                            <input type="checkbox" name="remember" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
+                            <span>Ingat saya</span>
+                        </label>
+                        <button type="button" id="btn-forgot-password" class="text-purple-700 hover:text-purple-800 hover:underline text-sm font-semibold cursor-pointer transition">
+                            Lupa password?
+                        </button>
+                    </div>
+
+                    <!-- Tombol Masuk ke Sistem -->
+                    <button type="submit" class="w-full bg-purple-600 text-white font-semibold py-3 rounded-lg shadow-lg shadow-purple-500/30 transition-all duration-200 hover:brightness-110 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer mt-2">
+                        <span>Masuk ke Sistem</span>
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </form>
+
+                <!-- Slogan untuk Mobile -->
+                <div class="lg:hidden mt-6 text-center pt-4 border-t border-slate-100">
+                    <p class="text-[11px] text-amber-700 font-semibold">✦ Mahayunan Ayunan Kadatuan — Tatar Galuh Ciamis ✦</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <p class="text-center text-[11px] text-slate-400 mt-5">
-        Untuk masuk, gunakan <code class="text-purple-600">NIP</code> &amp; password Anda.<br>
-        Password standar: <code class="text-slate-500">DISPARCiamis2026</code>
-    </p>
-    <p class="text-center text-[10.5px] text-amber-600/80 font-semibold tracking-wide mt-3">✦ Mahayunan Ayunan Kadatuan — Tatar Galuh Ciamis ✦</p>
-</div>
+    <!-- Modal Informasi Lupa Password -->
+    <div id="forgot-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm hidden" aria-modal="true" role="dialog">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 transform transition-all">
+            <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 text-center mb-2">Bantuan Lupa Password</h3>
+            <p class="text-sm text-gray-600 text-center leading-relaxed mb-6">
+                Untuk menjaga keamanan akun aparatur dan data kedinasan, permohonan reset kata sandi dapat diajukan kepada <strong>Administrator Sistem</strong> atau <strong>Subbagian Kepegawaian &amp; Umum</strong> Dinas Pariwisata Kabupaten Ciamis.
+            </p>
+            <button type="button" id="close-forgot-modal" class="w-full py-2.5 px-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl text-sm shadow-md transition cursor-pointer">
+                Mengerti
+            </button>
+        </div>
+    </div>
 
-<script>
-    document.getElementById('toggle-password')?.addEventListener('click', function () {
-        const input = document.getElementById('password-field');
-        const eyeOpen = document.getElementById('eye-open');
-        const eyeClosed = document.getElementById('eye-closed');
-        if (!input) return;
-        const isPassword = input.type === 'password';
-        input.type = isPassword ? 'text' : 'password';
-        if (eyeOpen && eyeClosed) {
-            eyeOpen.classList.toggle('hidden', !isPassword);
-            eyeClosed.classList.toggle('hidden', isPassword);
+    <script>
+        // Toggle Password Visibility
+        document.getElementById('toggle-password')?.addEventListener('click', function () {
+            const input = document.getElementById('password-field');
+            const eyeOpen = document.getElementById('eye-open');
+            const eyeClosed = document.getElementById('eye-closed');
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            if (eyeOpen && eyeClosed) {
+                eyeOpen.classList.toggle('hidden', !isPassword);
+                eyeClosed.classList.toggle('hidden', isPassword);
+            }
+        });
+
+        // Modal Lupa Password
+        const forgotBtn = document.getElementById('btn-forgot-password');
+        const forgotModal = document.getElementById('forgot-modal');
+        const closeForgotBtn = document.getElementById('close-forgot-modal');
+
+        forgotBtn?.addEventListener('click', function () {
+            forgotModal?.classList.remove('hidden');
+        });
+
+        closeForgotBtn?.addEventListener('click', function () {
+            forgotModal?.classList.add('hidden');
+        });
+
+        forgotModal?.addEventListener('click', function (e) {
+            if (e.target === forgotModal) {
+                forgotModal.classList.add('hidden');
+            }
+        });
+
+        // Loading State & Anti Double-Click pada Form Login
+        // ENTER KEY: Tidak ada listener keydown/keyup yang memanggil preventDefault() secara luas
+        // di halaman ini, sehingga perilaku default form submit via tombol Enter pada kolom NIP
+        // maupun Password berjalan normal tanpa memerlukan kode tambahan.
+        const loginForm = document.querySelector('form[action*="login"]');
+        const submitBtn = loginForm?.querySelector('button[type="submit"]');
+
+        loginForm?.addEventListener('submit', function () {
+            if (submitBtn) {
+                submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+                submitBtn.innerHTML = `
+                    <svg class="animate-spin h-4 w-4 text-white shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memverifikasi kredensial...</span>
+                `;
+                setTimeout(() => {
+                    submitBtn.disabled = true;
+                }, 10);
+            }
+        });
+
+        // Peringatan Caps Lock pada field password
+        const passwordInput = document.getElementById('password-field');
+        const capsWarning = document.getElementById('caps-lock-warning');
+        let passwordFocused = false;
+
+        function updateCapsWarning(event) {
+            if (!passwordInput || !capsWarning) return;
+            const capsOn = event.getModifierState('CapsLock');
+            capsWarning.classList.toggle('hidden', !(passwordFocused && capsOn));
         }
-    });
-</script>
+
+        passwordInput?.addEventListener('focus', function (e) {
+            passwordFocused = true;
+            // Cek state Caps Lock saat fokus (butuh event, gunakan keyup pertama)
+        });
+
+        passwordInput?.addEventListener('blur', function () {
+            passwordFocused = false;
+            capsWarning?.classList.add('hidden');
+        });
+
+        // keyup mendeteksi perubahan state Caps Lock secara real-time
+        passwordInput?.addEventListener('keyup', function (e) {
+            updateCapsWarning(e);
+        });
+
+        // keydown juga diperlukan agar peringatan muncul segera saat Caps Lock ditekan
+        passwordInput?.addEventListener('keydown', function (e) {
+            updateCapsWarning(e);
+        });
+    </script>
 </body>
 </html>
