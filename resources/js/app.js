@@ -151,8 +151,62 @@ document.querySelectorAll('form[data-confirm]').forEach((f) => f.addEventListene
     if (!confirm(f.dataset.confirm)) e.preventDefault();
 }));
 
-/* ===== polling notifikasi + floating toast (HANYA dijalankan bila user sudah login) ===== */
+/* ===== polling notifikasi + floating toast + Web Notification API (HANYA dijalankan bila user sudah login) ===== */
 const seen = JSON.parse(localStorage.getItem('sb-seen-notifs') || '[]');
+
+function playNotifSound() {
+    try {
+        const audio = new Audio('/sounds/notif.mp3');
+        audio.volume = 0.6;
+        const p = audio.play();
+        if (p !== undefined) {
+            p.catch(() => {
+                // Autoplay fallback: Web Audio API synthesis
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (ctx.state === 'suspended') ctx.resume();
+                    const now = ctx.currentTime;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(659.25, now);
+                    osc.frequency.setValueAtTime(880.0, now + 0.12);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.38);
+                } catch (err) {}
+            });
+        }
+    } catch (e) {}
+}
+
+function showNotification(it) {
+    // 1. Suara notifikasi pendek
+    playNotifSound();
+
+    // 2. Notifikasi Browser Asli (Native Web Notification API)
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            const n = new Notification(it.judul, {
+                body: it.isi || 'Pemberitahuan baru dari SIPARDIS Dinas Pariwisata',
+                icon: '/images/logo-dispar.jpg',
+                badge: '/images/logo-dispar.jpg',
+                tag: 'sb-' + it.id,
+            });
+            n.onclick = () => {
+                window.focus();
+                if (it.url) location.href = it.url;
+            };
+        } catch (err) {}
+    }
+
+    // 3. Floating Toast di layar aplikasi
+    showToast(it);
+}
+
 async function pollNotifs() {
     if (!document.getElementById('bell-btn') && !document.getElementById('sidebar')) return;
     try {
@@ -161,21 +215,20 @@ async function pollNotifs() {
         const d = await r.json();
         const badge = document.getElementById('bell-badge');
         if (badge) { badge.textContent = d.belum; badge.classList.toggle('hidden', !d.belum); }
+        
+        let hasNew = false;
         d.items.forEach((it) => {
             if (seen.includes(it.id)) return;
             seen.push(it.id);
-            if (seen.length > 80) seen.splice(0, seen.length - 80);
+            if (seen.length > 100) seen.splice(0, seen.length - 100);
             localStorage.setItem('sb-seen-notifs', JSON.stringify(seen));
-            showToast(it);
+            showNotification(it);
+            hasNew = true;
         });
     } catch (e) { /* offline / unauthenticated */ }
 }
+
 function showToast(it) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-        const n = new Notification(it.judul, { body: it.isi || '', tag: 'sb-' + it.id });
-        n.onclick = () => { window.focus(); if (it.url) location.href = it.url; };
-        return;
-    }
     const wrap = document.getElementById('toast-zone');
     if (!wrap) return;
     const t = document.createElement('div');
@@ -188,22 +241,33 @@ function showToast(it) {
     wrap.appendChild(t);
     setTimeout(() => t.remove(), 9000);
 }
+
 document.getElementById('notif-baca')?.addEventListener('click', (e) => {
     e.preventDefault();
     fetch('/notifikasi/baca-semua', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content } })
         .then(() => { renderBellList(); pollNotifs(); });
 });
+
 document.getElementById('notif-permit')?.addEventListener('click', async (e) => {
     e.preventDefault();
     if ('Notification' in window) await Notification.requestPermission();
     pollNotifs();
 });
 
-// Inisialisasi polling HANYA pada halaman yang memiliki bell/sidebar (user terautentikasi)
+// Inisialisasi polling & minta izin notifikasi HANYA saat user sudah login (berada di layout dashboard)
 if (document.getElementById('bell-btn') || document.getElementById('sidebar')) {
+    // 1. Minta izin notifikasi browser secara otomatis jika belum pernah dipilih
+    if ('Notification' in window && Notification.permission === 'default') {
+        setTimeout(() => {
+            Notification.requestPermission().catch(() => {});
+        }, 1200);
+    }
+
+    // 2. Polling tiap 20 detik
     pollNotifs();
-    setInterval(pollNotifs, 30000);
-    /* badge reaktif: langsung segar saat tab kembali difokuskan / kembali dari halaman lain */
+    setInterval(pollNotifs, 20000);
+
+    // 3. Refresh saat tab kembali difokuskan
     window.addEventListener('focus', () => pollNotifs());
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pollNotifs(); });
 }
