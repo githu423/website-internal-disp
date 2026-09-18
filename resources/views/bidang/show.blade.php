@@ -353,9 +353,9 @@
                         <p class="text-[11px] font-bold text-purple-700">Unggah Dokumen Internal Bidang</p>
                         <input name="judul" placeholder="Judul dokumen *" required maxlength="180" 
                                class="w-full rounded-xl border border-slate-200 px-3 py-1.5 bg-white focus:outline-none focus:border-purple-400">
-                        <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg" required 
+                        <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required 
                                class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600 file:px-3 file:py-1 file:text-xs file:font-bold file:text-white file:cursor-pointer"
-                               onchange="if(this.files[0]){const ext=this.files[0].name.split('.').pop().toLowerCase();if(!['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg'].includes(ext)){alert('Format file tidak didukung. Harap pilih file dokumen PDF, Word, Excel, PowerPoint, atau Gambar.');this.value='';}}">
+                               onchange="if(this.files[0]){const ext=this.files[0].name.split('.').pop().toLowerCase();if(!['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg','txt'].includes(ext)){alert('Format file tidak didukung. Harap pilih file dokumen PDF, Word, Excel, PowerPoint, Gambar, atau Teks (.txt).');this.value='';}}">
                         <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 py-1.5 font-bold text-white active:scale-95 transition shadow-sm">
                             Unggah ke Bidang Ini
                         </button>

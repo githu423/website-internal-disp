@@ -54,7 +54,7 @@ class DokumenController extends Controller
             'deskripsi' => ['nullable', 'string', 'max:1000'],
             'kategori' => ['nullable', 'string', 'max:60'],
             'visibility' => ['required', 'in:publik,bidang,rahasia'],
-            'file' => ['required', 'file', 'max:20480'],
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,txt', 'max:10240'],
         ]);
         $file = $request->file('file');
         $path = $file->storeAs('dokumen', time().'_'.preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');

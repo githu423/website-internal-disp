@@ -141,7 +141,7 @@ class BidangController extends Controller
         $d = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
-            'file' => ['required', 'file', 'max:20480'],
+            'file' => ['required', 'file', 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,txt', 'max:10240'],
         ]);
         $file = $request->file('file');
         $path = $file->storeAs('dokumen', time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
