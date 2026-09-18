@@ -13,7 +13,7 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
-<body class="h-full bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-gray-800 antialiased selection:bg-purple-500 selection:text-white relative min-h-screen flex flex-col justify-center overflow-x-hidden">
+<body class="h-full bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-gray-800 antialiased selection:bg-purple-500 selection:text-white relative min-h-screen flex flex-col justify-start lg:justify-center overflow-x-hidden">
 
     <!-- ================= LATAR BELAKANG GLOBAL SEAMLESS ================= -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -33,10 +33,10 @@
     </div>
 
     <!-- ================= KONTEN UTAMA ================= -->
-    <div class="relative z-10 w-full min-h-screen flex flex-col lg:flex-row justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+    <div class="relative z-10 w-full min-h-screen flex flex-col lg:flex-row justify-start lg:justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4 lg:py-12">
         
         <!-- ================= PANEL KIRI (Branding Minimalis & Kontras Tinggi) ================= -->
-        <div class="w-full lg:w-1/2 max-w-lg text-white mb-8 lg:mb-0 px-4 sm:px-0 lg:pr-8 xl:pr-12 flex flex-col justify-between h-auto lg:min-h-[500px]">
+        <div class="w-full lg:w-1/2 max-w-lg text-white mb-4 lg:mb-0 px-4 sm:px-0 lg:pr-8 xl:pr-12 flex flex-col justify-between h-auto lg:min-h-[500px]">
             <div>
                 <!-- Logo Instansi Ciamis & Badge Pemerintah -->
                 <div class="flex items-center gap-3.5">
@@ -52,7 +52,7 @@
                 </div>
 
                 <!-- Judul Utama SIPARDIS & Deskripsi -->
-                <div class="mt-6 md:mt-12 xl:mt-16">
+                <div class="mt-4 md:mt-12 xl:mt-16">
                     <h1 class="text-3xl sm:text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight">
                         SIPARDIS
                     </h1>
