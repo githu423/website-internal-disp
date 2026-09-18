@@ -170,8 +170,8 @@
                         </p>
                     </div>
                 </a>
-                <form method="POST" action="{{ route('logout') }}" class="shrink-0 sb-hide relative z-30">@csrf
-                    <button type="submit" title="Keluar / Logout"
+                <form method="POST" action="{{ route('logout') }}" class="shrink-0 relative z-30">@csrf
+                    <button type="submit" id="sidebar-logout-btn" title="Keluar / Logout"
                         class="h-9 w-9 grid place-items-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 active:scale-90 transition cursor-pointer shadow-xs"><x-icon
                             name="logout" class="h-4 w-4" /></button>
                 </form>
