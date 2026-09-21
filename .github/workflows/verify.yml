@@ -58,10 +58,10 @@ jobs:
             foreach ($gagal as $t) {
                 $f = ($t->failure ?: $t->error)[0];
                 $msg = preg_replace("/\s+/u", " ", trim((string) $f));
-                $tail = strlen($msg) > 300 ? "..." . substr($msg, -300) : $msg;
+                $head = strlen($msg) > 320 ? substr($msg, 0, 320) . "…" : $msg;
                 $file = basename((string) $t->attributes()["file"]);
                 $line = (string) $t->attributes()["line"];
-                $out[] = (string) $t->attributes()["name"] . " @ " . $file . ":" . $line . " | " . $tail;
+                $out[] = (string) $t->attributes()["name"] . " @ " . $file . ":" . $line . " | " . $head;
             }
             echo "::error title=phpunit-rangkum::" . implode("\\n", $out) . PHP_EOL;
           '
