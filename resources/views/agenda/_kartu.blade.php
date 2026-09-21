@@ -54,7 +54,10 @@
             <span>📍 {{ $a->lokasi ?: 'Lokasi menyusul' }}</span>
             @if ($a->bidang)
                 <span class="text-slate-300">·</span>
-                <span class="text-purple-700 font-semibold">🏢 {{ $a->bidang->nama }}</span>
+                <span class="inline-flex items-center gap-1 text-purple-700 font-semibold">
+                    <x-bidang-icon :bidang="$a->bidang" :box="false" iconClass="h-3.5 w-3.5" />
+                    {{ $a->bidang->nama }}
+                </span>
             @endif
         </p>
 

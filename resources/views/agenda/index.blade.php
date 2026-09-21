@@ -144,7 +144,7 @@
             @if ($dinas->isNotEmpty())
                 <div data-agenda-group="dinas" class="space-y-2.5">
                     <div class="flex items-center gap-3 pt-1 pb-1">
-                        <span class="h-8 w-8 rounded-xl bg-slate-900 text-white grid place-items-center shadow-sm text-sm">🏛</span>
+                        <x-bidang-icon dinas size="md" />
                         <div class="flex-1 min-w-0">
                             <h3 class="font-extrabold text-[15px] leading-tight text-slate-900">Agenda Dinas (Umum)</h3>
                             <p class="text-[11.5px] font-medium text-slate-500">
@@ -164,7 +164,7 @@
             @foreach ($perBidang as $nama => $grup)
                 <div data-agenda-group="bidang-{{ $loop->index }}" class="space-y-2.5 pt-2">
                     <div class="flex items-center gap-3 pt-2 pb-1 border-t border-slate-200/60">
-                        <span class="h-8 w-8 rounded-xl bg-purple-50 text-purple-700 grid place-items-center shadow-sm border border-purple-100 text-sm">🏢</span>
+                        <x-bidang-icon :bidang="$grup->first()?->bidang" size="md" />
                         <div class="flex-1 min-w-0">
                             <h3 class="font-extrabold text-[15px] leading-tight text-slate-900">{{ $nama }}</h3>
                             <p class="text-[11.5px] font-medium text-slate-500">
@@ -262,6 +262,7 @@
                             <span class="text-xs font-bold text-purple-700 whitespace-nowrap w-14 shrink-0">
                                 {{ $a->tanggal->translatedFormat('d M') }}
                             </span>
+                            <x-bidang-icon :bidang="$a->bidang" :dinas="!$a->bidang" size="sm" />
                             <div class="min-w-0 flex-1">
                                 <p class="text-[13px] font-semibold text-slate-800 leading-snug truncate">{{ $a->judul }}</p>
                                 <p class="text-[11px] text-slate-400 mt-0.5 truncate">

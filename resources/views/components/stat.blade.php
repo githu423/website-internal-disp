@@ -7,10 +7,6 @@
     <span class="min-w-0">
         <span class="block text-xs font-semibold uppercase tracking-wider text-gray-500">{{ $label }}</span>
         <span class="block text-2xl font-black text-gray-900 leading-tight mt-0.5" {{ $dataKey ? 'data-kartu="' . $dataKey . '"' : '' }}>{{ $value }}</span>
-        @if ($sub)<span class="block text-[11px] text-gray-500 truncate mb-1">{{ $sub }}</span>@endif
-        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-1.5 border border-emerald-100">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-            +2% bulan ini
-        </span>
+        @if ($sub)<span class="block text-[11px] text-gray-500 truncate">{{ $sub }}</span>@endif
     </span>
 </a>
