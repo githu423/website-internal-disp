@@ -432,17 +432,18 @@
                                     required maxlength="180" class="bidang-control">
                             </label>
                             <div class="bidang-field">
-                                <span class="bidang-label" for="bidang-dokumen-kategori-baru">Atau buat kategori baru (induk /
-                                    subkategori)</span>
-                                <input id="bidang-dokumen-kategori-baru" name="kategori" list="bidang-dokumen-kategori-list"
-                                    placeholder="Contoh: Laporan / Tahun 2026 / Triwulan I" class="bidang-control">
-                                <p class="bidang-help text-slate-500">Kosongkan pilihan kategori di atas bila ingin memakai
-                                    kategori baru ini. Pisahkan jenjang dengan garis miring <b>/</b>.</p>
-                                <datalist id="bidang-dokumen-kategori-list">
-                                    @foreach ($datalistKategori as $dlk)
-                                        <option value="{{ $dlk }}">
-                                    @endforeach
-                                </datalist>
+                                <x-kategori-picker name="id_kategori" teksName="kategori"
+                                    :options="$kategoriUploadOptions"
+                                    :value="old('id_kategori', '')"
+                                    :suggestions="$datalistKategori"
+                                    listId="bidang-dokumen-kategori-list"
+                                    placeholder="— Tanpa kategori (otomatis Arsip Bidang) —"
+                                    treeLabel="Kategori / Subkategori"
+                                    newLabel="Atau buat kategori baru (induk / subkategori)"
+                                    teksPlaceholder="Contoh: Laporan / Tahun 2026 / Triwulan I"
+                                    help="Kosongkan pilihan kategori di atas bila ingin memakai kategori baru ini. Pisahkan jenjang dengan garis miring /."
+                                    triggerClass="rounded-xl px-3 py-2.5 text-xs min-h-[44px]"
+                                    teksClass="bidang-control" />
                             </div>
                             <div class="bidang-field">
                                 <label class="bidang-label" for="bidang-dokumen-file">File dokumen <span

@@ -398,29 +398,6 @@
                                 buttonClass="rounded-xl pl-3.5 pr-3 py-2 text-sm" />
                         </div>
                     </div>
-                    <label class="mt-3 block text-xs font-medium text-slate-500">
-                        <span class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Buat Kategori /
-                            Subkategori Baru</span>
-                        <input name="kategori" list="dok-kat-baru"
-                            placeholder="Tulis judul berjenjang, pisahkan dengan garis miring /"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
-                        <span class="mt-1 block text-[10.5px] text-slate-400">Contoh: <code
-                                class="font-bold text-slate-500">Laporan / Tahun 2026 / Triwulan IV</code>. Kosongkan pemilih
-                            kategori di atas bila ingin membuat kategori baru dari isian ini.</span>
-                    </label>
-                    <datalist id="dok-kat-baru">
-                        @foreach ($kategori as $k)
-                            @if ($k->induk_id) @continue @endif
-                            @if ($k->anak->isEmpty())
-                                <option value="{{ $k->nama }}">
-                            @else
-                                    @foreach ($k->anak as $anak)
-                                        <option value="{{ $k->nama }} / {{ $anak->nama }}">
-                                    @endforeach
-                                @endif
-                        @endforeach
-                    </datalist>
-
                     <label
                         class="block border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-purple-400 transition cursor-pointer bg-slate-50/50">
                         <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt"
