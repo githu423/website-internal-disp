@@ -371,7 +371,7 @@
                         <span class="shrink-0 text-base leading-none">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }}</span>
                         <div class="min-w-0 flex-1">
                             <a href="{{ route('dokumen.show', $d) }}" class="block truncate text-xs font-bold text-slate-800 hover:text-purple-600 transition">{{ $d->judul }}</a>
-                            <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB@if (!empty($d->kategori_label)) · {{ $d->kategori_label }}@endif</span>
+                            <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB{{ ($d->id_kategori || $d->kategori) ? ' · ' . $d->kategori_label : '' }}</span>
                         </div>
                         <div class="flex shrink-0 items-center gap-1.5">
                             <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-purple-600 hover:bg-purple-50 px-2 py-0.5 rounded transition">Lihat</a>
