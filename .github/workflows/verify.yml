@@ -40,12 +40,32 @@ jobs:
       - name: Jalankan test suite
         run: |
           set -o pipefail
-          vendor/bin/phpunit --no-progress 2>&1 | tee phpunit.log || {
+          if ! vendor/bin/phpunit --no-progress --log-junit junit.xml 2>&1 | tee phpunit.log; then
             echo "::error title=phpunit::Test suite TIDAK lolos:"
             grep -E "^[0-9]+\) " phpunit.log | head -n 10 | while IFS= read -r l; do echo "::error title=phpunit::$l"; done
             grep -E "^(Tests:|Time:|FAILURES|ERRORS)" phpunit.log | head -n 3 | while IFS= read -r l; do echo "::error title=phpunit::$l"; done
             exit 1
-          }
+          fi
+
+      - name: Ringkas detail kegagalan (bila ada)
+        if: failure()
+        run: |
+          if [ ! -f junit.xml ]; then echo "::warning title=phpunit::junit.xml tidak tersedia"; exit 0; fi
+          php -r '
+            $x = simplexml_load_file("junit.xml");
+            $i = 0;
+            foreach ($x->testsuite->xpath(".//testcase[failure or error]") as $t) {
+                if (++$i > 12) break;
+                $f = ($t->failure ?: $t->error)[0];
+                $msg = trim((string) $f);
+                $msg = preg_replace("/\s+/u", " ", $msg);
+                if (strlen($msg) > 220) $msg = substr($msg, 0, 220) . "…";
+                $file = (string) $t->attributes()["file"] . ":" . (string) $t->attributes()["line"];
+                echo "::error title=phpunit-detail::" . (string) $t->attributes()["name"] . " :: " . $msg . " @ " . $file . PHP_EOL;
+            }
+            $ts = $x->testsuite->attributes();
+            echo "::notice title=phpunit-summary::tests=" . $ts["tests"] . " failures=" . $ts["failures"] . " errors=" . $ts["errors"] . PHP_EOL;
+          '
 
       - name: Ringkas hasil
         if: success()
