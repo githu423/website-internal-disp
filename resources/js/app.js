@@ -512,3 +512,46 @@ if (office) {
         document.querySelectorAll('[data-custom-select].is-open').forEach(closeMenu);
     });
 })();
+
+/* ===== Mode gelap (nuansa ungu Ciamis) =====================================
+   Kelas `dark` sudah dipasang lebih awal oleh skrip inline di <head> supaya
+   tidak ada kedip putih. Di sini hanya tombol pengalih + penyimpanan pilihan.
+   Pilihan tersimpan di localStorage; bila belum pernah memilih, mengikuti
+   preferensi sistem. */
+(function () {
+    const akar = document.documentElement;
+
+    function segarkanIkon() {
+        const gelap = akar.classList.contains('dark');
+        document.querySelectorAll('[data-tema-ikon]').forEach(function (el) {
+            const untukGelap = el.dataset.temaIkon === 'gelap';
+            el.classList.toggle('hidden', untukGelap !== gelap);
+        });
+        document.querySelectorAll('#tema-btn').forEach(function (b) {
+            b.setAttribute('title', gelap ? 'Beralih ke mode terang' : 'Beralih ke mode gelap');
+            b.setAttribute('aria-pressed', gelap ? 'true' : 'false');
+        });
+    }
+
+    segarkanIkon();
+
+    document.querySelectorAll('#tema-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const jadiGelap = !akar.classList.contains('dark');
+            akar.classList.toggle('dark', jadiGelap);
+            try {
+                localStorage.setItem('tema', jadiGelap ? 'gelap' : 'terang');
+            } catch (e) {}
+            segarkanIkon();
+        });
+    });
+
+    // Ikut berubah bila pengguna belum pernah memilih manual & tema sistem berganti
+    try {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+            if (localStorage.getItem('tema')) return;
+            akar.classList.toggle('dark', e.matches);
+            segarkanIkon();
+        });
+    } catch (e) {}
+})();
