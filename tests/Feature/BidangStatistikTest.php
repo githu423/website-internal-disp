@@ -59,7 +59,7 @@ class BidangStatistikTest extends TestCase
     {
         $this->buatKerangka();
         $staf = $this->userPegawai(2); // role pegawai, bidang 2
-        $this->actingAs($staf)->get('/bidang/2')->assertOk()->assertSee('Kelola halaman');
+        $this->actingAs($staf)->get('/bidang/2')->assertOk()->assertSee('Unggah ke Bidang Ini');
 
         $file = UploadedFile::fake()->createWithContent('notulen.txt', 'isi notulen rapat');
         $this->actingAs($staf)->post(route('bidang.dokumen', 2), ['judul' => 'Notulen Rapat Bid', 'file' => $file])

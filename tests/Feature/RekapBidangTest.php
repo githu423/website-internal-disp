@@ -6,7 +6,7 @@ use App\Models\Bidang;
 use App\Models\Pegawai;
 use Tests\TestCase;
 
-/** Round 19 (7 Sep 2026): strip Rekap jumlah di bawah daftar pegawai halaman detail Bidang. */
+/** Round 19 (7 Sep 2026): rekap jumlah pegawai ("Komposisi:") tampil di bawah tabel aparatur halaman detail Bidang. */
 class RekapBidangTest extends TestCase
 {
     public function test_rekap_bidang_konsisten_dengan_daftar_anggota(): void
@@ -17,7 +17,7 @@ class RekapBidangTest extends TestCase
         Pegawai::create(['nip' => 'RB2', 'nama' => 'UJI RB DUA', 'status' => 'aktif', 'id_bidang' => $b->id, 'jenis_kelamin' => 'P', 'jenis_asn' => 'PPPK']);
         Pegawai::create(['nip' => 'RB3', 'nama' => 'UJI RB TIGA', 'status' => 'aktif', 'id_bidang' => $b->id]);
 
-        $resp = $this->actingAs($this->userAdmin())->get('/bidang/' . $b->id)->assertOk()->assertSee('Rekap:');
+        $resp = $this->actingAs($this->userAdmin())->get('/bidang/' . $b->id)->assertOk()->assertSee('Komposisi:');
         $st = $resp->viewData('statistik');
         $anggota = $resp->viewData('pegawais');
 
@@ -34,6 +34,6 @@ class RekapBidangTest extends TestCase
         $b = Bidang::orderBy('id')->first();
         $luar = $this->userPegawai(2, 'RB-LUAR');
         $this->assertNotSame($b->id, $luar->id_bidang);
-        $this->actingAs($luar)->get('/bidang/' . $b->id)->assertOk()->assertSee('Rekap:');
+        $this->actingAs($luar)->get('/bidang/' . $b->id)->assertOk()->assertSee('Komposisi:');
     }
 }
