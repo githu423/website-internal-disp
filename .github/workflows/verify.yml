@@ -50,35 +50,21 @@ jobs:
       - name: Ringkas detail kegagalan (bila ada)
         if: failure()
         run: |
-          if [ -f phpunit.log ]; then
-            echo "::notice title=phpunit-logtail::$(tail -n 3 phpunit.log | tr '\n' ' ')"
-          fi
           if [ ! -f junit.xml ]; then echo "::warning title=phpunit::junit.xml tidak tersedia"; exit 0; fi
           php -r '
             $x = simplexml_load_file("junit.xml");
-            $i = 0;
-            foreach ($x->xpath("//testcase[failure or error]") as $t) {
-                if (++$i > 10) break;
+            $gagal = $x->xpath("//testcase[failure or error]");
+            $out = [count($gagal) . " tes gagal:"];
+            foreach ($gagal as $t) {
                 $f = ($t->failure ?: $t->error)[0];
-                $msg = trim((string) $f);
-                $msg = preg_replace("/\s+/u", " ", $msg);
-                if (strlen($msg) > 1500) $msg = substr($msg, 0, 1500) . "…";
-                $file = (string) $t->attributes()["file"] . ":" . (string) $t->attributes()["line"];
-                echo "::error title=phpunit-detail::" . (string) $t->attributes()["name"] . " :: " . $msg . " @ " . $file . PHP_EOL;
+                $msg = preg_replace("/\s+/u", " ", trim((string) $f));
+                $tail = strlen($msg) > 300 ? "..." . substr($msg, -300) : $msg;
+                $file = basename((string) $t->attributes()["file"]);
+                $line = (string) $t->attributes()["line"];
+                $out[] = (string) $t->attributes()["name"] . " @ " . $file . ":" . $line . " | " . $tail;
             }
-            $ts = $x->xpath("//testsuite")[0]->attributes();
-            echo "::notice title=phpunit-summary::tests=" . $ts["tests"] . " failures=" . $ts["failures"] . " errors=" . $ts["errors"] . PHP_EOL;
+            echo "::error title=phpunit-rangkum::" . implode("\\n", $out) . PHP_EOL;
           '
-
-      - name: Unggah log phpunit sebagai artefak
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phpunit-logs
-          path: |
-            phpunit.log
-            junit.xml
-          if-no-files-found: ignore
 
       - name: Ringkas hasil
         if: success()
