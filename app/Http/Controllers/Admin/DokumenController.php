@@ -13,7 +13,7 @@ class DokumenController extends Controller
 {
     public function index(Request $request): View
     {
-        $q = Dokumen::query()->with(['bidang', 'uploader']);
+        $q = Dokumen::query()->with(['bidang', 'uploader', 'kategoriRel.induk.induk']);
         if ($s = trim((string) $request->query('q'))) $q->where('judul', 'like', "%$s%");
         if ($v = $request->query('visibility')) $q->where('visibility', $v);
         return view('admin.dokumen.index', [
@@ -27,6 +27,7 @@ class DokumenController extends Controller
         $d = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'kategori' => ['nullable', 'string', 'max:60'],
+            'id_kategori' => ['nullable', 'integer', 'exists:kategori_dokumen,id'],
             'visibility' => ['required', 'in:publik,bidang,rahasia'],
         ]);
         $dokumen->update($d);

@@ -91,7 +91,7 @@
                         <td class="py-3.5 px-4">
                             <p class="font-bold text-[13px] text-slate-900 leading-snug">{{ $d->judul }}</p>
                             <p class="text-[11px] text-slate-400 mt-0.5">
-                                <span class="font-medium text-slate-500">{{ $d->kategori ?: 'Umum' }}</span> · 
+                                <span class="font-medium text-slate-500">{{ $d->kategori_label }}</span> · 
                                 Diunggah oleh {{ $d->uploader?->name ?? '—' }} · 
                                 {{ $d->created_at->translatedFormat('d M Y, H:i') }}
                             </p>

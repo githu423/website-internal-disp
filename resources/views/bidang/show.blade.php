@@ -94,6 +94,25 @@
     $u = auth()->user();
     $isMine = $u->id_bidang === $b->id;
 
+    // Opsi kategori bertingkat untuk unggahan dokumen (dipakai bersama semua dokumen).
+    $kategoriUploadOptions = [];
+    $datalistKategori = [];
+    foreach ($kategoris as $kd) {
+        if ($kd->induk_id) continue;
+        $kategoriUploadOptions[(string) $kd->id] = $kd->nama;
+        if ($kd->anak->isEmpty()) {
+            $datalistKategori[] = $kd->nama;
+        }
+        foreach ($kd->anak as $anak) {
+            $kategoriUploadOptions[(string) $anak->id] = '└ ' . $kd->nama . ' / ' . $anak->nama;
+            $datalistKategori[] = $kd->nama . ' / ' . $anak->nama;
+            foreach ($anak->anak as $dkrit) {
+                $kategoriUploadOptions[(string) $dkrit->id] = '└└ ' . $kd->nama . ' / ' . $anak->nama . ' / ' . $dkrit->nama;
+                $datalistKategori[] = $kd->nama . ' / ' . $anak->nama . ' / ' . $dkrit->nama;
+            }
+        }
+    }
+
     // Helper identifikasi icon & tema per bidang
     $getBidangMeta = function ($item) {
         $nama = strtolower($item->nama ?? '');
@@ -347,12 +366,12 @@
 
                 <div class="divide-y divide-slate-100 max-h-60 overflow-y-auto thin-scroll">
                 @forelse ($dokumens as $d)
-                    <div data-doc-item data-doc-text="{{ \Illuminate\Support\Str::lower($d->judul.' '.$d->file_name.' '.($d->kategori ?? '')) }}" 
+                    <div data-doc-item data-doc-text="{{ \Illuminate\Support\Str::lower($d->judul.' '.$d->file_name.' '.($d->kategori_label ?? '')) }}" 
                          class="flex items-center gap-2.5 py-2.5">
                         <span class="shrink-0 text-base leading-none">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }}</span>
                         <div class="min-w-0 flex-1">
                             <a href="{{ route('dokumen.show', $d) }}" class="block truncate text-xs font-bold text-slate-800 hover:text-purple-600 transition">{{ $d->judul }}</a>
-                            <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB</span>
+                            <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB@if (!empty($d->kategori_label)) · {{ $d->kategori_label }}@endif</span>
                         </div>
                         <div class="flex shrink-0 items-center gap-1.5">
                             <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-purple-600 hover:bg-purple-50 px-2 py-0.5 rounded transition">Lihat</a>
@@ -377,6 +396,27 @@
                             <input id="bidang-dokumen-judul" name="judul" placeholder="Contoh: Notulensi rapat evaluasi" required maxlength="180"
                                    class="bidang-control">
                         </label>
+                        <div class="bidang-field">
+                            <span class="bidang-label" for="bidang-dokumen-kategori">Kategori / Subkategori</span>
+                            <select id="bidang-dokumen-kategori" name="id_kategori" class="bidang-control">
+                                <option value="">— Tanpa kategori (otomatis Arsip Bidang) —</option>
+                                @foreach ($kategoriUploadOptions as $kv => $kl)
+                                    <option value="{{ $kv }}">{{ $kl }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="bidang-field">
+                            <span class="bidang-label" for="bidang-dokumen-kategori-baru">Atau buat kategori baru (induk / subkategori)</span>
+                            <input id="bidang-dokumen-kategori-baru" name="kategori" list="bidang-dokumen-kategori-list"
+                                   placeholder="Contoh: Laporan / Tahun 2026 / Triwulan I"
+                                   class="bidang-control">
+                            <p class="bidang-help text-slate-500">Kosongkan pilihan kategori di atas bila ingin memakai kategori baru ini. Pisahkan jenjang dengan garis miring <b>/</b>.</p>
+                            <datalist id="bidang-dokumen-kategori-list">
+                                @foreach ($datalistKategori as $dlk)
+                                    <option value="{{ $dlk }}">
+                                @endforeach
+                            </datalist>
+                        </div>
                         <div class="bidang-field">
                             <label class="bidang-label" for="bidang-dokumen-file">File dokumen <span aria-hidden="true">*</span></label>
                             <input id="bidang-dokumen-file" type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required

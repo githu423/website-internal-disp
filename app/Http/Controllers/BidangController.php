@@ -7,6 +7,7 @@ use App\Models\Bidang;
 use App\Models\Dokumen;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
+use App\Services\KategoriDokumenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -68,7 +69,7 @@ class BidangController extends Controller
         $u = $request->user();
         $anggota = $u->isAdmin() || $u->id_bidang === $bidang->id;
 
-        $dq = Dokumen::where('id_bidang', $bidang->id)->with('uploader');
+        $dq = Dokumen::where('id_bidang', $bidang->id)->with(['uploader', 'kategoriRel.induk.induk']);
         if ($anggota) {
             $dq->where(fn($w) => $w->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $u->id));
         } else {
@@ -97,6 +98,7 @@ class BidangController extends Controller
             'statistik' => $statistik,
             'dokumens' => $dq->latest()->limit(15)->get(),
             'agenda' => Agenda::where('id_bidang', $bidang->id)->orderByDesc('tanggal')->limit(6)->get(),
+            'kategoris' => \App\Models\KategoriDokumen::with('anak.anak')->orderBy('nama')->get(),
         ]);
     }
 
@@ -141,6 +143,8 @@ class BidangController extends Controller
         $d = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
+            'kategori' => ['nullable', 'string', 'max:180'],
+            'id_kategori' => ['nullable', 'integer', 'exists:kategori_dokumen,id'],
             'file' => [
                 'required',
                 'file',
@@ -157,10 +161,22 @@ class BidangController extends Controller
         ]);
         $file = $request->file('file');
         $path = $file->storeAs('dokumen', time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
+
+        // Prioritas: 1) kategori terpilih dari pohon; 2) teks kategori baru (berjenjang
+        // dengan garis miring); 3) fallback 'Arsip Bidang'.
+        $idKategori = isset($d['id_kategori']) && $d['id_kategori'] !== '' ? (int) $d['id_kategori'] : null;
+        if ($idKategori === null && !empty($d['kategori'])) {
+            $idKategori = KategoriDokumenService::dapatkanAtauBuatBerjenjang((string) $d['kategori'])->id;
+        }
+        if ($idKategori === null) {
+            $idKategori = KategoriDokumenService::dapatkanAtauBuat('Arsip Bidang')->id;
+        }
+
         Dokumen::create([
             'judul' => $d['judul'],
             'deskripsi' => $d['deskripsi'] ?? null,
-            'kategori' => 'Arsip Bidang',
+            'kategori' => null,
+            'id_kategori' => $idKategori,
             'visibility' => 'bidang',
             'id_bidang' => $bidang->id,
             'file_path' => $path,

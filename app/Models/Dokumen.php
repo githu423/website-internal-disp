@@ -7,11 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 class Dokumen extends Model
 {
     protected $table = 'dokumen';
-    protected $fillable = ['judul', 'deskripsi', 'kategori', 'visibility', 'id_bidang',
+    protected $fillable = ['judul', 'deskripsi', 'kategori', 'id_kategori', 'visibility', 'id_bidang',
         'file_path', 'file_name', 'file_size', 'mime', 'dibaca_count', 'uploaded_by'];
 
     public function bidang() { return $this->belongsTo(Bidang::class, 'id_bidang'); }
     public function uploader() { return $this->belongsTo(User::class, 'uploaded_by'); }
+    public function kategoriRel() { return $this->belongsTo(KategoriDokumen::class, 'id_kategori'); }
+
+    /** Label kategori berjenjang "Induk / Anak", fallback ke teks lama / 'Umum'. */
+    public function getKategoriLabelAttribute(): string
+    {
+        if ($this->kategoriRel) {
+            return implode(' / ', $this->kategoriRel->jejak());
+        }
+
+        return $this->kategori ?: 'Umum';
+    }
 
     /** aturan visibilitas untuk user tertentu */
     public function bolehDilihat(?User $user): bool

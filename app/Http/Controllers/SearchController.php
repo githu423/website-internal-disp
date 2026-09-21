@@ -56,11 +56,13 @@ class SearchController extends Controller
             ->get();
 
         // ─── DOKUMEN ──────────────────────────────────────────────────────
-        $dokumen = Dokumen::where(function ($w) use ($q) {
+        $dokumen = Dokumen::with(['kategoriRel.induk.induk'])
+            ->where(function ($w) use ($q) {
                 $w->where('judul', 'like', "%$q%")
                   ->orWhere('deskripsi', 'like', "%$q%")
                   ->orWhere('kategori', 'like', "%$q%")
                   ->orWhere('file_name', 'like', "%$q%")
+                  ->orWhereHas('kategoriRel', fn ($kk) => $kk->where('nama', 'like', "%$q%"))
                   ->orWhereRaw('judul SOUNDS LIKE ?', [$q]);
             })
             ->orderBy('created_at', 'desc')

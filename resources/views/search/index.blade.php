@@ -208,7 +208,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="font-bold text-[13px] text-slate-900 truncate group-hover:text-purple-700 transition">{{ $d->judul }}</p>
                             <p class="text-[11px] text-slate-500 truncate mt-0.5">
-                                {{ $d->kategori ?? 'Umum' }}
+                                {{ $d->kategori_label }}
                                 @if($d->bidang) · <span class="text-purple-600 font-medium">{{ $d->bidang->nama }}</span>@endif
                                 · {{ $d->created_at->diffForHumans() }}
                             </p>

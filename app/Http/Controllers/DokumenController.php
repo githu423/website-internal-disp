@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Dokumen;
+use App\Models\KategoriDokumen;
 use App\Models\LogAktivitas;
+use App\Services\KategoriDokumenService;
 use App\Services\NotifikasiService;
 use Illuminate\Http\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,7 +20,7 @@ class DokumenController extends Controller
         $u = $request->user();
         // halaman universal: semua dokumen lintas bidang "tinggal cari";
         // 'rahasia' hanya utk pengunggah (+admin); 'bidang' = privat hanya utk sebidang (+admin)
-        $q = Dokumen::query()->with(['bidang', 'uploader']);
+        $q = Dokumen::query()->with(['bidang', 'uploader', 'kategoriRel.induk.induk']);
         $q->where(function ($w) use ($u) {
             $w->where('visibility', 'publik')->orWhere('uploaded_by', $u->id);
             if ($u->id_bidang) {
@@ -32,14 +34,38 @@ class DokumenController extends Controller
         });
 
         if ($sq = trim((string) $request->query('q'))) {
-            $q->where(fn ($w) => $w->where('judul', 'like', "%$sq%")->orWhere('deskripsi', 'like', "%$sq%")->orWhere('kategori', 'like', "%$sq%")->orWhere('file_name', 'like', "%$sq%"));
+            $q->where(function ($w) use ($sq) {
+                $w->where('judul', 'like', "%$sq%")
+                  ->orWhere('deskripsi', 'like', "%$sq%")
+                  ->orWhere('kategori', 'like', "%$sq%")
+                  ->orWhere('file_name', 'like', "%$sq%")
+                  ->orWhereHas('kategoriRel', fn ($kk) => $kk->where('nama', 'like', "%$sq%"));
+            });
         }
-        if ($k = $request->query('kategori')) $q->where('kategori', $k);
+        if ($k = $request->query('kategori')) {
+            // Filter mencakup subkategori: dokumen yang kategorinya persis sama
+            // ATAU berada di bawah kategori tersebut (anak/cucu) ikut tampil.
+            $kategoriAktif = KategoriDokumen::find((int) $k);
+            if ($kategoriAktif) {
+                $q->where(function ($w) use ($kategoriAktif) {
+                    $w->where('id_kategori', $kategoriAktif->id);
+                    $keturunan = $kategoriAktif->anak->pluck('id');
+                    foreach ($kategoriAktif->anak as $anak) {
+                        $keturunan = $keturunan->merge($anak->anak->pluck('id'));
+                    }
+                    if ($keturunan->isNotEmpty()) {
+                        $w->orWhereIn('id_kategori', $keturunan->all());
+                    }
+                });
+            } else {
+                $q->where('id_kategori', (int) $k);
+            }
+        }
         if ($b = $request->query('bidang')) $q->where('id_bidang', (int) $b);
         if ($request->query('milik_saya')) $q->where('uploaded_by', $u->id);
 
         $dokumen = $q->latest()->paginate(12)->withQueryString();
-        $kategori = Dokumen::whereNotNull('kategori')->distinct()->orderBy('kategori')->pluck('kategori');
+        $kategori = KategoriDokumen::with('anak.anak')->orderBy('nama')->get();
         $bidangs = \App\Models\Bidang::query()->withCount(['dokumen' => fn ($qq) => $qq->where('visibility', '!=', 'rahasia')])->orderBy('id')->get();
         $total = (clone $q)->count();
 
@@ -52,7 +78,8 @@ class DokumenController extends Controller
         $data = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
-            'kategori' => ['nullable', 'string', 'max:60'],
+            'kategori' => ['nullable', 'string', 'max:180'],
+            'id_kategori' => ['nullable', 'integer', 'exists:kategori_dokumen,id'],
             'visibility' => ['required', 'in:publik,bidang,rahasia'],
             'file' => [
                 'required',
@@ -71,9 +98,17 @@ class DokumenController extends Controller
         $file = $request->file('file');
         $path = $file->storeAs('dokumen', time().'_'.preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
 
+        // Kategori bertingkat diutamakan; input teks berjenjang didukung sebagai fallback.
+        $idKategori = isset($data['id_kategori']) && $data['id_kategori'] !== '' ? (int) $data['id_kategori'] : null;
+        $kategoriTeks = isset($data['kategori']) ? trim((string) $data['kategori']) : '';
+        if ($idKategori === null && $kategoriTeks !== '') {
+            $idKategori = KategoriDokumenService::dapatkanAtauBuatBerjenjang($kategoriTeks)->id;
+        }
+
         $d = Dokumen::create([
             'judul' => $data['judul'], 'deskripsi' => $data['deskripsi'] ?? null,
-            'kategori' => $data['kategori'] ?? null, 'visibility' => $data['visibility'],
+            'kategori' => $idKategori ? null : ($kategoriTeks !== '' ? $kategoriTeks : null),
+            'id_kategori' => $idKategori, 'visibility' => $data['visibility'],
             'id_bidang' => $request->user()->id_bidang,
             'file_path' => $path, 'file_name' => $file->getClientOriginalName(),
             'file_size' => $file->getSize(), 'mime' => $file->getClientMimeType(),

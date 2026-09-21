@@ -14,7 +14,20 @@
     $extOf = fn ($d) => strtolower(pathinfo($d->file_name, PATHINFO_EXTENSION));
 
     $kategoriOptions = ['' => 'Semua Kategori'];
-    foreach ($kategori as $k) { $kategoriOptions[$k] = $k; }
+    $kategoriPilih = ['' => '— Tanpa kategori (opsional) —'];
+    foreach ($kategori as $k) {
+        if ($k->induk_id) continue;
+        $kategoriOptions[(string) $k->id] = $k->nama;
+        $kategoriPilih[(string) $k->id] = $k->nama;
+        foreach ($k->anak as $anak) {
+            $kategoriOptions[(string) $anak->id] = '└ ' . $k->nama . ' / ' . $anak->nama;
+            $kategoriPilih[(string) $anak->id] = '└ ' . $k->nama . ' / ' . $anak->nama;
+            foreach ($anak->anak as $dkrit) {
+                $kategoriOptions[(string) $dkrit->id] = '└└ ' . $k->nama . ' / ' . $anak->nama . ' / ' . $dkrit->nama;
+                $kategoriPilih[(string) $dkrit->id] = '└└ ' . $k->nama . ' / ' . $anak->nama . ' / ' . $dkrit->nama;
+            }
+        }
+    }
     $visOptions = ['publik' => '🌐 Publik', 'bidang' => '🔏 Privat Bidang', 'rahasia' => '🔒 Rahasia'];
     $visOptionsLong = [
         'publik' => '🌐 Publik — Semua Pegawai',
@@ -131,7 +144,12 @@
             
             <input type="hidden" name="bidang" value="{{ $aktifBidang ?: '' }}">
 
-            <x-select name="kategori" :options="$kategoriOptions" :value="request('kategori')" autoSubmit class="w-48" />
+            <select name="kategori" onchange="this.form.submit()"
+                    class="w-48 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs md:text-sm font-medium text-slate-700 shadow-sm hover:border-purple-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/15 outline-none cursor-pointer transition">
+                @foreach ($kategoriOptions as $kv => $kl)
+                    <option value="{{ $kv }}" @selected((string) request('kategori') === (string) $kv)>{{ $kl }}</option>
+                @endforeach
+            </select>
 
             <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 rounded-xl border border-slate-200 px-3 py-2 bg-white cursor-pointer hover:border-purple-300 hover:text-purple-600 transition">
                 <input type="checkbox" name="milik_saya" value="1" @checked(request('milik_saya')) class="rounded border-slate-300 text-purple-600 focus:ring-purple-500/20"> 
@@ -216,7 +234,7 @@
                         <x-file-icon :ext="$ext" class="h-11 w-11 shrink-0" />
                         <div class="min-w-0 flex-1">
                             <p class="font-bold text-[13.5px] text-slate-900 leading-snug line-clamp-2">{{ $d->judul }}</p>
-                            <p class="text-[11px] text-slate-400 mt-0.5">{{ $d->kategori ?: 'Umum' }} · {{ $fmtSize($d->file_size) }} · dibaca {{ $d->dibaca_count }}×</p>
+                            <p class="text-[11px] text-slate-400 mt-0.5">{{ $d->kategori_label }} · {{ $fmtSize($d->file_size) }} · dibaca {{ $d->dibaca_count }}×</p>
                         </div>
                         <span class="text-[10.5px] font-bold rounded-full px-2.5 py-0.5 shrink-0 border {{ ['publik' => 'bg-emerald-50 text-emerald-700 border-emerald-200', 'bidang' => 'bg-sky-50 text-sky-700 border-sky-200', 'rahasia' => 'bg-rose-50 text-rose-700 border-rose-200'][$d->visibility] }}">
                             {{ $d->visibility === 'bidang' ? 'Privat Bidang' : ucfirst($d->visibility) }}
@@ -317,14 +335,36 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Kategori</label>
-                    <input name="kategori" placeholder="Misal: SK, Laporan, Pedoman" 
-                           class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                    <select name="id_kategori"
+                            class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm hover:border-purple-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/15 outline-none cursor-pointer transition">
+                        @foreach ($kategoriPilih as $kv => $kl)
+                            <option value="{{ $kv }}">{{ $kl }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Akses Visibilitas</label>
                     <x-select name="visibility" :options="$visOptionsLong" value="publik" buttonClass="rounded-xl pl-3.5 pr-3 py-2 text-sm" />
                 </div>
             </div>
+            <label class="mt-3 block text-xs font-medium text-slate-500">
+                <span class="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Buat Kategori / Subkategori Baru</span>
+                <input name="kategori" list="dok-kat-baru" placeholder="Tulis judul berjenjang, pisahkan dengan garis miring /"
+                       class="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+                <span class="mt-1 block text-[10.5px] text-slate-400">Contoh: <code class="font-bold text-slate-500">Laporan / Tahun 2026 / Triwulan IV</code>. Kosongkan pemilih kategori di atas bila ingin membuat kategori baru dari isian ini.</span>
+            </label>
+            <datalist id="dok-kat-baru">
+                @foreach ($kategori as $k)
+                    @if ($k->induk_id) @continue @endif
+                    @if ($k->anak->isEmpty())
+                        <option value="{{ $k->nama }}">
+                    @else
+                        @foreach ($k->anak as $anak)
+                            <option value="{{ $k->nama }} / {{ $anak->nama }}">
+                        @endforeach
+                    @endif
+                @endforeach
+            </datalist>
 
             <label class="block border-2 border-dashed border-slate-300 rounded-2xl p-6 text-center hover:border-purple-400 transition cursor-pointer bg-slate-50/50">
                 <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required 
