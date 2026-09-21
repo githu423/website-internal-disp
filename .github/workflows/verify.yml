@@ -57,11 +57,15 @@ jobs:
             $out = [count($gagal) . " tes gagal:"];
             foreach ($gagal as $t) {
                 $f = ($t->failure ?: $t->error)[0];
-                $msg = preg_replace("/\s+/u", " ", trim((string) $f));
-                $head = strlen($msg) > 320 ? substr($msg, 0, 320) . "…" : $msg;
+                $msg = trim((string) $f);
+                $needle = null;
+                if (preg_match("/contains [\"\x27](.*?)[\"\x27]/s", $msg, $m)) $needle = "EXPECT_SEE: " . $m[1];
+                elseif (preg_match("/does not contain [\"\x27](.*?)[\"\x27]/s", $msg, $m)) $needle = "EXPECT_DONTSEE: " . $m[1];
+                elseif (preg_match("/(?:received|status code|asserting that) [^\n]{0,120}/s", $msg, $m)) $needle = $m[0];
+                if ($needle === null) { $needle = "MSG: " . substr(preg_replace("/\s+/u"," ",$msg), 0, 200); }
                 $file = basename((string) $t->attributes()["file"]);
                 $line = (string) $t->attributes()["line"];
-                $out[] = (string) $t->attributes()["name"] . " @ " . $file . ":" . $line . " | " . $head;
+                $out[] = (string) $t->attributes()["name"] . " @ " . $file . ":" . $line . " | " . $needle;
             }
             echo "::error title=phpunit-rangkum::" . implode("\\n", $out) . PHP_EOL;
           '
