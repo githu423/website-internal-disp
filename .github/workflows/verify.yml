@@ -59,7 +59,7 @@ jobs:
                 $f = ($t->failure ?: $t->error)[0];
                 $msg = trim((string) $f);
                 $msg = preg_replace("/\s+/u", " ", $msg);
-                if (strlen($msg) > 220) $msg = substr($msg, 0, 220) . "…";
+                if (strlen($msg) > 1500) $msg = substr($msg, 0, 1500) . "…";
                 $file = (string) $t->attributes()["file"] . ":" . (string) $t->attributes()["line"];
                 echo "::error title=phpunit-detail::" . (string) $t->attributes()["name"] . " :: " . $msg . " @ " . $file . PHP_EOL;
             }
