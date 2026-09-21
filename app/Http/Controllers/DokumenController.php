@@ -57,6 +57,13 @@ class DokumenController extends Controller
                         $w->orWhereIn('id_kategori', $keturunan->all());
                     }
                 });
+            } elseif (! ctype_digit((string) $k)) {
+                // Fallback bookmark/link lama yang masih memakai nama kategori (teks),
+                // bukan id: cocokkan nama kategori maupun kolom teks bawaan dokumen.
+                $q->where(function ($w) use ($k) {
+                    $w->where('kategori', $k)
+                      ->orWhereHas('kategoriRel', fn ($kk) => $kk->where('nama', $k));
+                });
             } else {
                 $q->where('id_kategori', (int) $k);
             }
