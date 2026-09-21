@@ -167,10 +167,128 @@
         </div>
     </div>
 
-    <!-- 4. Konten Utama: Tabel Aparatur (Kiri) & Agenda / Dokumen (Kanan) -->
-    <div class="grid lg:grid-cols-3 gap-5">
-        <!-- Kolom Kiri: Tabel Aparatur Bidang -->
-        <div class="lg:col-span-2 space-y-4">
+    <!-- 4. Agenda & Dokumen di Atas, Aparatur Bidang di Bawah -->
+    <div class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+            <!-- 1. Card Agenda Bidang -->
+            <div class="min-w-0 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                        <span>📅</span> Agenda Bidang
+                    </h3>
+                    <a href="{{ route('agenda.index', ['bulan' => now()->format('Y-m')]) }}" class="text-xs font-bold text-purple-600 hover:underline">
+                        Kalender Dinas &rarr;
+                    </a>
+                </div>
+
+                <div class="space-y-2.5">
+                    @forelse ($agenda as $a)
+                        <div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
+                            <div class="h-10 w-10 shrink-0 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 grid place-items-center text-center">
+                                <span class="text-xs font-black leading-none">{{ $a->tanggal->format('d') }}</span>
+                                <span class="text-[8.5px] font-bold uppercase mt-0.5">{{ $a->tanggal->translatedFormat('M') }}</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-slate-900 leading-snug">{{ $a->judul }}</p>
+                                <p class="text-[11px] text-slate-400 mt-0.5">
+                                    {{ $a->jam_mulai ? substr((string)$a->jam_mulai, 0, 5) . ' WIB' : 'Waktu menyusul' }}
+                                    @if ($a->lokasi) · 📍 {{ $a->lokasi }} @endif
+                                </p>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="text-xs text-slate-400 py-3 text-center">Belum ada agenda terdaftar untuk bidang ini.</p>
+                    @endforelse
+                </div>
+
+                @if ($bolehKelola)
+                    <details class="group mt-2">
+                        <summary class="cursor-pointer list-none rounded-xl border border-dashed border-purple-300 bg-purple-50/50 hover:bg-purple-50 px-3.5 py-2 text-xs font-bold text-purple-700 transition flex items-center justify-between">
+                            <span>➕ Tambah Agenda Bidang</span>
+                            <span class="transition-transform group-open:rotate-180">▾</span>
+                        </summary>
+                        <form method="POST" action="{{ route('bidang.agenda', $b) }}" class="mt-2.5 space-y-2.5 text-xs bg-white p-3 rounded-xl border border-slate-200">
+                            @csrf
+                            <input name="judul" required maxlength="180" placeholder="Judul agenda *" 
+                                   class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:border-purple-400">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" name="tanggal" required class="rounded-xl border border-slate-200 px-3 py-1.5">
+                                <input type="time" name="jam_mulai" value="09:00" class="rounded-xl border border-slate-200 px-2.5 py-1.5">
+                            </div>
+                            <input name="lokasi" maxlength="120" placeholder="Lokasi kegiatan" 
+                                   class="w-full rounded-xl border border-slate-200 px-3 py-1.5 focus:outline-none focus:border-purple-400">
+                            <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white py-2 active:scale-95 transition shadow-sm">
+                                Simpan Agenda
+                            </button>
+                        </form>
+                    </details>
+                @endif
+            </div>
+
+            <!-- 2. Card Dokumen Bidang -->
+            <div class="min-w-0 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
+                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                            <span>📄</span> Dokumen Bidang
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">
+                            {{ $bolehKelola ? 'Termasuk dokumen privat sebidang.' : 'Dokumen publik unit ini.' }}
+                        </p>
+                    </div>
+                    <a href="{{ route('dokumen.index', ['bidang' => $b->id]) }}" class="text-xs font-bold text-purple-600 hover:underline">
+                        Semua &rarr;
+                    </a>
+                </div>
+
+                @if ($dokumens->isNotEmpty())
+                    <div class="relative">
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">🔍</span>
+                        <input data-doc-q type="search" placeholder="Cari judul berkas…" autocomplete="off"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-8 pr-8 text-xs outline-none focus:border-purple-400 focus:bg-white transition">
+                        <button data-doc-clear type="button" hidden class="absolute right-2 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:bg-slate-100">✕</button>
+                    </div>
+                @endif
+
+                <div class="divide-y divide-slate-100 max-h-60 overflow-y-auto thin-scroll">
+                @forelse ($dokumens as $d)
+                    <div data-doc-item data-doc-text="{{ \Illuminate\Support\Str::lower($d->judul.' '.$d->file_name.' '.($d->kategori ?? '')) }}" 
+                         class="flex items-center gap-2.5 py-2.5">
+                        <span class="shrink-0 text-base leading-none">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }}</span>
+                        <div class="min-w-0 flex-1">
+                            <a href="{{ route('dokumen.show', $d) }}" class="block truncate text-xs font-bold text-slate-800 hover:text-purple-600 transition">{{ $d->judul }}</a>
+                            <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB</span>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-1.5">
+                            <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-purple-600 hover:bg-purple-50 px-2 py-0.5 rounded transition">Lihat</a>
+                            <a href="{{ route('dokumen.unduh', $d) }}" class="text-[11px] font-bold text-slate-500 hover:bg-slate-100 px-2 py-0.5 rounded transition">Unduh</a>
+                        </div>
+                    </div>
+                @empty
+                    <p class="py-3 text-xs text-slate-400 text-center">Belum ada dokumen yang diunggah.</p>
+                @endforelse
+                </div>
+
+                @if ($bolehKelola)
+                    <form method="POST" action="{{ route('bidang.dokumen', $b) }}" enctype="multipart/form-data" 
+                          class="mt-2 space-y-2 rounded-xl border border-dashed border-purple-300 bg-purple-50/30 p-3 text-xs">
+                        @csrf
+                        <p class="text-[11px] font-bold text-purple-700">Unggah Dokumen Internal Bidang</p>
+                        <input name="judul" placeholder="Judul dokumen *" required maxlength="180" 
+                               class="w-full rounded-xl border border-slate-200 px-3 py-1.5 bg-white focus:outline-none focus:border-purple-400">
+                        <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required 
+                               class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600 file:px-3 file:py-1 file:text-xs file:font-bold file:text-white file:cursor-pointer"
+                               onchange="if(this.files[0]){const ext=this.files[0].name.split('.').pop().toLowerCase();if(!['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg','txt'].includes(ext)){alert('Format file tidak didukung. Harap pilih file dokumen PDF, Word, Excel, PowerPoint, Gambar, atau Teks (.txt).');this.value='';}}">
+                        <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 py-1.5 font-bold text-white active:scale-95 transition shadow-sm">
+                            Unggah ke Bidang Ini
+                        </button>
+                    </form>
+                @endif
+            </div>
+        </div>
+
+        <!-- Aparatur Bidang ditampilkan setelah kedua kartu -->
+        <div class="min-w-0 space-y-4">
             <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
@@ -242,125 +360,6 @@
                     <span class="text-amber-700"><b>{{ $statistik['nonaktif'] }}</b> Non-Aktif</span>
                     <span class="text-slate-500"><b>{{ $statistik['pensiun'] }}</b> Pensiun</span>
                 </div>
-            </div>
-        </div>
-
-        <!-- Kolom Kanan: Agenda & Dokumen Bidang -->
-        <div class="space-y-5">
-            <!-- 1. Card Agenda Bidang -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
-                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                    <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                        <span>📅</span> Agenda Bidang
-                    </h3>
-                    <a href="{{ route('agenda.index', ['bulan' => now()->format('Y-m')]) }}" class="text-xs font-bold text-purple-600 hover:underline">
-                        Kalender Dinas &rarr;
-                    </a>
-                </div>
-
-                <div class="space-y-2.5">
-                    @forelse ($agenda as $a)
-                        <div class="flex items-start gap-3 p-2.5 rounded-xl bg-slate-50/70 border border-slate-100">
-                            <div class="h-10 w-10 shrink-0 rounded-lg bg-purple-50 text-purple-700 border border-purple-200 grid place-items-center text-center">
-                                <span class="text-xs font-black leading-none">{{ $a->tanggal->format('d') }}</span>
-                                <span class="text-[8.5px] font-bold uppercase mt-0.5">{{ $a->tanggal->translatedFormat('M') }}</span>
-                            </div>
-                            <div class="min-w-0 flex-1">
-                                <p class="text-xs font-bold text-slate-900 leading-snug">{{ $a->judul }}</p>
-                                <p class="text-[11px] text-slate-400 mt-0.5">
-                                    {{ $a->jam_mulai ? substr((string)$a->jam_mulai, 0, 5) . ' WIB' : 'Waktu menyusul' }}
-                                    @if ($a->lokasi) · 📍 {{ $a->lokasi }} @endif
-                                </p>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-xs text-slate-400 py-3 text-center">Belum ada agenda terdaftar untuk bidang ini.</p>
-                    @endforelse
-                </div>
-
-                @if ($bolehKelola)
-                    <details class="group mt-2">
-                        <summary class="cursor-pointer list-none rounded-xl border border-dashed border-purple-300 bg-purple-50/50 hover:bg-purple-50 px-3.5 py-2 text-xs font-bold text-purple-700 transition flex items-center justify-between">
-                            <span>➕ Tambah Agenda Bidang</span>
-                            <span class="transition-transform group-open:rotate-180">▾</span>
-                        </summary>
-                        <form method="POST" action="{{ route('bidang.agenda', $b) }}" class="mt-2.5 space-y-2.5 text-xs bg-white p-3 rounded-xl border border-slate-200">
-                            @csrf
-                            <input name="judul" required maxlength="180" placeholder="Judul agenda *" 
-                                   class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:border-purple-400">
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="date" name="tanggal" required class="rounded-xl border border-slate-200 px-3 py-1.5">
-                                <input type="time" name="jam_mulai" value="09:00" class="rounded-xl border border-slate-200 px-2.5 py-1.5">
-                            </div>
-                            <input name="lokasi" maxlength="120" placeholder="Lokasi kegiatan" 
-                                   class="w-full rounded-xl border border-slate-200 px-3 py-1.5 focus:outline-none focus:border-purple-400">
-                            <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white py-2 active:scale-95 transition shadow-sm">
-                                Simpan Agenda
-                            </button>
-                        </form>
-                    </details>
-                @endif
-            </div>
-
-            <!-- 2. Card Dokumen Bidang -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
-                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                    <div>
-                        <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
-                            <span>📄</span> Dokumen Bidang
-                        </h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5">
-                            {{ $bolehKelola ? 'Termasuk dokumen privat sebidang.' : 'Dokumen publik unit ini.' }}
-                        </p>
-                    </div>
-                    <a href="{{ route('dokumen.index', ['bidang' => $b->id]) }}" class="text-xs font-bold text-purple-600 hover:underline">
-                        Semua &rarr;
-                    </a>
-                </div>
-
-                @if ($dokumens->isNotEmpty())
-                    <div class="relative">
-                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">🔍</span>
-                        <input data-doc-q type="search" placeholder="Cari judul berkas…" autocomplete="off"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50/70 py-1.5 pl-8 pr-8 text-xs outline-none focus:border-purple-400 focus:bg-white transition">
-                        <button data-doc-clear type="button" hidden class="absolute right-2 top-1/2 -translate-y-1/2 rounded px-1.5 py-0.5 text-[10px] font-bold text-slate-400 hover:bg-slate-100">✕</button>
-                    </div>
-                @endif
-
-                <div class="divide-y divide-slate-100 max-h-60 overflow-y-auto thin-scroll">
-                @forelse ($dokumens as $d)
-                    <div data-doc-item data-doc-text="{{ \Illuminate\Support\Str::lower($d->judul.' '.$d->file_name.' '.($d->kategori ?? '')) }}" 
-                         class="flex items-center gap-2.5 py-2.5">
-                        <span class="shrink-0 text-base leading-none">{{ $d->visibility === 'bidang' ? '🔒' : '📄' }}</span>
-                        <div class="min-w-0 flex-1">
-                            <a href="{{ route('dokumen.show', $d) }}" class="block truncate text-xs font-bold text-slate-800 hover:text-purple-600 transition">{{ $d->judul }}</a>
-                            <span class="block truncate text-[10.5px] text-slate-400">{{ $d->file_name }} · {{ number_format((int) $d->file_size / 1024) }} KB</span>
-                        </div>
-                        <div class="flex shrink-0 items-center gap-1.5">
-                            <a href="{{ route('dokumen.show', $d) }}" class="text-[11px] font-bold text-purple-600 hover:bg-purple-50 px-2 py-0.5 rounded transition">Lihat</a>
-                            <a href="{{ route('dokumen.unduh', $d) }}" class="text-[11px] font-bold text-slate-500 hover:bg-slate-100 px-2 py-0.5 rounded transition">Unduh</a>
-                        </div>
-                    </div>
-                @empty
-                    <p class="py-3 text-xs text-slate-400 text-center">Belum ada dokumen yang diunggah.</p>
-                @endforelse
-                </div>
-
-                @if ($bolehKelola)
-                    <form method="POST" action="{{ route('bidang.dokumen', $b) }}" enctype="multipart/form-data" 
-                          class="mt-2 space-y-2 rounded-xl border border-dashed border-purple-300 bg-purple-50/30 p-3 text-xs">
-                        @csrf
-                        <p class="text-[11px] font-bold text-purple-700">Unggah Dokumen Internal Bidang</p>
-                        <input name="judul" placeholder="Judul dokumen *" required maxlength="180" 
-                               class="w-full rounded-xl border border-slate-200 px-3 py-1.5 bg-white focus:outline-none focus:border-purple-400">
-                        <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required 
-                               class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600 file:px-3 file:py-1 file:text-xs file:font-bold file:text-white file:cursor-pointer"
-                               onchange="if(this.files[0]){const ext=this.files[0].name.split('.').pop().toLowerCase();if(!['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg','txt'].includes(ext)){alert('Format file tidak didukung. Harap pilih file dokumen PDF, Word, Excel, PowerPoint, Gambar, atau Teks (.txt).');this.value='';}}">
-                        <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 py-1.5 font-bold text-white active:scale-95 transition shadow-sm">
-                            Unggah ke Bidang Ini
-                        </button>
-                    </form>
-                @endif
             </div>
         </div>
     </div>
