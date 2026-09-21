@@ -7,6 +7,89 @@
 @section('subtitle', 'Profil Bidang & Unit Kerja Dinas')
 
 @section('content')
+{{-- Scoped styles keep native mobile controls within the bidang forms, without a Vite rebuild. --}}
+<style>
+    .bidang-form,
+    .bidang-form .bidang-field {
+        min-width: 0;
+        max-width: 100%;
+    }
+    .bidang-form .bidang-field {
+        display: block;
+    }
+    .bidang-form .bidang-label {
+        display: block;
+        margin-bottom: .375rem;
+        font-size: .75rem;
+        font-weight: 700;
+        color: #475569;
+    }
+    .bidang-form .bidang-control {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        min-height: 44px;
+        padding: .625rem .75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: .75rem;
+        background-color: #fff;
+        color: #0f172a;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+    .bidang-form .bidang-control:focus-visible {
+        outline: 2px solid #c084fc;
+        outline-offset: 2px;
+    }
+    /* Use available form width, not the device model or simulated screen size. */
+    .bidang-form .bidang-date-time {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+        gap: .75rem;
+    }
+    .bidang-form input[type="date"],
+    .bidang-form input[type="time"] {
+        appearance: none;
+        -webkit-appearance: none;
+    }
+    .bidang-form input::-webkit-date-and-time-value {
+        min-width: 0;
+        text-align: left;
+    }
+    .bidang-form .bidang-file {
+        overflow: hidden;
+        font-size: .875rem;
+    }
+    .bidang-form .bidang-file::file-selector-button {
+        display: block;
+        max-width: 100%;
+        min-height: 44px;
+        margin: 0 0 .5rem;
+        padding: .5rem .875rem;
+        border: 0;
+        border-radius: .5rem;
+        background: #9333ea;
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .bidang-form .bidang-help,
+    .bidang-form .bidang-file-name {
+        margin-top: .5rem;
+        font-size: .75rem;
+        line-height: 1.5;
+        overflow-wrap: anywhere;
+    }
+    .bidang-form .bidang-submit {
+        min-height: 44px;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+</style>
+
 @php
     $u = auth()->user();
     $isMine = $u->id_bidang === $b->id;
@@ -207,17 +290,29 @@
                             <span>➕ Tambah Agenda Bidang</span>
                             <span class="transition-transform group-open:rotate-180">▾</span>
                         </summary>
-                        <form method="POST" action="{{ route('bidang.agenda', $b) }}" class="mt-2.5 space-y-2.5 text-xs bg-white p-3 rounded-xl border border-slate-200">
+                        <form method="POST" action="{{ route('bidang.agenda', $b) }}" class="bidang-form mt-2.5 space-y-3.5 text-xs bg-white p-3 rounded-xl border border-slate-200">
                             @csrf
-                            <input name="judul" required maxlength="180" placeholder="Judul agenda *" 
-                                   class="w-full rounded-xl border border-slate-200 px-3 py-2 focus:outline-none focus:border-purple-400">
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="date" name="tanggal" required class="rounded-xl border border-slate-200 px-3 py-1.5">
-                                <input type="time" name="jam_mulai" value="09:00" class="rounded-xl border border-slate-200 px-2.5 py-1.5">
+                            <label class="bidang-field" for="bidang-agenda-judul">
+                                <span class="bidang-label">Judul agenda <span aria-hidden="true">*</span></span>
+                                <input id="bidang-agenda-judul" name="judul" required maxlength="180" placeholder="Contoh: Rapat evaluasi bidang"
+                                       class="bidang-control">
+                            </label>
+                            <div class="bidang-date-time">
+                                <label class="bidang-field" for="bidang-agenda-tanggal">
+                                    <span class="bidang-label">Tanggal <span aria-hidden="true">*</span></span>
+                                    <input id="bidang-agenda-tanggal" type="date" name="tanggal" required class="bidang-control">
+                                </label>
+                                <label class="bidang-field" for="bidang-agenda-jam">
+                                    <span class="bidang-label">Jam mulai (WIB)</span>
+                                    <input id="bidang-agenda-jam" type="time" name="jam_mulai" value="09:00" class="bidang-control">
+                                </label>
                             </div>
-                            <input name="lokasi" maxlength="120" placeholder="Lokasi kegiatan" 
-                                   class="w-full rounded-xl border border-slate-200 px-3 py-1.5 focus:outline-none focus:border-purple-400">
-                            <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white py-2 active:scale-95 transition shadow-sm">
+                            <label class="bidang-field" for="bidang-agenda-lokasi">
+                                <span class="bidang-label">Lokasi</span>
+                                <input id="bidang-agenda-lokasi" name="lokasi" maxlength="120" placeholder="Contoh: Ruang rapat Dispar Ciamis"
+                                       class="bidang-control">
+                            </label>
+                            <button type="submit" class="bidang-submit w-full rounded-xl bg-purple-600 hover:bg-purple-700 font-bold text-white py-2 active:scale-95 transition shadow-sm">
                                 Simpan Agenda
                             </button>
                         </form>
@@ -270,16 +365,26 @@
                 </div>
 
                 @if ($bolehKelola)
-                    <form method="POST" action="{{ route('bidang.dokumen', $b) }}" enctype="multipart/form-data" 
-                          class="mt-2 space-y-2 rounded-xl border border-dashed border-purple-300 bg-purple-50/30 p-3 text-xs">
+                    <form method="POST" action="{{ route('bidang.dokumen', $b) }}" enctype="multipart/form-data"
+                          class="bidang-form mt-2 space-y-3.5 rounded-xl border border-dashed border-purple-300 bg-purple-50/30 p-3 text-xs">
                         @csrf
-                        <p class="text-[11px] font-bold text-purple-700">Unggah Dokumen Internal Bidang</p>
-                        <input name="judul" placeholder="Judul dokumen *" required maxlength="180" 
-                               class="w-full rounded-xl border border-slate-200 px-3 py-1.5 bg-white focus:outline-none focus:border-purple-400">
-                        <input type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required 
-                               class="block w-full text-xs text-slate-500 file:mr-2 file:rounded-lg file:border-0 file:bg-purple-600 file:px-3 file:py-1 file:text-xs file:font-bold file:text-white file:cursor-pointer"
-                               onchange="if(this.files[0]){const ext=this.files[0].name.split('.').pop().toLowerCase();if(!['pdf','doc','docx','xls','xlsx','ppt','pptx','png','jpg','jpeg','txt'].includes(ext)){alert('Format file tidak didukung. Harap pilih file dokumen PDF, Word, Excel, PowerPoint, Gambar, atau Teks (.txt).');this.value='';}}">
-                        <button class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 py-1.5 font-bold text-white active:scale-95 transition shadow-sm">
+                        <div>
+                            <h4 class="text-xs font-bold text-purple-700">Unggah Dokumen Internal Bidang</h4>
+                            <p class="bidang-help text-slate-500">Dokumen hanya dapat dilihat oleh rekan sebidang dan admin.</p>
+                        </div>
+                        <label class="bidang-field" for="bidang-dokumen-judul">
+                            <span class="bidang-label">Judul dokumen <span aria-hidden="true">*</span></span>
+                            <input id="bidang-dokumen-judul" name="judul" placeholder="Contoh: Notulensi rapat evaluasi" required maxlength="180"
+                                   class="bidang-control">
+                        </label>
+                        <div class="bidang-field">
+                            <label class="bidang-label" for="bidang-dokumen-file">File dokumen <span aria-hidden="true">*</span></label>
+                            <input id="bidang-dokumen-file" type="file" name="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required
+                                   class="bidang-control bidang-file" aria-describedby="bidang-file-help bidang-file-name">
+                            <p id="bidang-file-help" class="bidang-help text-slate-500">PDF, Word, Excel, PowerPoint, JPG, PNG, atau TXT. Maksimal 10 MB.</p>
+                            <p id="bidang-file-name" class="bidang-file-name font-semibold text-purple-700" role="status" aria-live="polite">Belum ada file dipilih.</p>
+                        </div>
+                        <button type="submit" class="bidang-submit w-full rounded-xl bg-purple-600 hover:bg-purple-700 py-2 font-bold text-white active:scale-95 transition shadow-sm">
                             Unggah ke Bidang Ini
                         </button>
                     </form>
@@ -403,6 +508,38 @@
 @endif
 
 <script>
+(function () {
+    const input = document.getElementById('bidang-dokumen-file');
+    const status = document.getElementById('bidang-file-name');
+    if (!input || !status) return;
+
+    const allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'txt'];
+    const updateFile = () => {
+        const file = input.files[0];
+        input.setCustomValidity('');
+        if (!file) {
+            status.textContent = 'Belum ada file dipilih.';
+            return;
+        }
+
+        const extension = file.name.split('.').pop().toLowerCase();
+        let error = '';
+        if (!allowed.includes(extension)) {
+            error = 'Format file tidak didukung. Pilih PDF, Word, Excel, PowerPoint, JPG, PNG, atau TXT.';
+        } else if (file.size > 10 * 1024 * 1024) {
+            error = 'Ukuran file melebihi 10 MB. Pilih file yang lebih kecil.';
+        }
+        input.setCustomValidity(error);
+        status.textContent = error || 'File dipilih: ' + file.name;
+        if (error) input.reportValidity();
+    };
+    input.addEventListener('change', updateFile);
+    input.form.addEventListener('reset', () => {
+        input.setCustomValidity('');
+        status.textContent = 'Belum ada file dipilih.';
+    });
+})();
+
 (function(){
     const q=document.querySelector('[data-doc-q]'); if(!q) return;
     const rows=[...document.querySelectorAll('[data-doc-item]')];
