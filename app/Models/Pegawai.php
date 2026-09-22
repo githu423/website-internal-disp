@@ -81,6 +81,18 @@ class Pegawai extends Model
         return $kurang;
     }
 
+    /**
+     * Catatan singkat "belum lengkap: ..." utk baris tabel (v24): hanya beberapa
+     * kolom pertama yang disebut, sisanya diringkas "+N kolom lain" supaya baris
+     * tidak melebar. Daftar lengkapnya tetap bisa dilihat lewat halaman /profil.
+     */
+    public function ringkasKurang(int $batas = 3): string
+    {
+        $semua = $this->kolomKurang();
+        if (count($semua) <= $batas) return implode(', ', $semua);
+        return implode(', ', array_slice($semua, 0, $batas)) . ' +' . (count($semua) - $batas) . ' kolom lain';
+    }
+
         /**
      * Pencarian menyeluruh (konfirmasi Dinas 11 Sep 2026): kata kunci dicocokkan ke
      * SEMUA data yang tampil di halaman pegawai — nama, NIP, jabatan, pangkat,
