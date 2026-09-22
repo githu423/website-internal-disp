@@ -10,6 +10,7 @@ use App\Models\Pegawai;
 use App\Services\KategoriDokumenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -31,7 +32,7 @@ class BidangController extends Controller
                 ? "$c IS NULL"
                 : "$c IS NULL OR $c = ''")
             ->implode(' OR ');
-        $rek = \Illuminate\Support\Facades\DB::table('pegawai')->selectRaw(
+        $rek = DB::table('pegawai')->selectRaw(
             "id_bidang,
              SUM(CASE WHEN jenis_kelamin='L' THEN 1 ELSE 0 END) l,
              SUM(CASE WHEN jenis_kelamin='P' THEN 1 ELSE 0 END) p,
