@@ -21,17 +21,19 @@ class BidangController extends Controller
     public function index(Request $request): View
     {
         $u = $request->user();
-        // rekap kecil per kartu bidang: satu query agregat (portabel MySQL & sqlite)
+        // rekap kecil per kartu bidang: satu query agregat (portabel MySQL & sqlite).
+        // Kriteria "belum lengkap" (blm) dibangun dari daftar kolom yang SAMA dengan
+        // penanda di Data Pegawai & halaman /profil (Pegawai::KOLOM_LENGKAP), supaya
+        // angka di kartu bidang tidak pernah berbeda dengan tabelnya.
+        $kurang = collect(array_keys(\App\Models\Pegawai::KOLOM_LENGKAP))
+            ->map(fn ($c) => "$c IS NULL OR $c = ''")
+            ->implode(' OR ');
         $rek = \Illuminate\Support\Facades\DB::table('pegawai')->selectRaw(
             "id_bidang,
              SUM(CASE WHEN jenis_kelamin='L' THEN 1 ELSE 0 END) l,
              SUM(CASE WHEN jenis_kelamin='P' THEN 1 ELSE 0 END) p,
              SUM(CASE WHEN jenis_asn='PNS' THEN 1 ELSE 0 END) pns,
-             SUM(CASE WHEN tempat_lahir IS NULL OR tempat_lahir='' OR tanggal_lahir IS NULL
-                       OR jenis_kelamin IS NULL OR jenis_kelamin='' OR pangkat_golongan IS NULL OR pangkat_golongan=''
-                       OR pendidikan IS NULL OR pendidikan='' OR unit_kerja IS NULL OR unit_kerja=''
-                       OR tmt_cpns IS NULL OR tmt_sekarang IS NULL OR tmt_jabatan IS NULL
-                      THEN 1 ELSE 0 END) blm"
+             SUM(CASE WHEN $kurang THEN 1 ELSE 0 END) blm"
         )
             ->whereNotNull('id_bidang')->groupBy('id_bidang')->get()->keyBy('id_bidang');
 

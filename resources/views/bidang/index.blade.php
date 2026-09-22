@@ -148,12 +148,11 @@
 
                     @if ($b->rek)
                         <div class="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-slate-400">
-                            <span>Komposisi: ♂ <b>{{ $b->rek->l }}</b> · ♀ <b>{{ $b->rek->p }}</b></span>
-                            <span>·</span>
-                            <span>PNS <b>{{ $b->rek->pns }}</b> · Non-PNS <b>{{ $b->pegawais_count - $b->rek->pns }}</b></span>
-                            @if ($b->rek->blm > 0)
+                            <span class="font-semibold text-slate-500">Komposisi:</span>
+                            <span>♂ {{ (int) $b->rek->l }} · ♀ {{ (int) $b->rek->p }} · PNS {{ (int) $b->rek->pns }} · non-PNS {{ max(0, (int) $b->pegawais_count - (int) $b->rek->pns) }}</span>
+                            @if ((int) $b->rek->blm > 0)
                                 <span>·</span>
-                                <span class="text-rose-600 font-bold">⚠ {{ $b->rek->blm }} data belum lengkap</span>
+                                <span class="text-rose-600 font-bold">⚠ {{ (int) $b->rek->blm }} data belum lengkap</span>
                             @endif
                         </div>
                     @endif

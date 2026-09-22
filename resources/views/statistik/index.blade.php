@@ -96,7 +96,7 @@
                     <div>
                         <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-purple-600">Visualisasi Tren</span>
                         <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
-                            <span>📈</span> {{ $selected->indikator }}
+                            <span>📈</span> Tren — {{ $selected->indikator }}
                             @if ($selected->satuan)
                                 <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
                                     {{ $selected->satuan }}

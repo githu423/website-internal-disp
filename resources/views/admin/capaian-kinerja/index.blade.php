@@ -131,7 +131,7 @@
                         <div>
                             <label class="block font-bold uppercase tracking-wider text-slate-400 mb-1">Bidang Pelaksana</label>
                             <select name="id_bidang" class="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs bg-white focus:outline-none focus:border-purple-400">
-                                <option value="">Lintas Dinas / Semua</option>
+                                <option value="">Lintas Dinas / tidak spesifik</option>
                                 @foreach ($bidangs as $bd)
                                     <option value="{{ $bd->id }}">{{ $bd->nama }}</option>
                                 @endforeach
@@ -193,7 +193,7 @@
                                 <div>
                                     <label class="block font-bold text-slate-500 mb-1">Bidang Pelaksana</label>
                                     <select name="id_bidang" class="w-full rounded-xl border border-slate-200 px-2.5 py-1.5 text-xs bg-white focus:outline-none focus:border-purple-400">
-                                        <option value="">Lintas Dinas / Semua</option>
+                                        <option value="">Lintas Dinas / tidak spesifik</option>
                                         @foreach ($bidangs as $bd)
                                             <option value="{{ $bd->id }}" @selected($s->id_bidang == $bd->id)>{{ $bd->nama }}</option>
                                         @endforeach
