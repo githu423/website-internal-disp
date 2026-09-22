@@ -10,6 +10,7 @@ use App\Models\Pegawai;
 use App\Services\KategoriDokumenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
@@ -25,10 +26,13 @@ class BidangController extends Controller
         // Kriteria "belum lengkap" (blm) dibangun dari daftar kolom yang SAMA dengan
         // penanda di Data Pegawai & halaman /profil (Pegawai::KOLOM_LENGKAP), supaya
         // angka di kartu bidang tidak pernah berbeda dengan tabelnya.
+        // Kolom DATE (tmt_*) hanya cek IS NULL — MySQL strict menolak `= ''` untuk DATE.
         $kurang = collect(array_keys(\App\Models\Pegawai::KOLOM_LENGKAP))
-            ->map(fn ($c) => "$c IS NULL OR $c = ''")
+            ->map(fn ($c) => in_array($c, \App\Models\Pegawai::KOLOM_DATE, true)
+                ? "$c IS NULL"
+                : "$c IS NULL OR $c = ''")
             ->implode(' OR ');
-        $rek = \Illuminate\Support\Facades\DB::table('pegawai')->selectRaw(
+        $rek = DB::table('pegawai')->selectRaw(
             "id_bidang,
              SUM(CASE WHEN jenis_kelamin='L' THEN 1 ELSE 0 END) l,
              SUM(CASE WHEN jenis_kelamin='P' THEN 1 ELSE 0 END) p,
