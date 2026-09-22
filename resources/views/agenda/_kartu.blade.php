@@ -4,9 +4,13 @@
     $lewat = !$isHariIni && $a->status === 'belum' && $a->tanggal->lt(now()->startOfDay()); 
 @endphp
 <div data-agenda-card 
+     data-id="{{ $a->id }}"
      data-tanggal="{{ $a->tanggal->format('Y-m-d') }}" 
      data-is-today="{{ $isHariIni ? '1' : '0' }}"
-     class="bg-white border rounded-2xl p-4 sm:p-5 shadow-sm flex items-start gap-4 transition-all duration-150 hover:border-purple-300 {{ $a->status === 'selesai' ? 'opacity-65 border-slate-200' : ($isHariIni ? 'border-purple-300 ring-2 ring-purple-500/15 bg-purple-50/10' : ($lewat ? 'border-rose-200 bg-rose-50/15' : 'border-slate-200')) }}">
+     data-kategori="{{ strtolower($a->kategori ?? 'lainnya') }}"
+     data-search="{{ strtolower($a->judul . ' ' . $a->lokasi . ' ' . $a->deskripsi . ' ' . ($a->bidang?->nama ?? '')) }}"
+     onclick="if(!event.target.closest('form') && !event.target.closest('button') && !event.target.closest('a')) openAgendaDetailModal({{ $a->id }})"
+     class="bg-white border rounded-2xl p-4 sm:p-5 shadow-sm flex items-start gap-4 transition-all duration-150 hover:border-purple-300 hover:shadow cursor-pointer select-none {{ $a->status === 'selesai' ? 'opacity-65 border-slate-200' : ($isHariIni ? 'border-purple-300 ring-2 ring-purple-500/15 bg-purple-50/10' : ($lewat ? 'border-rose-200 bg-rose-50/15' : 'border-slate-200')) }}">
     
     <!-- Kotak Tanggal -->
     <div class="h-12 w-12 shrink-0 rounded-2xl grid place-items-center text-center leading-none border {{ $isHariIni ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-500/20' : ($lewat ? 'bg-rose-50 text-rose-600 border-rose-100' : ($a->status === 'selesai' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-purple-50 text-purple-700 border-purple-100')) }}">
