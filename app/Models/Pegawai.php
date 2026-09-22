@@ -61,11 +61,18 @@ class Pegawai extends Model
         'unit_kerja' => 'Unit kerja',
     ];
 
+    /** Kolom yang bertipe DATE — MySQL strict menolak `= ''` untuk tipe ini. */
+    public const KOLOM_DATE = ['tmt_cpns', 'tmt_sekarang', 'tmt_jabatan'];
+
     public function scopeBelumLengkap($q)
     {
         return $q->where(function ($w) {
             foreach (array_keys(self::KOLOM_LENGKAP) as $c) {
-                $w->orWhereNull($c)->orWhere($c, '');
+                if (in_array($c, self::KOLOM_DATE, true)) {
+                    $w->orWhereNull($c);
+                } else {
+                    $w->orWhereNull($c)->orWhere($c, '');
+                }
             }
         });
     }
@@ -76,7 +83,12 @@ class Pegawai extends Model
         $kurang = [];
         foreach (self::KOLOM_LENGKAP as $c => $label) {
             $v = $this->$c;
-            if ($v === null || $v === '') $kurang[] = $label;
+            // Kolom DATE hanya cek NULL (MySQL tidak pernah menyimpan '' untuk DATE)
+            if (in_array($c, self::KOLOM_DATE, true)) {
+                if ($v === null) $kurang[] = $label;
+            } else {
+                if ($v === null || $v === '') $kurang[] = $label;
+            }
         }
         return $kurang;
     }
