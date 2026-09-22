@@ -235,7 +235,7 @@
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <div class="flex items-center justify-between gap-3 mb-2">
                 <div>
-                    <h3 class="font-bold text-slate-900 text-base">Tingkat Capaian Keseluruhan per Tahun</h3>
+                    <h3 class="font-bold text-slate-900 text-base">Tingkat capaian keseluruhan per tahun</h3>
                     <p class="text-xs text-slate-500 mt-0.5">Persentase indikator yang memenuhi atau melampaui target (≥100%) tiap tahun.</p>
                 </div>
                 <span class="h-9 w-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm border border-purple-100">

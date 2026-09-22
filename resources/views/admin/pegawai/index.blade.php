@@ -113,8 +113,9 @@
                                     <p class="font-semibold text-[13px] text-slate-900 leading-snug">{{ $p->nama }}</p>
                                     <p class="text-[11px] text-slate-400 font-mono mt-0.5">{{ $p->nip }}</p>
                                     @if ($modeBelum && method_exists($p, 'kolomKurang') && count($p->kolomKurang()))
-                                        <p class="mt-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md inline-block">
-                                            Belum lengkap: {{ implode(', ', $p->kolomKurang()) }}
+                                        <p class="mt-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md inline-block"
+                                            title="{{ implode(', ', $p->kolomKurang()) }}">
+                                            belum lengkap: {{ $p->ringkasKurang() }}
                                         </p>
                                     @endif
                                 </td>

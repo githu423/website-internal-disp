@@ -162,7 +162,7 @@
             <!-- ============ SIDEBAR FOOTER (PROFIL & LOGOUT) ============ -->
             <div class="border-t border-slate-100 p-2 shrink-0 space-y-1 relative z-30 bg-white">
                 <!-- Link Profil Pengguna -->
-                <a href="{{ route('profil.index') }}" title="Buka profil saya: {{ $u->name }}" data-label="Profil Saya"
+                <a href="{{ route('profil.index') }}" title="Profil saya — {{ $u->name }}" data-label="Profil saya"
                     class="nav-link group flex items-center gap-2.5 rounded-xl p-2 hover:bg-purple-50 transition min-w-0 {{ $r('profil.*') ? 'is-active bg-purple-50' : '' }}">
                     <div class="relative shrink-0 flex items-center justify-center">
                         <span style="width: 32px; height: 32px; min-width: 32px; min-height: 32px;"
@@ -176,6 +176,9 @@
                         </p>
                         <p class="text-[10.5px] text-slate-400 truncate mt-0.5">
                             {{ $u->nip ?: 'Tanpa NIP' }} · {{ $u->isAdmin() ? 'Super Admin' : ucfirst($u->role) }}
+                        </p>
+                        <p class="text-[10px] font-extrabold text-purple-600 truncate mt-0.5">
+                            Profil saya &rarr;
                         </p>
                     </div>
                 </a>
