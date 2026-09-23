@@ -54,7 +54,15 @@ class AkunController extends Controller
         }
         $d['role'] = $d['role'] ?: 'pegawai';
         $d['status'] = $d['status'] ?? 'aktif';
-        User::create($d);
+        $user = User::create($d);
+        // sinkron ke tabel pegawai agar filter status di Data Pegawai langsung tampil
+        $pegSync = Pegawai::where('nip', $user->nip)->first();
+        if ($pegSync) {
+            if ($pegSync->status !== $user->status) $pegSync->update(['status' => $user->status]);
+        } elseif (in_array($user->status, ['nonaktif', 'pensiun'], true)) {
+            // akun nonaktif/pensiun tanpa data pegawai → buat baris minimal agar muncul di daftar pegawai
+            Pegawai::create(['nip' => $user->nip, 'nama' => $user->name, 'status' => $user->status, 'id_bidang' => $user->id_bidang, 'jabatan' => $user->jabatan]);
+        }
         LogAktivitas::catat('buat akun', $d['nip']);
         return back()->with('sukses', 'Akun dibuat.');
     }
@@ -75,8 +83,10 @@ class AkunController extends Controller
         $akun->update($d);
         // sinkron status ke data pegawai dengan NIP sama (agar rekap & daftar pegawai konsisten)
         $peg = Pegawai::where('nip', $akun->nip)->first();
-        if ($peg && $peg->status !== $d['status']) {
-            $peg->update(['status' => $d['status']]);
+        if ($peg) {
+            if ($peg->status !== $d['status']) $peg->update(['status' => $d['status']]);
+        } elseif (in_array($d['status'], ['nonaktif', 'pensiun'], true)) {
+            Pegawai::create(['nip' => $akun->nip, 'nama' => $akun->name, 'status' => $d['status'], 'id_bidang' => $akun->id_bidang, 'jabatan' => $akun->jabatan]);
         }
         LogAktivitas::catat('ubah akun', $akun->nip);
         return back()->with('sukses', 'Akun diperbarui.');
