@@ -321,8 +321,145 @@
                 @endif
             </div>
 
+            {{-- 3. Kartu Ganti Password --}}
+            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3.5">
+                <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+                    <span class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                    </span>
+                    <h4 class="font-extrabold text-sm text-slate-900">Ganti Password</h4>
+                </div>
+
+                @if (session('sukses_pw'))
+                    <div class="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3 text-xs text-emerald-800 font-semibold flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>{{ session('sukses_pw') }}</span>
+                    </div>
+                @endif
+
+                @if ($errors->has('password_lama') || $errors->has('password_baru') || $errors->has('password_baru_confirmation'))
+                    <div class="rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-700 flex items-start gap-2">
+                        <svg class="w-4 h-4 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>
+                        <span>{{ $errors->first('password_lama') ?: ($errors->first('password_baru') ?: $errors->first('password_baru_confirmation')) }}</span>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('profil.ganti-password') }}" class="space-y-3" id="form-ganti-pw">
+                    @csrf
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Password Saat Ini <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="password" name="password_lama" id="pw-lama"
+                                   class="{{ $inp }} pr-10"
+                                   placeholder="Masukkan password lama Anda"
+                                   autocomplete="current-password">
+                            <button type="button" onclick="togglePw('pw-lama', this)"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Password Baru <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="password" name="password_baru" id="pw-baru"
+                                   class="{{ $inp }} pr-10"
+                                   placeholder="Minimal 8 karakter"
+                                   autocomplete="new-password">
+                            <button type="button" onclick="togglePw('pw-baru', this)"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
+                            Konfirmasi Password Baru <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input type="password" name="password_baru_confirmation" id="pw-konfirmasi"
+                                   class="{{ $inp }} pr-10"
+                                   placeholder="Ketik ulang password baru"
+                                   autocomplete="new-password">
+                            <button type="button" onclick="togglePw('pw-konfirmasi', this)"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Indikator kekuatan password --}}
+                    <div id="pw-strength-bar" class="hidden space-y-1">
+                        <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                            <div id="pw-strength-fill" class="h-full rounded-full transition-all duration-300 w-0 bg-rose-400"></div>
+                        </div>
+                        <p id="pw-strength-label" class="text-[11px] text-slate-400"></p>
+                    </div>
+
+                    <button type="submit"
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm shadow-rose-500/20 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                        Perbarui Password
+                    </button>
+                </form>
+            </div>
+
         </div>
     </div>
 
 </div>
+
+<script>
+function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.innerHTML = isHidden
+        ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>`
+        : `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`;
+}
+
+// Indikator kekuatan password
+(function() {
+    const pwInput = document.getElementById('pw-baru');
+    const bar = document.getElementById('pw-strength-bar');
+    const fill = document.getElementById('pw-strength-fill');
+    const label = document.getElementById('pw-strength-label');
+
+    if (!pwInput) return;
+
+    pwInput.addEventListener('input', function () {
+        const val = this.value;
+        if (!val) { bar.classList.add('hidden'); return; }
+        bar.classList.remove('hidden');
+
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (val.length >= 12) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const levels = [
+            { pct: '20%', cls: 'bg-rose-500',   txt: 'Sangat lemah' },
+            { pct: '40%', cls: 'bg-orange-400',  txt: 'Lemah' },
+            { pct: '60%', cls: 'bg-amber-400',   txt: 'Cukup' },
+            { pct: '80%', cls: 'bg-teal-500',    txt: 'Kuat' },
+            { pct: '100%',cls: 'bg-emerald-500', txt: 'Sangat kuat' },
+        ];
+        const lv = levels[Math.min(score - 1, 4)] ?? levels[0];
+        fill.style.width = lv.pct;
+        fill.className = `h-full rounded-full transition-all duration-300 ${lv.cls}`;
+        label.textContent = lv.txt;
+        label.className = `text-[11px] ${lv.cls.replace('bg-', 'text-')}`;
+    });
+})();
+</script>
 @endsection

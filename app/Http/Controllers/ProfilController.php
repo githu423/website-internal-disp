@@ -6,6 +6,8 @@ use App\Models\LogAktivitas;
 use App\Models\Pegawai;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 
 /**
@@ -56,5 +58,31 @@ class ProfilController extends Controller
 
         LogAktivitas::catat('perbarui profil', $u->nip ?: $u->name);
         return back()->with('sukses', 'Profil tersimpan — data kepegawaian Anda ikut terisi dan masa kerja dihitung ulang otomatis.');
+    }
+
+    public function gantiPassword(Request $request): RedirectResponse
+    {
+        $u = $request->user();
+
+        $request->validate([
+            'password_lama'  => ['required', 'string'],
+            'password_baru'  => ['required', 'string', 'min:8', 'confirmed', Password::defaults()],
+        ], [
+            'password_lama.required' => 'Password lama wajib diisi.',
+            'password_baru.required' => 'Password baru wajib diisi.',
+            'password_baru.min'      => 'Password baru minimal 8 karakter.',
+            'password_baru.confirmed'=> 'Konfirmasi password baru tidak cocok.',
+        ]);
+
+        if (! Hash::check($request->password_lama, $u->password)) {
+            return back()
+                ->withErrors(['password_lama' => 'Password lama yang Anda masukkan salah.'])
+                ->withInput();
+        }
+
+        $u->update(['password' => $request->password_baru]);
+
+        LogAktivitas::catat('ganti password', $u->nip ?: $u->name);
+        return back()->with('sukses_pw', 'Password berhasil diperbarui. Gunakan password baru Anda pada login berikutnya.');
     }
 }

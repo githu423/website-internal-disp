@@ -44,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
     // profil pribadi: SEMUA user tanpa terkecuali boleh melihat & mengisi datanya sendiri
     Route::get('/profil', [ProfilController::class, 'index'])->name('profil.index');
     Route::patch('/profil', [ProfilController::class, 'simpan'])->name('profil.simpan');
+    Route::post('/profil/ganti-password', [ProfilController::class, 'gantiPassword'])->name('profil.ganti-password');
 
     Route::get('/notifikasi', [NotifikasiController::class, 'index'])->name('notifikasi.index');
     Route::get('/notifikasi/unread', [NotifikasiController::class, 'unread'])->name('notifikasi.unread');
