@@ -272,31 +272,240 @@ if (document.getElementById('bell-btn') || document.getElementById('sidebar')) {
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pollNotifs(); });
 }
 
-/* ===== grafik ===== */
-document.querySelectorAll('canvas[data-chart]').forEach((cv) => {
-    const data = JSON.parse(cv.dataset.chart);
-    const type = cv.dataset.type || 'line';
+/* ===== grafik — adaptif tema gelap/terang (ungu #150f23/#1e1533) ===== */
+const _sipardisCharts = [];
+window._sipardisCharts = _sipardisCharts;
+function _isDarkTheme() { return document.documentElement.classList.contains('dark'); }
+function _hexToRgba(hex, alpha) {
+    try {
+        let h = String(hex || '').trim().replace('#', '');
+        if (h.length === 3) h = h.split('').map((c) => c + c).join('');
+        if (h.length !== 6) return hex;
+        const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+        if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return hex;
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+    } catch (e) { return hex; }
+}
+function _mapDatasetColor(hex) {
+    if (!_isDarkTheme()) return hex || '#14b8a6';
+    const k = String(hex || '').toLowerCase();
+    const m = {
+        '#0f172a': '#c084fc',
+        '#1e293b': '#c084fc',
+        '#334155': '#a78bfa',
+        '#475569': '#a99fc4',
+        '#64748b': '#b8a9d9',
+        '#94a3b8': '#b8a9d9',
+        '#94a3b8a0': '#b8a9d9',
+        '#14b8a6': '#2dd4bf',
+        '#0d9488': '#2dd4bf',
+        '#0f766e': '#2dd4bf',
+        '#059669': '#34d399',
+        '#10b981': '#34d399',
+        '#0891b2': '#38bdf8',
+        '#0ea5e9': '#38bdf8',
+        '#0284c7': '#38bdf8',
+        '#7c3aed': '#a78bfa',
+        '#8b5cf6': '#a78bfa',
+        '#a855f7': '#c084fc',
+        '#9333ea': '#c084fc',
+        '#f97316': '#fb923c',
+        '#ea580c': '#fb923c',
+        '#f59e0b': '#fbbf24',
+        '#d97706': '#fbbf24',
+        '#e11d48': '#fb7185',
+        '#be123c': '#fb7185',
+    };
+    return m[k] || hex || '#c084fc';
+}
+function _gridColor() { return _isDarkTheme() ? 'rgba(56,42,85,0.62)' : '#f1f5f9'; }
+function _tickColor() { return _isDarkTheme() ? '#a99fc4' : '#64748b'; }
+function _legendColor() { return _isDarkTheme() ? '#ede9f6' : '#334155'; }
+function _borderColor() { return _isDarkTheme() ? '#382a55' : '#e2e8f0'; }
+function _tooltipBg() { return _isDarkTheme() ? '#1e1533' : '#0f172a'; }
+function _buildScales(data) {
+    const isDark = _isDarkTheme();
+    const gridC = _gridColor();
+    const tickC = _tickColor();
+    const borderC = _borderColor();
+    const s = {
+        y: {
+            beginAtZero: true,
+            grid: { color: gridC, drawBorder: false },
+            ticks: { color: tickC, font: { size: 11 } },
+            border: { color: borderC, display: false },
+        },
+        x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { color: tickC, font: { size: 11 } },
+            border: { color: borderC, display: false },
+        },
+    };
+    if (Array.isArray(data.datasets) && data.datasets.some((d) => d.axis === 'y1')) {
+        s.y1 = {
+            position: 'right',
+            beginAtZero: true,
+            grid: { drawOnChartArea: false, drawBorder: false },
+            ticks: { color: tickC, font: { size: 11 }, callback: (v) => v + '%' },
+            border: { color: borderC, display: false },
+        };
+    }
+    return s;
+}
+function _buildDatasets(data) {
+    const isDark = _isDarkTheme();
     const ds = [];
     if (Array.isArray(data.datasets)) {
-        data.datasets.forEach((d) => ds.push({
-            label: d.label, data: d.data, type: d.type || undefined,
-            borderColor: d.color || '#14b8a6',
-            backgroundColor: d.type === 'bar' ? (d.color || '#14b8a6') + '55' : (d.fill ? (d.color || '#14b8a6') + '22' : 'transparent'),
-            borderWidth: 2, borderDash: d.dash ? [6, 4] : [], tension: .35, fill: !!d.fill,
-            yAxisID: d.axis || 'y',
-        }));
+        data.datasets.forEach((d) => {
+            const raw = d.color || '#14b8a6';
+            const col = _mapDatasetColor(raw);
+            const bg = d.type === 'bar'
+                ? _hexToRgba(col, 0.55)
+                : (d.fill ? _hexToRgba(col, isDark ? 0.20 : 0.14) : 'transparent');
+            ds.push({
+                label: d.label,
+                data: d.data,
+                type: d.type || undefined,
+                borderColor: col,
+                backgroundColor: bg,
+                borderWidth: 2.2,
+                borderDash: d.dash ? [6, 4] : [],
+                tension: 0.35,
+                fill: !!d.fill,
+                pointRadius: 2.5,
+                pointHoverRadius: 4,
+                pointBackgroundColor: col,
+                pointBorderColor: isDark ? '#1e1533' : '#ffffff',
+                pointBorderWidth: 1.2,
+                yAxisID: d.axis || 'y',
+                spanGaps: true,
+                _origColor: raw,
+            });
+        });
     } else {
-        if (data.target) ds.push({ label: 'Target', data: data.target, borderColor: '#94a3b8', backgroundColor: 'rgba(148,163,184,.15)', borderWidth: 2, borderDash: [6, 4], tension: .35, fill: false });
-        if (data.capaian) ds.push({ label: 'Capaian', data: data.capaian, borderColor: '#14b8a6', backgroundColor: 'rgba(20,184,166,.18)', borderWidth: 2, tension: .35, fill: true });
+        if (data.target) {
+            const _rawT = '#94a3b8';
+            const col = _mapDatasetColor(_rawT);
+            ds.push({
+                label: 'Target', data: data.target,
+                borderColor: col,
+                backgroundColor: _hexToRgba(col, isDark ? 0.10 : 0.15),
+                borderWidth: 2, borderDash: [6, 4], tension: 0.35, fill: false,
+                pointRadius: 2, pointHoverRadius: 3.5,
+                pointBackgroundColor: col, pointBorderColor: isDark ? '#1e1533' : '#ffffff', pointBorderWidth: 1.2,
+                spanGaps: true,
+                _origColor: _rawT,
+            });
+        }
+        if (data.capaian) {
+            const _rawC = '#14b8a6';
+            const col = _mapDatasetColor(_rawC);
+            ds.push({
+                label: 'Capaian', data: data.capaian,
+                borderColor: col,
+                backgroundColor: _hexToRgba(col, isDark ? 0.22 : 0.18),
+                borderWidth: 2.2, tension: 0.35, fill: true,
+                pointRadius: 2.5, pointHoverRadius: 4,
+                pointBackgroundColor: col, pointBorderColor: isDark ? '#1e1533' : '#ffffff', pointBorderWidth: 1.2,
+                spanGaps: true,
+                _origColor: _rawC,
+            });
+        }
     }
-    const scales = { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } };
-    if (Array.isArray(data.datasets) && data.datasets.some((d) => d.axis === 'y1'))
-        scales.y1 = { position: 'right', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { callback: (v) => v + '%' } };
-    new Chart(cv, {
-        type, data: { labels: data.labels, datasets: ds },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } }, scales }
+    return ds;
+}
+function _chartOptions(scales) {
+    const isDark = _isDarkTheme();
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+            legend: {
+                display: true, position: 'top',
+                labels: { boxWidth: 12, font: { size: 11 }, color: _legendColor(), usePointStyle: true, pointStyle: 'circle', padding: 18 },
+            },
+            tooltip: {
+                backgroundColor: _tooltipBg(),
+                titleColor: isDark ? '#ede9f6' : '#ffffff',
+                bodyColor: isDark ? '#d6cfe8' : '#e2e8f0',
+                borderColor: isDark ? '#382a55' : 'transparent',
+                borderWidth: isDark ? 1 : 0,
+                padding: 10,
+                cornerRadius: 10,
+                displayColors: true,
+            },
+        },
+        scales,
+    };
+}
+function _renderCharts() {
+    document.querySelectorAll('canvas[data-chart]').forEach((cv) => {
+        if (cv._sipardisChart) { try { cv._sipardisChart.destroy(); } catch (e) {} }
+        let data;
+        try { data = JSON.parse(cv.dataset.chart); } catch (e) { return; }
+        const type = cv.dataset.type || 'line';
+        const ds = _buildDatasets(data);
+        const scales = _buildScales(data);
+        const opts = _chartOptions(scales);
+        const ch = new Chart(cv, { type, data: { labels: data.labels, datasets: ds }, options: opts });
+        cv._sipardisChart = ch;
+        _sipardisCharts.push(ch);
     });
-});
+}
+_renderCharts();
+window._sipardisRefreshCharts = function () {
+    // dipanggil saat toggle tema atau sistem berubah — update warna tanpa reload
+    _sipardisCharts.forEach((ch) => {
+        if (!ch || !ch.options) return;
+        const isDark = _isDarkTheme();
+        const rawData = ch.data;
+        // update dataset warna (pakai label untuk mapping balik? pakai borderColor asal terang -> map)
+        ch.data.datasets.forEach((ds) => {
+            const cur = ds.borderColor || '#14b8a6';
+            const asLight = ds._origColor || (() => {
+                const lk = String(cur).toLowerCase();
+                const rev = { '#c084fc': '#0f172a', '#a78bfa': '#334155', '#b8a9d9': '#94a3b8', '#2dd4bf': '#14b8a6', '#34d399': '#059669', '#38bdf8': '#0ea5e9', '#fb923c': '#f97316', '#fbbf24': '#f59e0b', '#fb7185': '#e11d48' };
+                return rev[lk] || cur;
+            })();
+            const next = _mapDatasetColor(asLight);
+            ds.borderColor = next;
+            ds.pointBackgroundColor = next;
+            ds.pointBorderColor = isDark ? '#1e1533' : '#ffffff';
+            if (ds.type === 'bar') ds.backgroundColor = _hexToRgba(next, 0.55);
+            else if (ds.fill) ds.backgroundColor = _hexToRgba(next, isDark ? 0.22 : (next.toLowerCase() === '#2dd4bf' ? 0.18 : 0.14));
+            else ds.backgroundColor = ds.borderDash && ds.borderDash.length ? _hexToRgba(next, isDark ? 0.10 : 0.15) : 'transparent';
+        });
+        ch.options.plugins.legend.labels.color = _legendColor();
+        ch.options.plugins.tooltip.backgroundColor = _tooltipBg();
+        ch.options.plugins.tooltip.titleColor = isDark ? '#ede9f6' : '#ffffff';
+        ch.options.plugins.tooltip.bodyColor = isDark ? '#d6cfe8' : '#e2e8f0';
+        ch.options.plugins.tooltip.borderColor = isDark ? '#382a55' : 'transparent';
+        ch.options.plugins.tooltip.borderWidth = isDark ? 1 : 0;
+        const gridC = _gridColor(), tickC = _tickColor(), borderC = _borderColor();
+        ['y', 'x', 'y1'].forEach((k) => {
+            const sc = ch.options.scales[k];
+            if (!sc) return;
+            if (sc.grid) { if (k !== 'y1') sc.grid.color = gridC; }
+            if (sc.ticks) sc.ticks.color = tickC;
+            if (sc.border) sc.border.color = borderC;
+        });
+        ch.update();
+    });
+};
+// juga jaga bila canvas ditambah dinamis (mis. Livewire) — observer ringan
+try {
+    const mo = new MutationObserver((muts) => {
+        let need = false;
+        muts.forEach((m) => m.addedNodes && m.addedNodes.forEach((n) => {
+            if (n.querySelectorAll && n.querySelectorAll('canvas[data-chart]').length) need = true;
+            if (n.matches && n.matches('canvas[data-chart]')) need = true;
+        }));
+        if (need) _renderCharts();
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+} catch (e) {}
+
 
 /* ===== form import: state saat submit ===== */
 document.querySelectorAll('form[data-import]').forEach((f) => f.addEventListener('submit', () => {
@@ -543,6 +752,7 @@ if (office) {
                 localStorage.setItem('tema', jadiGelap ? 'gelap' : 'terang');
             } catch (e) {}
             segarkanIkon();
+            try { window._sipardisRefreshCharts && window._sipardisRefreshCharts(); } catch (e2) {}
         });
     });
 
@@ -552,6 +762,18 @@ if (office) {
             if (localStorage.getItem('tema')) return;
             akar.classList.toggle('dark', e.matches);
             segarkanIkon();
+            try { window._sipardisRefreshCharts && window._sipardisRefreshCharts(); } catch (e2) {}
         });
+    } catch (e) {}
+    // sinkron chart bila kelas dark diubah dari luar (mis. skrip inline head)
+    try {
+        let _temaPrevDark = akar.classList.contains('dark');
+        const _obsTema = new MutationObserver(function () {
+            const cur = akar.classList.contains('dark');
+            if (cur === _temaPrevDark) return;
+            _temaPrevDark = cur;
+            try { window._sipardisRefreshCharts && window._sipardisRefreshCharts(); } catch (e2) {}
+        });
+        _obsTema.observe(akar, { attributes: true, attributeFilter: ['class'] });
     } catch (e) {}
 })();
