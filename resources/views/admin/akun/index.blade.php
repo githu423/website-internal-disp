@@ -33,7 +33,7 @@
         <div class="flex flex-wrap items-center gap-2.5">
             <form method="POST" action="{{ route('admin.akun.sinkron') }}">
                 @csrf
-                <button type="submit" title="Selaraskan peran & bidang semua akun non-admin dengan jabatan/unit kerja di data pegawai"
+                <button type="submit" title="Selaraskan peran, bidang & status semua akun dengan jabatan/unit kerja & status di data pegawai"
                         class="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-purple-50 border border-purple-200 text-purple-700 text-sm font-semibold rounded-xl hover:bg-purple-100 active:scale-95 transition-all duration-150">
                     <span>⟳</span> Sinkronkan Peran
                 </button>
@@ -58,13 +58,14 @@
             </div>
 
             <x-select name="role" :options="['' => 'Semua Peran (Role)', 'admin' => 'Admin (Super)', 'bidang' => 'Operator Bidang', 'pegawai' => 'Pegawai']" :value="request('role')" autoSubmit class="w-full sm:w-56" />
+            <x-select name="status" :options="['' => 'Semua Status', 'aktif' => 'Aktif', 'nonaktif' => 'Non-Aktif', 'pensiun' => 'Pensiun']" :value="request('status')" autoSubmit class="w-full sm:w-40" />
         </div>
 
         <div class="flex items-center gap-2 shrink-0">
             <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs md:text-sm rounded-xl shadow-sm transition">
                 Saring Akun
             </button>
-            @if(request('q') || request('role'))
+            @if(request('q') || request('role') || request('status'))
                 <a href="{{ route('admin.akun.index') }}" class="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
                     Reset
                 </a>
@@ -284,6 +285,15 @@
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Jabatan (Opsional)</label>
                 <input name="jabatan" placeholder="mis. Staf Bidang Pemasaran" 
                        class="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-sm focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10 transition">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Status Awal</label>
+                <select name="status" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
+                    <option value="aktif" selected>Aktif</option>
+                    <option value="nonaktif">Non-Aktif</option>
+                    <option value="pensiun">Pensiun</option>
+                </select>
             </div>
 
             <button type="submit" class="w-full rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 active:scale-[.98] transition shadow-sm shadow-purple-500/30 mt-2">
