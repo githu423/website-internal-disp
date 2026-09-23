@@ -58,7 +58,7 @@ class AkunController extends Controller
             'name' => ['required', 'string', 'max:120'],
             'role' => ['required', 'in:admin,bidang,pegawai'],
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
-            'status' => ['required', 'in:aktif,nonaktif'],
+            'status' => ['required', 'in:aktif,nonaktif,pensiun'],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
         if (! empty($d['password'])) {

@@ -37,6 +37,30 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        /** Blokir akun non-aktif & pensiun dengan pesan berbeda (cek User saja, sesuai konfirmasi). */
+        $user = Auth::user();
+        if ($user && $user->status === 'nonaktif') {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'nip' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator kepegawaian.',
+            ]);
+        }
+        if ($user && $user->status === 'pensiun') {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'nip' => 'Terima kasih atas pengabdian Anda. Akun dalam status pensiun tidak dapat mengakses sistem. Selamat menikmati masa purnabakti.',
+            ]);
+        }
+        if ($user && $user->status !== 'aktif') {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'nip' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
