@@ -99,6 +99,18 @@
             white-space: normal;
             overflow-wrap: anywhere;
         }
+
+        /* Tata letak mobile: agenda & dokumen (aksi) di atas tabel aparatur. */
+        @media (max-width: 1023px) {
+            .bidang-grid {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .bidang-grid > .bidang-aksi { order: 1; }
+
+            .bidang-grid > .bidang-pegawai { order: 2; }
+        }
     </style>
 
     @php
@@ -250,7 +262,7 @@
                             @if ($isMine)
                                 <span
                                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    ✓ BIDANG ANDA
+                                    ✓ ANDA DI BIDANG INI
                                 </span>
                             @elseif ($u->isAdmin())
                                 <span
@@ -271,6 +283,18 @@
                             <span class="font-bold text-slate-700">Kepala / Koordinator:</span>
                             <span class="text-purple-700 font-semibold">{{ $b->ketua ?: '—' }}</span>
                         </p>
+                        {{-- Penanda konteks: apakah pengunjung sedang di bidangnya sendiri atau melihat bidang lain. --}}
+                        @if ($isMine)
+                            <p class="text-[11px] text-emerald-700 mt-1.5 flex items-start gap-1.5">
+                                <span aria-hidden="true">🪪</span>
+                                <span>Halaman ini adalah bidang Anda sendiri — Anda dapat mengisi agenda dan arsip di sini.</span>
+                            </p>
+                        @elseif (! $u->isAdmin())
+                            <p class="text-[11px] text-slate-400 mt-1.5 flex items-start gap-1.5">
+                                <span aria-hidden="true">👀</span>
+                                <span>Anda sedang melihat bidang lain — hanya admin dan anggota bidang ini yang dapat mengubah halamannya.</span>
+                            </p>
+                        @endif
                     </div>
                 </div>
 
@@ -286,8 +310,8 @@
         </div>
 
         <!-- 4. Agenda & Dokumen di Atas, Aparatur Bidang di Bawah -->
-        <div class="space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+        <div class="bidang-grid grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+            <div class="space-y-4 bidang-aksi">
                 <!-- 1. Card Agenda Bidang -->
                 <div class="min-w-0 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
                     <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
@@ -465,86 +489,84 @@
                 </div>
             </div>
 
-            <!-- Aparatur Bidang ditampilkan setelah kedua kartu -->
-            <div class="min-w-0 space-y-4">
-                <div class="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-                        <div>
-                            <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                                <span>👥</span> Aparatur Bidang
-                            </h3>
-                            <p class="text-xs text-slate-400 mt-0.5">{{ $pegawais->count() }} personel aparatur bertugas di
-                                unit ini</p>
-                        </div>
+            <!-- Aparatur Bidang — tabel personel unit ini -->
+            <div class="card overflow-hidden lg:col-span-2 bidang-pegawai">
+                <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+                            <span>👥</span> Aparatur Bidang
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-0.5">{{ $pegawais->count() }} personel aparatur bertugas di
+                            unit ini</p>
                     </div>
+                </div>
 
-                    <div class="overflow-x-auto thin-scroll">
-                        <table class="data w-full min-w-[620px]">
-                            <thead>
-                                <tr
-                                    class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
-                                    <th class="py-3 px-4">Nama &amp; NIP</th>
-                                    <th class="py-3 px-3">Jabatan</th>
-                                    <th class="py-3 px-3">Golongan / Pangkat</th>
-                                    <th class="py-3 px-4 text-right">Masa Kerja &amp; Usia</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                @forelse ($pegawais as $p)
-                                    <tr class="hover:bg-slate-50/70 transition">
-                                        <td class="py-3.5 px-4">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="h-9 w-9 rounded-xl {{ $currentMeta['box'] }} text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">
-                                                    {{ strtoupper(mb_substr($p->nama, 0, 2)) }}
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-[13px] text-slate-900 leading-snug">{{ $p->nama }}
-                                                    </p>
-                                                    <p class="text-[11px] text-slate-400 font-mono mt-0.5">
-                                                        {{ $p->nip ?: 'Tanpa NIP' }} · {{ $p->jenis_asn }}</p>
-                                                </div>
+                <div class="overflow-x-auto thin-scroll">
+                    <table class="data w-full min-w-[620px]">
+                        <thead>
+                            <tr
+                                class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
+                                <th class="py-3 px-4">Nama &amp; NIP</th>
+                                <th class="py-3 px-3">Jabatan</th>
+                                <th class="py-3 px-3">Golongan / Pangkat</th>
+                                <th class="py-3 px-4 text-right">Masa Kerja &amp; Usia</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($pegawais as $p)
+                                <tr class="hover:bg-slate-50/70 transition">
+                                    <td class="py-3.5 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="h-9 w-9 rounded-xl {{ $currentMeta['box'] }} text-xs font-bold flex items-center justify-center shrink-0 shadow-sm">
+                                                {{ strtoupper(mb_substr($p->nama, 0, 2)) }}
                                             </div>
-                                        </td>
-                                        <td class="py-3.5 px-3 text-xs text-slate-700 font-medium">
-                                            {{ $p->jabatan ?: '—' }}
-                                        </td>
-                                        <td class="py-3.5 px-3 text-xs text-slate-600">
-                                            <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px]">
-                                                {{ $p->pangkat_golongan ?: '—' }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3.5 px-4 text-xs text-right whitespace-nowrap">
-                                            <p class="font-semibold text-slate-800">{{ $p->masa_kerja['label'] }}</p>
-                                            <p class="text-[11px] text-slate-400 mt-0.5">
-                                                {{ $p->umur !== null ? $p->umur . ' tahun' : '—' }}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="py-10 text-center">
-                                            <x-empty icon="pegawai" title="Belum ada pegawai di bidang ini"
-                                                desc="Admin dapat mengatur penempatan pegawai melalui menu Kelola Pegawai." />
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                                            <div>
+                                                <p class="font-bold text-[13px] text-slate-900 leading-snug">{{ $p->nama }}
+                                                </p>
+                                                <p class="text-[11px] text-slate-400 font-mono mt-0.5">
+                                                    {{ $p->nip ?: 'Tanpa NIP' }} · {{ $p->jenis_asn }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3.5 px-3 text-xs text-slate-700 font-medium">
+                                        {{ $p->jabatan ?: '—' }}
+                                    </td>
+                                    <td class="py-3.5 px-3 text-xs text-slate-600">
+                                        <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px]">
+                                            {{ $p->pangkat_golongan ?: '—' }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3.5 px-4 text-xs text-right whitespace-nowrap">
+                                        <p class="font-semibold text-slate-800">{{ $p->masa_kerja['label'] }}</p>
+                                        <p class="text-[11px] text-slate-400 mt-0.5">
+                                            {{ $p->umur !== null ? $p->umur . ' tahun' : '—' }}
+                                        </p>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="py-10 text-center">
+                                        <x-empty icon="pegawai" title="Belum ada pegawai di bidang ini"
+                                            desc="Admin dapat mengatur penempatan pegawai melalui menu Kelola Pegawai." />
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
 
-                    <!-- Rekap Statistik Bawah Tabel -->
-                    <div
-                        class="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-medium">
-                        <span class="font-extrabold text-slate-800">Komposisi:</span>
-                        <span><b class="text-slate-900">{{ $statistik['semua'] }}</b> Total</span>
-                        <span class="text-sky-700">♂ <b>{{ $statistik['l'] }}</b> Laki-laki</span>
-                        <span class="text-pink-600">♀ <b>{{ $statistik['p'] }}</b> Perempuan</span>
-                        <span class="text-purple-700"><b>{{ $statistik['pns'] }}</b> PNS</span>
-                        <span class="text-indigo-700"><b>{{ $statistik['nonpns'] }}</b> Non-PNS</span>
-                        <span class="text-amber-700"><b>{{ $statistik['nonaktif'] }}</b> Non-Aktif</span>
-                        <span class="text-slate-500"><b>{{ $statistik['pensiun'] }}</b> Pensiun</span>
-                    </div>
+                <!-- Rekap Statistik Bawah Tabel -->
+                <div
+                    class="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-medium">
+                    <span class="font-extrabold text-slate-800">Komposisi:</span>
+                    <span><b class="text-slate-900">{{ $statistik['semua'] }}</b> Total</span>
+                    <span class="text-sky-700">♂ <b>{{ $statistik['l'] }}</b> Laki-laki</span>
+                    <span class="text-pink-600">♀ <b>{{ $statistik['p'] }}</b> Perempuan</span>
+                    <span class="text-purple-700"><b>{{ $statistik['pns'] }}</b> PNS</span>
+                    <span class="text-indigo-700"><b>{{ $statistik['nonpns'] }}</b> Non-PNS</span>
+                    <span class="text-amber-700"><b>{{ $statistik['nonaktif'] }}</b> Non-Aktif</span>
+                    <span class="text-slate-500"><b>{{ $statistik['pensiun'] }}</b> Pensiun</span>
                 </div>
             </div>
         </div>
@@ -635,7 +657,7 @@
                 rows.forEach(r => { const hit = !t || r.dataset.docText.includes(t); r.hidden = !hit; });
                 if (clr) clr.hidden = !t;
             };
-            q.addEventListener('input', upd);
+            q.addEventListener('input',upd);
             if (clr) clr.addEventListener('click', () => { q.value = ''; upd(); q.focus(); });
             upd();
         })();

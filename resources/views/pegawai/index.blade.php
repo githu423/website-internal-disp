@@ -81,7 +81,7 @@
         @if ($bolehKelengkapan && ($statistik['belum'] > 0 || request('belum')))
             <a href="{{ request()->fullUrlWithQuery(['belum' => request('belum') ? null : 1]) }}"
                class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition {{ request('belum') ? 'bg-rose-600 text-white border-rose-600 shadow-sm' : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' }}">
-                <span>⚠</span> {{ $statistik['belum'] }} Pegawai Belum Lengkap Datanya — {{ request('belum') ? 'Tampilkan Semua' : 'Saring' }}
+                <span>⚠</span> {{ $statistik['belum'] }} pegawai belum lengkap datanya — {{ request('belum') ? 'tampilkan semua' : 'saring' }}
             </a>
         @endif
     </div>
@@ -129,10 +129,14 @@
                                     <p class="text-[11px] text-slate-400 font-mono mt-0.5">
                                         {{ $p->nip ?: 'Tanpa NIP' }} · {{ $p->jenis_kelamin === 'P' ? '♀ Perempuan' : '♂ Laki-laki' }} · {{ $p->jenis_asn }}
                                     </p>
-                                    @if ($modeBelum)
-                                        <p class="mt-0.5 text-[10.5px] font-bold text-rose-600">
-                                            Belum lengkap: {{ implode(', ', $p->kolomKurang()) }}
+                                    {{-- Penanda kelengkapan khusus admin (v24): bolong disebutkan, utuh ditandai. --}}
+                                    @if ($bolehKelengkapan && count($p->kolomKurang()))
+                                        <p class="mt-0.5 text-[10.5px] font-bold text-rose-600"
+                                            title="{{ implode(', ', $p->kolomKurang()) }}">
+                                            belum lengkap: {{ $p->ringkasKurang() }}
                                         </p>
+                                    @elseif ($bolehKelengkapan)
+                                        <p class="mt-0.5 text-[10.5px] font-bold text-emerald-600">✓ sudah lengkap</p>
                                     @endif
                                 </div>
                             </div>
@@ -182,7 +186,7 @@
     <!-- 5. Card Rekap Statistik Keseluruhan -->
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-500">
         <span class="font-extrabold text-[13px] text-slate-800 flex items-center gap-1.5">
-            <span>👥</span> Rekap Keseluruhan:
+            <span>👥</span> Rekap:
         </span>
         <span><b class="text-sm font-black text-slate-900">{{ $statistik['semua'] }}</b> Total</span>
         <span class="text-sky-700">♂ <b>{{ $statistik['l'] }}</b> Laki-laki</span>
@@ -193,7 +197,7 @@
         <span class="text-amber-700"><b>{{ $statistik['nonaktif'] }}</b> Non-Aktif</span>
         <span class="text-slate-500"><b>{{ $statistik['pensiun'] }}</b> Pensiun</span>
         @if ($bolehKelengkapan)
-            <span class="text-emerald-700 font-bold ml-auto">✓ {{ $statistik['lengkap'] }} Data Lengkap</span>
+            <span class="text-emerald-700 font-bold ml-auto">✓ {{ $statistik['lengkap'] }} sudah lengkap</span>
         @endif
     </div>
 
