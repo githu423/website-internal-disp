@@ -120,7 +120,14 @@
                                 @if($p->bidang) · <span class="text-purple-600 font-medium">{{ $p->bidang->nama }}</span>@endif
                             </p>
                         </div>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border {{ $p->status === 'aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200' }}">
+                        @php
+                            $stMapSearch = [
+                                'aktif'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                'nonaktif' => 'bg-amber-50 text-amber-700 border-amber-200',
+                                'pensiun'  => 'bg-slate-100 text-slate-600 border-slate-200',
+                            ];
+                        @endphp
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 border {{ $stMapSearch[$p->status] ?? 'bg-slate-100 text-slate-600 border-slate-200' }}">
                             {{ ucfirst($p->status) }}
                         </span>
                     </a>

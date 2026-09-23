@@ -17,8 +17,14 @@ class TokenController extends Controller
         if (! $user || ! \Hash::check($d['password'], $user->password)) {
             return response()->json(['message' => 'NIP atau password salah.'], 401);
         }
+        if ($user->status === 'nonaktif') {
+            return response()->json(['message' => 'Akun Anda telah dinonaktifkan. Silakan hubungi administrator kepegawaian.'], 403);
+        }
+        if ($user->status === 'pensiun') {
+            return response()->json(['message' => 'Terima kasih atas pengabdian Anda. Akun dalam status pensiun tidak dapat mengakses sistem. Selamat menikmati masa purnabakti.'], 403);
+        }
         if ($user->status !== 'aktif') {
-            return response()->json(['message' => 'Akun dinonaktifkan.'], 403);
+            return response()->json(['message' => 'Akun Anda tidak aktif. Silakan hubungi administrator.'], 403);
         }
         return response()->json(['token' => TokenService::issue($user), 'name' => $user->name, 'role' => $user->role]);
     }
