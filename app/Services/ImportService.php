@@ -716,30 +716,43 @@ class ImportService
     }
 
     /**
-     * Selaraskan peran, bidang, status, dan jabatan seluruh akun dengan tabel pegawai.
-     * Aman dipanggil berulang (idempoten) dan tetap jalan walau kolom unit_kerja belum dimigrasi.
+     * Selaraskan peran, bidang, status, dan jabatan seluruh akun dengan tabel pegawai (dua arah).
+     * - Pegawai -> User untuk peran/bidang/jabatan (non-admin)
+     * - Status diselaraskan dua arah: bila salah satu pensiun/nonaktif maka kedua jadi itu (pensiun menang).
+     * - Untuk akun nonaktif/pensiun tanpa baris pegawai → buat baris minimal agar muncul di Data Pegawai.
+     * Aman dipanggil berulang (idempoten).
      */
     public static function sinkronAkunPegawai(): int
     {
         $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
         $ubah = 0;
-        foreach (User::where('role', '!=', 'admin')->with('pegawai')->get() as $u) {
+        // 1) sinkron User yang punya Pegawai (dua arah status)
+        foreach (User::with('pegawai')->get() as $u) {
             $p = $u->pegawai ?: Pegawai::where('nip', $u->nip)->first();
-            if (!$p) continue;
-            $d = [];
-            $bid = $p->id_bidang ?? Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
-            if ($bid && (int) $u->id_bidang !== (int) $bid) $d['id_bidang'] = $bid;
-            $peran = self::peranDariJabatan($p->jabatan);
-            if ($u->role !== $peran) $d['role'] = $peran;
-            if ($p->status && $u->status !== $p->status) $d['status'] = $p->status;
-            if ($p->jabatan && $u->jabatan !== $p->jabatan) $d['jabatan'] = $p->jabatan;
-            if ($d) { $u->update($d); $ubah++; }
-        }
-        // sinkron status untuk admin juga bila pegawai-nya pensiun/nonaktif (tetap blokir login)
-        foreach (User::where('role', 'admin')->with('pegawai')->get() as $u) {
-            $p = $u->pegawai ?: Pegawai::where('nip', $u->nip)->first();
-            if (!$p || !$p->status) continue;
-            if ($u->status !== $p->status) { $u->update(['status' => $p->status]); $ubah++; }
+            if ($p) {
+                $d = [];
+                // peran/bidang/jabatan hanya untuk non-admin (admin tetap admin)
+                if ($u->role !== 'admin') {
+                    $bid = $p->id_bidang ?? Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
+                    if ($bid && (int) $u->id_bidang !== (int) $bid) $d['id_bidang'] = $bid;
+                    $peran = self::peranDariJabatan($p->jabatan);
+                    if ($u->role !== $peran) $d['role'] = $peran;
+                    if ($p->jabatan && $u->jabatan !== $p->jabatan) $d['jabatan'] = $p->jabatan;
+                }
+                // status: dua arah, pensiun > nonaktif > aktif
+                $desired = 'aktif';
+                if ($u->status === 'pensiun' || $p->status === 'pensiun') $desired = 'pensiun';
+                elseif ($u->status === 'nonaktif' || $p->status === 'nonaktif') $desired = 'nonaktif';
+                if ($u->status !== $desired) $d['status'] = $desired;
+                if ($d) { $u->update($d); $ubah++; }
+                if ($p->status !== $desired) { $p->update(['status' => $desired]); $ubah++; }
+            } else {
+                // 2) akun nonaktif/pensiun tanpa pegawai → buat pegawai minimal agar filter Data Pegawai ada isinya
+                if (in_array($u->status, ['nonaktif', 'pensiun'], true)) {
+                    Pegawai::create(['nip' => $u->nip, 'nama' => $u->name, 'status' => $u->status, 'id_bidang' => $u->id_bidang, 'jabatan' => $u->jabatan]);
+                    $ubah++;
+                }
+            }
         }
         return $ubah;
     }
