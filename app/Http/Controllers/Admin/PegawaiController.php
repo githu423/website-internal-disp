@@ -21,12 +21,21 @@ class PegawaiController extends Controller
         $cari = trim((string) $request->query('q', ''));
         $kunci = strtolower(preg_replace('/\s+/', '', $cari));
         $modeBelum = $kunci === 'belumlengkap' || (bool) $request->query('belum');
+        $status = (string) $request->query('status', '');
+        if (! in_array($status, ['aktif', 'nonaktif', 'pensiun'], true)) $status = '';
         $q = Pegawai::query()->with('bidang');
         if ($kunci !== 'belumlengkap') $q->cari($cari ?: null);
         if ($b = $request->query('bidang')) $q->where('id_bidang', $b);
+        if ($status !== '') $q->where('status', $status);
         if ($modeBelum) $q->belumLengkap(); // chip merah / kata kunci: hanya yang datanya bolong
         $belumLengkap = Pegawai::belumLengkap()->count();
         $total = Pegawai::count();
+        $statistik = [
+            'semua' => $total,
+            'aktif' => Pegawai::where('status', 'aktif')->count(),
+            'nonaktif' => Pegawai::where('status', 'nonaktif')->count(),
+            'pensiun' => Pegawai::where('status', 'pensiun')->count(),
+        ];
         return view('admin.pegawai.index', [
             'pegawai' => $q->orderBy('nama')->paginate(15)->withQueryString(),
             'bidangs' => Bidang::orderBy('id')->get(),
@@ -34,6 +43,8 @@ class PegawaiController extends Controller
             'belumLengkap' => $belumLengkap,
             'lengkap' => $total - $belumLengkap,
             'modeBelum' => $modeBelum,
+            'statusFilter' => $status,
+            'statistik' => $statistik,
         ]);
     }
 
@@ -46,7 +57,7 @@ class PegawaiController extends Controller
         if (empty($d['id_bidang'])) {
             $d['id_bidang'] = Bidang::tebakDariTeks(trim(($d['jabatan'] ?? '') . ' ' . ($d['unit_kerja'] ?? '')));
         }
-        Pegawai::create($d);
+        $pegawai = Pegawai::create($d);
 
         $akunBaru = false;
         if (! User::where('nip', $d['nip'])->exists()) {
@@ -57,8 +68,15 @@ class PegawaiController extends Controller
                 'role' => ImportService::peranDariJabatan($d['jabatan'] ?? null),
                 'id_bidang' => $d['id_bidang'],
                 'jabatan' => $d['jabatan'] ?? null,
+                'status' => $d['status'] ?? 'aktif',
             ]);
             $akunBaru = true;
+        } else {
+            // sinkron status bila akun sudah ada (nonaktif/pensiun harus cermin)
+            $u = User::where('nip', $d['nip'])->first();
+            if ($u && $u->status !== ($d['status'] ?? 'aktif')) {
+                $u->update(['status' => $d['status'] ?? 'aktif']);
+            }
         }
         LogAktivitas::catat('tambah pegawai', $d['nama']);
         return back()->with('sukses', 'Pegawai ditambahkan.' . ($akunBaru ? ' Akun login dibuat otomatis (password default dinas).' : ''));
@@ -70,16 +88,20 @@ class PegawaiController extends Controller
         $pegawai->update($d);
 
         // Konfirmasi Dinas 10 Sep: admin cukup ubah SATU kolom (mis. hanya bidang) lalu simpan.
-        // Perubahan bidang/jabatan pada data pegawai ikut diterapkan ke AKUN LOGIN terkait
-        // (non-admin) — agar lingkup "Bidang Saya", agenda bidang, dan peran pengelola
+        // Perubahan bidang/jabatan/status pada data pegawai ikut diterapkan ke AKUN LOGIN terkait
+        // — agar lingkup "Bidang Saya", agenda bidang, peran pengelola, dan blokir login
         // langsung mengikuti data terbaru tanpa perlu menunggu import ulang Excel.
         $akunUbah = [];
         $user = User::where('nip', $pegawai->nip)->first();
-        if ($user && $user->role !== 'admin') {
-            if (! empty($d['id_bidang']) && (int) $user->id_bidang !== (int) $d['id_bidang']) $akunUbah['id_bidang'] = $d['id_bidang'];
-            if (! empty($d['jabatan']) && $user->jabatan !== $d['jabatan']) $akunUbah['jabatan'] = $d['jabatan'];
-            $peran = ImportService::peranDariJabatan($pegawai->jabatan);
-            if ($user->role !== $peran) $akunUbah['role'] = $peran;
+        if ($user) {
+            // sinkron status selalu (berlaku juga untuk admin bila pegawai pensiun/nonaktif)
+            if (isset($d['status']) && $user->status !== $d['status']) $akunUbah['status'] = $d['status'];
+            if ($user->role !== 'admin') {
+                if (! empty($d['id_bidang']) && (int) $user->id_bidang !== (int) $d['id_bidang']) $akunUbah['id_bidang'] = $d['id_bidang'];
+                if (! empty($d['jabatan']) && $user->jabatan !== $d['jabatan']) $akunUbah['jabatan'] = $d['jabatan'];
+                $peran = ImportService::peranDariJabatan($pegawai->jabatan);
+                if ($user->role !== $peran) $akunUbah['role'] = $peran;
+            }
             if ($akunUbah) $user->update($akunUbah);
         }
         LogAktivitas::catat('ubah pegawai', $pegawai->nama . ($akunUbah ? ' (' . implode(', ', array_keys($akunUbah)) . ')' : ''));

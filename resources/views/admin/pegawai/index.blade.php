@@ -46,9 +46,28 @@
         </div>
     </div>
 
+    <!-- 2b. Status Filter Tabs (sinkron Data Pegawai & Dashboard) -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            @foreach (['' => 'Semua', 'aktif' => 'Aktif', 'nonaktif' => 'Non-Aktif', 'pensiun' => 'Pensiun'] as $sv => $slab)
+                <a href="{{ request()->fullUrlWithQuery(['status' => $sv ?: null, 'page' => null]) }}"
+                   class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition {{ ($statusFilter ?? '') === $sv ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50' }}">
+                    {{ $slab }}@if(isset($statistik))<span class="ml-1 opacity-70">({{ $statistik[$sv ?: 'semua'] ?? 0 }})</span>@endif
+                </a>
+            @endforeach
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+            <span class="text-slate-400">Rekap:</span>
+            <span class="text-emerald-700"><b>{{ $statistik['aktif'] ?? 0 }}</b> Aktif</span>
+            <span class="text-amber-700"><b>{{ $statistik['nonaktif'] ?? 0 }}</b> Non-Aktif</span>
+            <span class="text-slate-500"><b>{{ $statistik['pensiun'] ?? 0 }}</b> Pensiun</span>
+        </div>
+    </div>
+
     <!-- Filter Form Toolbar -->
     <form method="GET" class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         @if (request('belum'))<input type="hidden" name="belum" value="1">@endif
+        @if (($statusFilter ?? '') !== '')<input type="hidden" name="status" value="{{ $statusFilter }}">@endif
         
         <div class="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div class="relative flex-1">
@@ -70,7 +89,7 @@
             <button type="submit" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs md:text-sm rounded-xl shadow-sm transition">
                 Terapkan
             </button>
-            @if(request('q') || request('bidang') || request('belum'))
+            @if(request('q') || request('bidang') || request('belum') || ($statusFilter ?? ''))
                 <a href="{{ route('admin.pegawai.index') }}" class="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition">
                     Reset
                 </a>
@@ -138,7 +157,14 @@
                                     @endif
                                 </td>
                                 <td class="py-3.5 px-3 text-center">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $p->status === 'aktif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                                    @php
+                                        $stMapPeg = [
+                                            'aktif'    => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                                            'nonaktif' => 'bg-amber-50 text-amber-700 border border-amber-200',
+                                            'pensiun'  => 'bg-slate-100 text-slate-600 border border-slate-200',
+                                        ];
+                                    @endphp
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border {{ $stMapPeg[$p->status] ?? 'bg-slate-100 text-slate-600 border-slate-200' }}">
                                         {{ ucfirst($p->status) }}
                                     </span>
                                 </td>

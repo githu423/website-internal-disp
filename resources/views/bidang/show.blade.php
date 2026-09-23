@@ -522,10 +522,16 @@
                                                 {{ strtoupper(mb_substr($p->nama, 0, 2)) }}
                                             </div>
                                             <div>
-                                                <p class="font-bold text-[13px] text-slate-900 leading-snug">{{ $p->nama }}
-                                                </p>
+                                                <div class="flex items-center gap-1.5">
+                                                    <p class="font-bold text-[13px] text-slate-900 leading-snug">{{ $p->nama }}</p>
+                                                    @if ($p->status === 'nonaktif')
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">NON-AKTIF</span>
+                                                    @elseif ($p->status === 'pensiun')
+                                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200">PENSIUN</span>
+                                                    @endif
+                                                </div>
                                                 <p class="text-[11px] text-slate-400 font-mono mt-0.5">
-                                                    {{ $p->nip ?: 'Tanpa NIP' }} · {{ $p->jenis_asn }}</p>
+                                                    {{ $p->nip ?: 'Tanpa NIP' }} · {{ $p->jenis_asn }}@if($p->status !== 'aktif') · {{ ucfirst($p->status) }}@endif</p>
                                             </div>
                                         </div>
                                     </td>

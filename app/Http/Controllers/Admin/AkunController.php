@@ -21,6 +21,8 @@ class AkunController extends Controller
             $q->where(fn ($w) => $w->where('name', 'like', "%$s%")->orWhere('nip', 'like', "%$s%"));
         }
         if ($r = $request->query('role')) $q->where('role', $r);
+        $st = (string) $request->query('status', '');
+        if (in_array($st, ['aktif', 'nonaktif', 'pensiun'], true)) $q->where('status', $st);
         return view('admin.akun.index', [
             'users' => $q->orderBy('name')->paginate(15)->withQueryString(),
             'bidangs' => Bidang::orderBy('id')->get(),
@@ -36,17 +38,22 @@ class AkunController extends Controller
             'role' => ['nullable', 'in:admin,bidang,pegawai'],
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
             'jabatan' => ['nullable', 'string', 'max:120'],
+            'status' => ['nullable', 'in:aktif,nonaktif,pensiun'],
         ]);
         // peran & bidang yang dibiarkan kosong = otomatis mengikuti data pegawai (jabatan/unit kerja)
-        if (! empty($d['nip']) && (empty($d['role']) || empty($d['id_bidang']) || empty($d['jabatan']))) {
+        $peg = null;
+        if (! empty($d['nip'])) {
             $peg = Pegawai::where('nip', $d['nip'])->first();
-            if ($peg) {
+            if ($peg && (empty($d['role']) || empty($d['id_bidang']) || empty($d['jabatan']))) {
                 $d['id_bidang'] = ($d['id_bidang'] ?? null) ?: ($peg->id_bidang ?? Bidang::tebakDariTeks(trim(($peg->jabatan ?? '') . ' ' . ($peg->unit_kerja ?? ''))));
                 $d['role'] = ($d['role'] ?? null) ?: ImportService::peranDariJabatan($peg->jabatan);
                 $d['jabatan'] = ($d['jabatan'] ?? null) ?: $peg->jabatan;
             }
+            // warisi status pegawai bila tidak diisi eksplisit
+            if (empty($d['status']) && $peg) $d['status'] = $peg->status ?? 'aktif';
         }
         $d['role'] = $d['role'] ?: 'pegawai';
+        $d['status'] = $d['status'] ?? 'aktif';
         User::create($d);
         LogAktivitas::catat('buat akun', $d['nip']);
         return back()->with('sukses', 'Akun dibuat.');
@@ -66,6 +73,11 @@ class AkunController extends Controller
         }
         unset($d['password']);
         $akun->update($d);
+        // sinkron status ke data pegawai dengan NIP sama (agar rekap & daftar pegawai konsisten)
+        $peg = Pegawai::where('nip', $akun->nip)->first();
+        if ($peg && $peg->status !== $d['status']) {
+            $peg->update(['status' => $d['status']]);
+        }
         LogAktivitas::catat('ubah akun', $akun->nip);
         return back()->with('sukses', 'Akun diperbarui.');
     }
@@ -78,13 +90,13 @@ class AkunController extends Controller
         return back()->with('sukses', 'Akun dihapus.');
     }
 
-    /** Satu klik: cocokkan peran & bidang seluruh akun non-admin dengan data pegawai terbaru. */
+    /** Satu klik: cocokkan peran, bidang, dan status seluruh akun dengan data pegawai terbaru. */
     public function sinkronPeran(): RedirectResponse
     {
         $ubah = ImportService::sinkronAkunPegawai();
         LogAktivitas::catat('sinkron peran akun', "{$ubah} akun disinkronkan");
         return back()->with('sukses', $ubah
-            ? "{$ubah} akun disesuaikan otomatis (peran & bidang) mengikuti data pegawai."
+            ? "{$ubah} akun disesuaikan otomatis (peran, bidang & status) mengikuti data pegawai."
             : 'Semua akun sudah sesuai data pegawai — tidak ada yang diubah.');
     }
 }
