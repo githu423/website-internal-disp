@@ -116,7 +116,14 @@
                             {{ $usr->jabatan ?? '—' }}
                         </td>
                         <td class="py-3.5 px-3 text-center">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $usr->status === 'aktif' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200' }}">
+                            @php
+                                $stMap = [
+                                    'aktif'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                    'nonaktif' => 'bg-rose-50 text-rose-700 border-rose-200',
+                                    'pensiun'  => 'bg-slate-100 text-slate-600 border-slate-200',
+                                ];
+                            @endphp
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $stMap[$usr->status] ?? 'bg-amber-50 text-amber-700 border-amber-200' }}">
                                 {{ ucfirst($usr->status) }}
                             </span>
                         </td>
@@ -168,7 +175,7 @@
                                     <div>
                                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Status Akun</label>
                                         <select name="status" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs bg-white focus:outline-none focus:border-purple-400">
-                                            @foreach (['aktif','nonaktif'] as $st)
+                                            @foreach (['aktif','nonaktif','pensiun'] as $st)
                                                 <option value="{{ $st }}" @selected($usr->status === $st)>{{ ucfirst($st) }}</option>
                                             @endforeach
                                         </select>
