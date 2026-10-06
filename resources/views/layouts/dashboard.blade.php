@@ -108,6 +108,10 @@
                     <div class="space-y-1.5">
                         <x-sb-link :href="route('dokumen.index')" label="Dokumen" icon="dokumen"
                             :active="$r('dokumen.*')" />
+                        @if ($u->isBisaUnggah())
+                            <x-sb-link :href="route('ruang-rapat.index')" label="Ruang Rapat" icon="agenda"
+                                :active="$r('ruang-rapat.*')" />
+                        @endif
                         <x-sb-link :href="route('notifikasi.index')" label="Notifikasi" icon="bell"
                             :active="$r('notifikasi.*')" :badge="$u->notifikasi()->belum()->count() ?: null" />
                         <x-sb-link :href="route('bidang.index')" label="Bidang Dinas" icon="bidang"
