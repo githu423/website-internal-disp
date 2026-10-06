@@ -310,3 +310,23 @@ html.dark #office-host, html.dark #office-host * { color-scheme: light; }
 
 /* Sembunyikan kedip tema sebelum skrip jalan */
 html.dark img[src*="logo-dispar"] { filter: brightness(.97); }
+
+/* --- Varian opasitas & shade yang belum terpetakan ---------------------- */
+html.dark .bg-slate-50\/75, html.dark .bg-slate-50\/70, html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/40, html.dark .bg-slate-50\/30,
+html.dark .bg-slate-100\/70, html.dark .bg-slate-100\/60, html.dark .bg-slate-100\/40,
+html.dark .bg-slate-200, html.dark .bg-slate-200\/50, html.dark .bg-slate-200\/60,
+html.dark .bg-slate-200\/70, html.dark .bg-slate-200\/80,
+html.dark .bg-gray-50, html.dark .bg-gray-100, html.dark .bg-gray-200 {
+    background-color: var(--d-surf2) !important;
+}
+
+/* Teks terang yang jadi hilang di latar gelap */
+html.dark .text-slate-300, html.dark .text-slate-200 { color: var(--d-mute) !important; }
+
+/* Tabel matriks: header & kolom sticky harus solid (tidak transparan) */
+html.dark table.data thead th,
+html.dark table.data thead tr { background-color: #241a3b !important; }
+html.dark table.data .sticky,
+html.dark table.data td.sticky,
+html.dark table.data th.sticky { background-color: var(--d-surf) !important; }
