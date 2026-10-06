@@ -163,9 +163,12 @@ html.dark .bg-white,
 html.dark .clean-card,
 html.dark .card { background-color: var(--d-surf) !important; }
 html.dark .bg-white\/90 { background-color: rgba(30, 21, 51, .92) !important; }
+html.dark .bg-white\/80 { background-color: rgba(30, 21, 51, .88) !important; }
 html.dark .bg-slate-50,
 html.dark .bg-slate-100,
 html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/60,
+html.dark .bg-slate-50\/70,
 html.dark .bg-slate-50\/80,
 html.dark .bg-slate-100\/80,
 html.dark .bg-slate-100\/50 { background-color: var(--d-surf2) !important; }
@@ -176,6 +179,7 @@ html.dark .bg-slate-800 { background-color: #0f0a1b !important; }
 html.dark .border-slate-200,
 html.dark .border-slate-300,
 html.dark .border-slate-200\/60,
+html.dark .border-slate-200\/70,
 html.dark .border-slate-200\/90,
 html.dark .border-slate-200\/50 { border-color: var(--d-line) !important; }
 html.dark .border-slate-100,
@@ -203,6 +207,7 @@ html.dark .text-purple-700, html.dark .text-purple-600,
 html.dark .text-purple-800 { color: var(--d-acc) !important; }
 html.dark .bg-purple-50, html.dark .bg-purple-50\/50,
 html.dark .bg-purple-50\/10, html.dark .bg-purple-50\/30,
+html.dark .bg-purple-50\/60,
 html.dark .bg-purple-50\/90, html.dark .bg-purple-50\/80,
 html.dark .bg-purple-100, html.dark .bg-purple-100\/80 { background-color: var(--d-acc-soft) !important; }
 html.dark .border-purple-100,
