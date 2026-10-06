@@ -68,11 +68,24 @@
                     </div>
                 </div>
             </div>
-            <div class="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:p-6">
-                <input type="text" readonly value="{{ $tautanPublik }}" aria-label="Tautan tamu" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20">
-                <a href="{{ $tautanPublik }}" target="_blank" rel="noopener" class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-300 hover:bg-slate-50 hover:text-purple-600">
-                    <x-icon name="dokumen" class="h-4 w-4" /> Buka sebagai tamu
-                </a>
+            <div class="flex flex-col gap-3 p-5 sm:p-6">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+                    <input id="tautan-ruang-rapat" data-ruang-rapat-title="{{ $ruangRapat->judul }}" type="text" readonly value="{{ $tautanPublik }}" aria-label="Tautan tamu" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20">
+                    <div class="flex flex-wrap gap-2">
+                        <button id="salin-tautan-rapat" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-purple-700 hover:to-indigo-700 sm:flex-none" title="Salin tautan rapat" aria-label="Salin tautan rapat">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 007.07 0l3-3A5 5 0 0013 2.93l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.07 0l-3 3A5 5 0 0011 21.07l1.71-1.71" /></svg>
+                            Salin tautan
+                        </button>
+                        <button id="bagikan-tautan-rapat" type="button" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-300 hover:bg-slate-50 hover:text-purple-600 sm:flex-none" title="Bagikan tautan rapat" aria-label="Bagikan tautan rapat">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4" /></svg>
+                            Bagikan
+                        </button>
+                        <a href="{{ $tautanPublik }}" target="_blank" rel="noopener" class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-300 hover:bg-slate-50 hover:text-purple-600 sm:flex-none">
+                            <x-icon name="dokumen" class="h-4 w-4" /> Buka sebagai tamu
+                        </a>
+                    </div>
+                </div>
+                <p id="status-tautan-rapat" role="status" aria-live="polite" class="hidden rounded-xl bg-slate-50 px-3.5 py-2 text-xs font-semibold text-emerald-700"></p>
             </div>
             <div class="flex flex-wrap gap-x-6 gap-y-2 border-t border-slate-200/70 px-5 py-3 text-xs text-slate-500 sm:px-6">
                 <span>{{ $ruangRapat->pin_hash ? 'PIN aktif' : 'Tanpa PIN' }}</span>
@@ -245,4 +258,62 @@
             </div>
         </div>
     </div>
+
+    <script>
+        (() => {
+            const linkField = document.getElementById('tautan-ruang-rapat');
+            const copyButton = document.getElementById('salin-tautan-rapat');
+            const shareButton = document.getElementById('bagikan-tautan-rapat');
+            const feedback = document.getElementById('status-tautan-rapat');
+            if (!linkField || !copyButton || !shareButton || !feedback) return;
+
+            const setFeedback = (message, isError = false) => {
+                feedback.textContent = message;
+                feedback.classList.remove('hidden', 'text-emerald-700', 'text-rose-600');
+                feedback.classList.add(isError ? 'text-rose-600' : 'text-emerald-700');
+            };
+
+            const copyLink = async () => {
+                try {
+                    if (navigator.clipboard?.writeText && window.isSecureContext) {
+                        await navigator.clipboard.writeText(linkField.value);
+                    } else {
+                        linkField.focus();
+                        linkField.select();
+                        linkField.setSelectionRange(0, linkField.value.length);
+                        if (!document.execCommand('copy')) throw new Error('Clipboard tidak tersedia.');
+                    }
+                    setFeedback('Tautan berhasil disalin.');
+                    return true;
+                } catch (error) {
+                    linkField.focus();
+                    linkField.select();
+                    linkField.setSelectionRange(0, linkField.value.length);
+                    setFeedback('Penyalinan otomatis tidak tersedia. Tautan sudah dipilih; tekan Ctrl+C atau Cmd+C.', true);
+                    return false;
+                }
+            };
+
+            copyButton.addEventListener('click', copyLink);
+            shareButton.addEventListener('click', async () => {
+                const judul = linkField.dataset.ruangRapatTitle || 'Ruang Rapat';
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: `Ruang Rapat: ${judul}`,
+                            text: `Tautan akses untuk ${judul}`,
+                            url: linkField.value,
+                        });
+                        setFeedback('Menu berbagi berhasil dibuka.');
+                    } catch (error) {
+                        if (error.name === 'AbortError') return;
+                        if (await copyLink()) setFeedback('Berbagi langsung tidak tersedia; tautan disalin. Tempelkan di aplikasi pilihan Anda.');
+                    }
+                    return;
+                }
+
+                if (await copyLink()) setFeedback('Fitur bagikan tidak tersedia di browser ini. Tautan disalin; tempelkan di aplikasi pilihan Anda.');
+            });
+        })();
+    </script>
 @endsection
