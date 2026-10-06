@@ -8,19 +8,10 @@
     <title>@yield('title', 'Dashboard') · SIPARDIS</title>
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+    {{-- Tema dipasang sebelum stylesheet agar semua halaman memakai preferensi yang sama tanpa kilat putih. --}}
+    @include('partials.theme-init')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>document.documentElement.classList.toggle('sb-pinned', localStorage.getItem('sb-pinned') === '1'); if (window.innerWidth >= 768 && window.innerWidth < 1024) document.documentElement.classList.add('sb-tablet');</script>
-    {{-- Mode gelap diterapkan sebelum halaman tampil supaya tidak ada kedip putih --}}
-    <script>
-        (function () {
-            try {
-                var t = localStorage.getItem('tema');
-                if (t === 'gelap' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                }
-            } catch (e) {}
-        })();
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -256,20 +247,8 @@
                 </span>
 
                 <!-- Tombol Mode Gelap / Terang -->
-                <button id="tema-btn" type="button" title="Ganti mode gelap / terang"
-                    aria-label="Ganti mode gelap atau terang"
-                    class="h-9 w-9 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
-                    <svg data-tema-ikon="terang" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
-                    <svg data-tema-ikon="gelap" class="hidden h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 3v1.5m0 15V21m9-9h-1.5m-15 0H3m15.36-6.36l-1.06 1.06M6.7 17.3l-1.06 1.06m12.72 0l-1.06-1.06M6.7 6.7L5.64 5.64M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-                    </svg>
-                </button>
+                <x-theme-toggle title="Ganti mode gelap / terang"
+                    class="h-9 w-9 text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90" />
 
                 <!-- Bell Notification -->
                 <div class="relative">

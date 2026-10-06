@@ -11,10 +11,15 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <!-- Theme is applied before styles load to avoid a flash during navigation. -->
+        @include('partials.theme-init')
+
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-gray-900 antialiased">
+        <x-theme-toggle title="Ganti mode gelap / terang"
+            class="fixed right-4 top-4 z-50 h-10 w-10 border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-purple-600" />
         <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
             <div>
                 <a href="/">

@@ -736,7 +736,7 @@ if (office) {
             const untukGelap = el.dataset.temaIkon === 'gelap';
             el.classList.toggle('hidden', untukGelap !== gelap);
         });
-        document.querySelectorAll('#tema-btn').forEach(function (b) {
+        document.querySelectorAll('[data-theme-toggle]').forEach(function (b) {
             b.setAttribute('title', gelap ? 'Beralih ke mode terang' : 'Beralih ke mode gelap');
             b.setAttribute('aria-pressed', gelap ? 'true' : 'false');
         });
@@ -744,7 +744,7 @@ if (office) {
 
     segarkanIkon();
 
-    document.querySelectorAll('#tema-btn').forEach(function (btn) {
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (btn) {
         btn.addEventListener('click', function () {
             const jadiGelap = !akar.classList.contains('dark');
             akar.classList.toggle('dark', jadiGelap);

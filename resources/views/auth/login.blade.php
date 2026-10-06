@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Masuk ke Sistem · SIPARDIS Dispar Ciamis</title>
     <link rel="icon" href="{{ asset('images/logo-dispar.jpg') }}">
+    @include('partials.theme-init')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,6 +15,8 @@
     </style>
 </head>
 <body class="h-full bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-gray-800 antialiased selection:bg-purple-500 selection:text-white relative min-h-screen flex flex-col justify-start lg:justify-center overflow-x-hidden">
+    <x-theme-toggle title="Ganti mode gelap / terang"
+        class="fixed right-4 top-4 z-50 h-10 w-10 border border-white/30 bg-white/10 text-white shadow-lg backdrop-blur-sm hover:bg-white/20 hover:text-white" />
 
     <!-- ================= LATAR BELAKANG GLOBAL SEAMLESS ================= -->
     <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
@@ -39,7 +42,7 @@
         <div class="w-full lg:w-1/2 max-w-lg text-white mb-4 lg:mb-0 px-4 sm:px-0 lg:pr-8 xl:pr-12 flex flex-col justify-between h-auto lg:min-h-[500px]">
             <div>
                 <!-- Logo Instansi Ciamis & Badge Pemerintah -->
-                <div class="flex items-center gap-3.5">
+                <div class="flex items-center gap-3.5 pr-12 sm:pr-0">
                     <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/95 p-2 shadow-xl shadow-black/30 flex items-center justify-center flex-shrink-0 border border-white/20 backdrop-blur-sm">
                         <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo Dinas Pariwisata Ciamis" class="w-full h-full object-contain rounded-xl">
                     </div>

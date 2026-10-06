@@ -74,7 +74,7 @@
         @if ($isPdf)
             <iframe src="{{ $src }}" class="w-full h-[78vh] bg-slate-50" title="{{ $d->judul }}"></iframe>
         @elseif ($isImg)
-            <div class="p-4 grid place-items-center bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:24px_24px]"><img src="{{ $src }}" alt="{{ $d->judul }}" class="max-h-[78vh] max-w-full rounded-lg shadow"></div>
+            <div class="preview-checker p-4 grid place-items-center bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:24px_24px]"><img src="{{ $src }}" alt="{{ $d->judul }}" class="max-h-[78vh] max-w-full rounded-lg shadow"></div>
         @elseif ($isText)
             <pre class="p-5 text-[13px] leading-relaxed whitespace-pre-wrap max-h-[78vh] overflow-y-auto thin-scroll font-mono text-slate-700">{{ $isiTeks }}</pre>
         @elseif ($isPptx)
