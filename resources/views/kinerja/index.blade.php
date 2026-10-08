@@ -171,7 +171,7 @@
 
         <!-- Tabel Data -->
         <div class="overflow-x-auto thin-scroll">
-            <table class="data w-full min-w-[860px]">
+            <table class="data w-full min-w-[920px]">
                 <thead>
                     <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
                         <th class="w-12 text-center py-3 px-4">#</th>
@@ -179,6 +179,7 @@
                         <th class="py-3 px-4 min-w-[200px]">Indikator &amp; Pagu</th>
                         <th class="py-3 px-4">Pelaksana</th>
                         <th class="py-3 px-4">Target</th>
+                        <th class="py-3 px-4">Realisasi</th>
                         <th class="py-3 px-4 min-w-[190px]">Capaian</th>
                         <th class="py-3 px-4 text-center">Status</th>
                     </tr>
@@ -208,6 +209,10 @@
                             {{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} 
                             <span class="font-normal text-slate-400">{{ $k->satuan }}</span>
                         </td>
+                        <td class="py-3.5 px-4 text-xs font-bold whitespace-nowrap text-purple-700">
+                            {{ rtrim(rtrim(number_format((float) $k->capaian, 2, ',', '.'), '0'), ',') }} 
+                            <span class="font-normal text-purple-600/70">{{ $k->satuan }}</span>
+                        </td>
                         <td class="py-3.5 px-4">
                             <x-prog :persen="$k->persentase" />
                         </td>
@@ -230,7 +235,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="py-10 text-center">
+                        <td colspan="8" class="py-10 text-center">
                             <x-empty icon="kinerja" title="Tidak ada kegiatan yang cocok" desc="Coba kata kunci lain atau pilih tahun anggaran yang sesuai." />
                         </td>
                     </tr>

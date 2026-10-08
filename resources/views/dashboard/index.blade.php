@@ -243,8 +243,8 @@
     </div>
     @if ($kinerja->count())
         <div class="overflow-x-auto thin-scroll">
-            <table class="data w-full min-w-[720px]">
-                <thead><tr><th class="w-8">#</th><th>Kegiatan / Sub Kegiatan</th><th>Pelaksana</th><th>Target</th><th class="min-w-[190px]">Capaian</th><th>Status</th></tr></thead>
+            <table class="data w-full min-w-[780px]">
+                <thead><tr><th class="w-8">#</th><th>Kegiatan / Sub Kegiatan</th><th>Pelaksana</th><th>Target</th><th>Realisasi</th><th class="min-w-[190px]">Capaian</th><th>Status</th></tr></thead>
                 <tbody>
                 @foreach ($kinerja as $k)
                     <tr>
@@ -255,6 +255,7 @@
                         </td>
                         <td class="text-xs text-slate-500">{{ $k->bidang?->nama ?? '—' }}</td>
                         <td class="text-xs font-semibold tabular-nums whitespace-nowrap">{{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} <span class="font-normal text-slate-400">{{ $k->satuan }}</span></td>
+                        <td class="text-xs font-bold tabular-nums whitespace-nowrap text-purple-700">{{ rtrim(rtrim(number_format((float) $k->capaian, 2, ',', '.'), '0'), ',') }} <span class="font-normal text-purple-600/70">{{ $k->satuan }}</span></td>
                         <td><x-prog :persen="$k->persentase" /></td>
                         <td>@php $st = $k->label_status; @endphp
                             <span class="text-[11px] font-bold rounded-full px-2 py-1 whitespace-nowrap {{ $st === 'Tuntas' ? 'bg-emerald-50 text-emerald-700' : ($st === 'Berjalan' ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-700') }}">{{ $st }}</span>

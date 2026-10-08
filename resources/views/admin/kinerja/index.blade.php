@@ -151,7 +151,7 @@
                             <tr class="bg-slate-50/75 border-b border-slate-200 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
                                 <th class="w-12 text-center py-3 px-3">Level</th>
                                 <th class="py-3 px-3 min-w-[220px]">Kegiatan &amp; Indikator</th>
-                                <th class="py-3 px-3 whitespace-nowrap">Target &rarr; Capaian</th>
+                                <th class="py-3 px-3 whitespace-nowrap">Target &rarr; Realisasi</th>
                                 <th class="py-3 px-3 min-w-[140px]">Progres</th>
                                 <th class="w-24 text-right py-3 px-4">Aksi</th>
                             </tr>
@@ -196,12 +196,8 @@
                                     @endif
                                 </td>
                                 <td class="py-3 px-3 text-xs whitespace-nowrap align-top">
-                                    <span class="font-semibold text-slate-800">
-                                        {{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} {{ $k->satuan }}
-                                    </span>
-                                    <span class="block text-purple-700 font-bold mt-0.5">
-                                        &rarr; {{ rtrim(rtrim(number_format((float) $k->capaian, 2, ',', '.'), '0'), ',') }}
-                                    </span>
+                                    <div class="text-[11px] text-slate-500 font-medium">Tgt: <span class="font-semibold text-slate-800">{{ rtrim(rtrim(number_format((float) $k->target, 2, ',', '.'), '0'), ',') }} {{ $k->satuan }}</span></div>
+                                    <div class="text-[11px] text-purple-700 font-bold mt-0.5">Real: <span>{{ rtrim(rtrim(number_format((float) $k->capaian, 2, ',', '.'), '0'), ',') }} {{ $k->satuan }}</span></div>
                                 </td>
                                 <td class="py-3 px-3 align-top">
                                     <x-prog :persen="$k->persentase" />
