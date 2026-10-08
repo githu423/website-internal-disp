@@ -24,13 +24,39 @@ class RuangRapatController extends Controller
     {
         $user = $this->pastikanPengelola($request);
         $status = (string) $request->query('status', 'semua');
-        $query = RuangRapat::query()
+        $q = trim((string) $request->query('q', ''));
+        $idBidang = $request->query('id_bidang');
+
+        $baseQuery = RuangRapat::query();
+        if (! $user->isAdmin()) {
+            $baseQuery->where('id_bidang', $user->id_bidang);
+        }
+
+        // Hitungan metrik untuk kartu ringkasan
+        $totalSemua = (clone $baseQuery)->count();
+        $totalAktif = (clone $baseQuery)->where('status', 'aktif')->whereDate('berlaku_sampai', '>=', today())->count();
+        $totalKedaluwarsa = (clone $baseQuery)->where('status', 'aktif')->whereDate('berlaku_sampai', '<', today())->count();
+        $totalNonaktif = (clone $baseQuery)->where('status', 'nonaktif')->count();
+
+        $query = (clone $baseQuery)
             ->with(['bidang', 'pembuat'])
             ->withCount('dokumen')
             ->latest();
 
-        if (! $user->isAdmin()) {
-            $query->where('id_bidang', $user->id_bidang);
+        if ($user->isAdmin() && $idBidang) {
+            $query->where('id_bidang', $idBidang);
+        }
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('judul', 'like', "%{$q}%")
+                    ->orWhere('deskripsi', 'like', "%{$q}%")
+                    ->orWhere('lokasi', 'like', "%{$q}%")
+                    ->orWhere('pic_nama', 'like', "%{$q}%")
+                    ->orWhereHas('bidang', function ($bq) use ($q) {
+                        $bq->where('nama', 'like', "%{$q}%");
+                    });
+            });
         }
 
         if ($status === 'aktif') {
@@ -51,7 +77,16 @@ class RuangRapatController extends Controller
             'nonaktif' => 'Nonaktif',
         ];
 
-        return view('ruang-rapat.index', compact('ruangRapats', 'status', 'statusOptions'));
+        $counts = [
+            'semua' => $totalSemua,
+            'aktif' => $totalAktif,
+            'kedaluwarsa' => $totalKedaluwarsa,
+            'nonaktif' => $totalNonaktif,
+        ];
+
+        $bidangs = $user->isAdmin() ? Bidang::query()->orderBy('nama')->get() : collect();
+
+        return view('ruang-rapat.index', compact('ruangRapats', 'status', 'statusOptions', 'q', 'counts', 'bidangs', 'idBidang'));
     }
 
     public function create(Request $request): View
