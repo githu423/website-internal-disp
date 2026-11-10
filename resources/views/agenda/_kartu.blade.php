@@ -84,7 +84,7 @@
         @if ($dariRuangRapat)
             <a href="{{ $a->url_kelola }}"
                class="text-xs font-bold rounded-xl border border-purple-200 bg-purple-50 text-purple-700 px-3 py-1.5 hover:bg-purple-100 transition active:scale-95 shadow-sm">
-                {{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola Rapat' : 'Lihat Rapat' }}
+                {{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola Rapat' : 'Masuk Rapat' }}
             </a>
         @elseif ($u->isAdmin() || $u->id === $a->created_by)
             <form method="POST" action="{{ route('agenda.status', $a) }}">

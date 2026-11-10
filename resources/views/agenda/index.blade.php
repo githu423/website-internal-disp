@@ -21,7 +21,7 @@
      | Agenda semu agar otomatis ikut kalender, daftar, pencarian, dan filter
      | kategori "Rapat" — tanpa menulis/mengubah data apa pun di backend.
      */
-    $buatAgendaDariRapat = function (\App\Models\RuangRapat $rapat) {
+    $buatAgendaDariRapat = function (\App\Models\RuangRapat $rapat) use ($u) {
         $jadwal = $rapat->tanggal_rapat;
 
         $agenda = new \App\Models\Agenda([
@@ -39,7 +39,11 @@
         // id semu negatif: tidak mungkin bentrok dengan id agenda asli (positif)
         $agenda->id = -1 * (int) $rapat->id;
         $agenda->sumber = 'ruang_rapat';
-        $agenda->url_kelola = route('ruang-rapat.show', $rapat);
+        // Admin/bidang masuk ke halaman pengelolaan; pegawai langsung ke halaman rapat umum.
+        $agenda->url_kelola = ($u->isAdmin() || $u->isBidang())
+            ? route('ruang-rapat.show', $rapat)
+            : route('rapat.buka', ['token' => $rapat->token]);
+        $agenda->label_kelola = ($u->isAdmin() || $u->isBidang()) ? 'Buka Ruang Rapat' : 'Masuk Rapat';
         $agenda->setRelation('bidang', $rapat->bidang);
 
         return $agenda;
@@ -158,6 +162,7 @@
             'bidang_nama' => $item->bidang?->nama ?? 'Agenda Dinas (Umum)',
             'sumber' => $dariRuangRapat ? 'ruang_rapat' : 'agenda',
             'url_kelola' => $dariRuangRapat ? $item->url_kelola : null,
+            'label_kelola' => $dariRuangRapat ? $item->label_kelola : null,
             'can_manage' => ! $dariRuangRapat && ($u->isAdmin() || $u->id === $item->created_by),
             'url_status' => $dariRuangRapat ? null : route('agenda.status', $item),
             'url_destroy' => $dariRuangRapat ? null : route('agenda.destroy', $item),
@@ -866,7 +871,7 @@ function openAgendaDetailModal(id) {
         const kelolaLink = document.createElement('a');
         kelolaLink.href = data.url_kelola;
         kelolaLink.className = 'px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold transition shadow-sm';
-        kelolaLink.textContent = 'Buka Ruang Rapat';
+        kelolaLink.textContent = data.label_kelola || 'Buka Ruang Rapat';
         actionsBox.appendChild(kelolaLink);
     } else if (data.can_manage) {
         // Tombol Toggle Selesai
