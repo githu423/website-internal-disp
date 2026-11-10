@@ -2,6 +2,7 @@
 @php 
     $isHariIni = $a->tanggal->isToday();
     $lewat = !$isHariIni && $a->status === 'belum' && $a->tanggal->lt(now()->startOfDay()); 
+    $dariRuangRapat = ($a->sumber ?? null) === 'ruang_rapat';
 @endphp
 <div data-agenda-card 
      data-id="{{ $a->id }}"
@@ -39,6 +40,12 @@
                 </span>
             @endif
 
+            @if ($dariRuangRapat)
+                <span class="text-[10px] font-extrabold uppercase rounded-full px-2 py-0.5 border border-purple-200 bg-white text-purple-600">
+                    Ruang Rapat
+                </span>
+            @endif
+
             @if ($lewat)
                 <span class="text-[10px] font-extrabold bg-rose-100 text-rose-700 border border-rose-200 rounded-full px-2 py-0.5">
                     TERLEWAT
@@ -72,9 +79,14 @@
         @endif
     </div>
 
-    <!-- Tombol Aksi (Admin / Pembuat) -->
+    <!-- Tombol Aksi (Admin / Pembuat / Pengelola Ruang Rapat) -->
     <div class="flex flex-col sm:flex-row items-center gap-1.5 shrink-0">
-        @if ($u->isAdmin() || $u->id === $a->created_by)
+        @if ($dariRuangRapat)
+            <a href="{{ $a->url_kelola }}"
+               class="text-xs font-bold rounded-xl border border-purple-200 bg-purple-50 text-purple-700 px-3 py-1.5 hover:bg-purple-100 transition active:scale-95 shadow-sm">
+                {{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola Rapat' : 'Masuk Rapat' }}
+            </a>
+        @elseif ($u->isAdmin() || $u->id === $a->created_by)
             <form method="POST" action="{{ route('agenda.status', $a) }}">
                 @csrf @method('PATCH')
                 <button class="text-xs font-bold rounded-xl border px-3 py-1.5 transition active:scale-95 shadow-sm {{ $a->status === 'selesai' ? 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50' : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' }}">

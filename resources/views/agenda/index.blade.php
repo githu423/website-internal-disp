@@ -9,6 +9,76 @@
 @section('content')
 @php 
     $u = auth()->user(); 
+
+    /*
+     |--------------------------------------------------------------------------
+     | Gabungkan acara Ruang Rapat ke Agenda & Kegiatan
+     |--------------------------------------------------------------------------
+     | Admin & kepala bidang membuat acara rapat melalui menu Ruang Rapat
+     | (judul, tanggal_rapat, lokasi, bidang). Selama ini acara tersebut hanya
+     | hidup di tabel ruang_rapat sehingga tidak pernah tampil di halaman ini.
+     | Di sini data ruang_rapat dibaca (read-only) lalu diubah menjadi objek
+     | Agenda semu agar otomatis ikut kalender, daftar, pencarian, dan filter
+     | kategori "Rapat" — tanpa menulis/mengubah data apa pun di backend.
+     */
+    $buatAgendaDariRapat = function (\App\Models\RuangRapat $rapat) use ($u) {
+        $jadwal = $rapat->tanggal_rapat;
+
+        $agenda = new \App\Models\Agenda([
+            'judul' => $rapat->judul,
+            'deskripsi' => $rapat->deskripsi,
+            'tanggal' => $jadwal->toDateString(),
+            'jam_mulai' => $jadwal->format('H:i'),
+            'lokasi' => $rapat->lokasi,
+            'kategori' => 'rapat',
+            'status' => $jadwal->isPast() ? 'selesai' : 'belum',
+            'id_bidang' => $rapat->id_bidang,
+            'created_by' => $rapat->dibuat_oleh,
+        ]);
+
+        // id semu negatif: tidak mungkin bentrok dengan id agenda asli (positif)
+        $agenda->id = -1 * (int) $rapat->id;
+        $agenda->sumber = 'ruang_rapat';
+        // Admin/bidang masuk ke halaman pengelolaan; pegawai langsung ke halaman rapat umum.
+        $agenda->url_kelola = ($u->isAdmin() || $u->isBidang())
+            ? route('ruang-rapat.show', $rapat)
+            : route('rapat.buka', ['token' => $rapat->token]);
+        $agenda->label_kelola = ($u->isAdmin() || $u->isBidang()) ? 'Buka Ruang Rapat' : 'Masuk Rapat';
+        $agenda->setRelation('bidang', $rapat->bidang);
+
+        return $agenda;
+    };
+
+    // Semua ruang rapat yang punya jadwal ikut tampil — termasuk yang tautan
+    // tamunya sudah dinonaktifkan, karena acaranya tetap tercatat sebagai rapat.
+    $rapatBulanIni = \App\Models\RuangRapat::query()
+        ->with('bidang')
+        ->whereNotNull('tanggal_rapat')
+        ->whereYear('tanggal_rapat', \Carbon\Carbon::parse($bulanIni . '-01')->year)
+        ->whereMonth('tanggal_rapat', \Carbon\Carbon::parse($bulanIni . '-01')->month)
+        ->orderBy('tanggal_rapat')
+        ->get()
+        ->map($buatAgendaDariRapat);
+
+    $items = $items->concat($rapatBulanIni)
+        ->sortBy(fn ($a) => $a->tanggal->format('Y-m-d') . ' ' . substr((string) ($a->jam_mulai ?? '00:00'), 0, 5))
+        ->values();
+
+    // Acara rapat mendatang juga ikut di kartu "Agenda 14 Hari ke Depan".
+    $rapatTerdekat = \App\Models\RuangRapat::query()
+        ->with('bidang')
+        ->whereNotNull('tanggal_rapat')
+        ->where('tanggal_rapat', '>=', now()->startOfDay())
+        ->orderBy('tanggal_rapat')
+        ->limit(5)
+        ->get()
+        ->map($buatAgendaDariRapat);
+
+    $terdekat = $terdekat->concat($rapatTerdekat)
+        ->sortBy(fn ($a) => $a->tanggal->format('Y-m-d') . ' ' . substr((string) ($a->jam_mulai ?? '00:00'), 0, 5))
+        ->take(5)
+        ->values();
+
     $dinas = $items->whereNull('id_bidang')->values();
     $perBidang = $items->whereNotNull('id_bidang')->groupBy(fn ($a) => $a->bidang?->nama ?? 'Bidang')->sortKeys();
     
@@ -65,6 +135,7 @@
     // Peta Data JSON untuk Modal Detail & Pencarian Dinamis
     $itemsJsonData = [];
     foreach ($items as $item) {
+        $dariRuangRapat = ($item->sumber ?? null) === 'ruang_rapat';
         $isHariIni = $item->tanggal->format('Y-m-d') === $todayYmd;
         $lewat = !$isHariIni && $item->status === 'belum' && $item->tanggal->lt(now()->startOfDay());
         $jamText = 'Waktu menyusul';
@@ -89,9 +160,12 @@
             'is_today' => $isHariIni,
             'is_lewat' => $lewat,
             'bidang_nama' => $item->bidang?->nama ?? 'Agenda Dinas (Umum)',
-            'can_manage' => ($u->isAdmin() || $u->id === $item->created_by),
-            'url_status' => route('agenda.status', $item),
-            'url_destroy' => route('agenda.destroy', $item),
+            'sumber' => $dariRuangRapat ? 'ruang_rapat' : 'agenda',
+            'url_kelola' => $dariRuangRapat ? $item->url_kelola : null,
+            'label_kelola' => $dariRuangRapat ? $item->label_kelola : null,
+            'can_manage' => ! $dariRuangRapat && ($u->isAdmin() || $u->id === $item->created_by),
+            'url_status' => $dariRuangRapat ? null : route('agenda.status', $item),
+            'url_destroy' => $dariRuangRapat ? null : route('agenda.destroy', $item),
         ];
     }
 @endphp
@@ -792,7 +866,14 @@ function openAgendaDetailModal(id) {
     actionsBox.innerHTML = '';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    if (data.can_manage) {
+    if (data.sumber === 'ruang_rapat' && data.url_kelola) {
+        // Acara dari menu Ruang Rapat: cukup arahkan ke halaman pengelolaannya.
+        const kelolaLink = document.createElement('a');
+        kelolaLink.href = data.url_kelola;
+        kelolaLink.className = 'px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold transition shadow-sm';
+        kelolaLink.textContent = data.label_kelola || 'Buka Ruang Rapat';
+        actionsBox.appendChild(kelolaLink);
+    } else if (data.can_manage) {
         // Tombol Toggle Selesai
         const statusForm = document.createElement('form');
         statusForm.method = 'POST';

@@ -4,11 +4,12 @@
 @section('header_title')
     <span class="font-bold text-xl tracking-tight text-purple-700">SIPARDIS</span>
 @endsection
-@section('subtitle', 'Paket dokumen rapat untuk dibagikan secara aman kepada tamu')
+@section('subtitle', (auth()->user()->isAdmin() || auth()->user()->isBidang()) ? 'Paket dokumen rapat untuk dibagikan secara aman kepada tamu' : 'Akses masuk ke ruang rapat yang dibuat admin dan bidang')
 
 @section('content')
     @php
         $u = auth()->user();
+        $bolehKelola = $u->isAdmin() || $u->isBidang();
     @endphp
 
     <div class="space-y-6">
@@ -28,7 +29,7 @@
                     <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Ruang Rapat</h1>
                     <span class="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50/80 px-2.5 py-0.5 text-xs font-bold text-purple-700">
                         <span class="h-1.5 w-1.5 rounded-full bg-purple-600"></span>
-                        {{ $counts['semua'] }} Paket Rapat
+                        {{ $counts['semua'] }} {{ $bolehKelola ? 'Paket Rapat' : 'Ruang Rapat' }}
                     </span>
                     @if ($counts['aktif'] > 0)
                         <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/80 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
@@ -37,7 +38,13 @@
                         </span>
                     @endif
                 </div>
-                <p class="mt-1 text-sm text-slate-500">Kelola paket tautan dokumen rapat tamu dengan kendali keamanan PIN dan masa berlaku otomatis.</p>
+                <p class="mt-1 text-sm text-slate-500">
+                    @if ($bolehKelola)
+                        Kelola paket tautan dokumen rapat tamu dengan kendali keamanan PIN dan masa berlaku otomatis.
+                    @else
+                        Daftar seluruh ruang rapat yang dibuat admin dan bidang. Tekan <b>Masuk Rapat</b> untuk langsung membuka halaman rapat umum.
+                    @endif
+                </p>
             </div>
             @if ($u->isAdmin() || $u->isBidang())
                 <a href="{{ route('ruang-rapat.create') }}"
@@ -163,6 +170,9 @@
                             ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                             : ($labelStatus === 'Kedaluwarsa' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-slate-200 bg-slate-100 text-slate-600');
                         $tautanPublik = route('rapat.buka', ['token' => $ruangRapat->token]);
+                        // Pegawai langsung diarahkan ke halaman rapat umum (akses tamu),
+                        // admin/bidang tetap ke halaman pengelolaan ruang rapat.
+                        $tautanAkses = $bolehKelola ? route('ruang-rapat.show', $ruangRapat) : $tautanPublik;
                     @endphp
                     <article class="clean-card group flex h-full flex-col justify-between p-5 transition-all duration-200 hover:-translate-y-1 hover:border-purple-300 hover:shadow-lg">
                         <div>
@@ -194,7 +204,7 @@
                                 </span>
 
                                 <h2 class="mt-2 text-base font-extrabold text-slate-900 group-hover:text-purple-700 transition line-clamp-2">
-                                    <a href="{{ route('ruang-rapat.show', $ruangRapat) }}">
+                                    <a href="{{ $tautanAkses }}">
                                         {{ $ruangRapat->judul }}
                                     </a>
                                 </h2>
@@ -268,30 +278,40 @@
 
                         {{-- Footer Aksi Kartu --}}
                         <div class="mt-5 border-t border-slate-100 pt-4 space-y-2">
-                            <div class="flex items-center gap-2">
-                                <button type="button"
-                                    data-salin="{{ $tautanPublik }}"
-                                    class="btn-salin-kartu inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-purple-300 hover:bg-slate-50 hover:text-purple-600 active:scale-95">
-                                    <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                    </svg>
-                                    <span class="label-salin-teks">Salin Tautan</span>
-                                </button>
+                            @if ($bolehKelola)
+                                <div class="flex items-center gap-2">
+                                    <button type="button"
+                                        data-salin="{{ $tautanPublik }}"
+                                        class="btn-salin-kartu inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-purple-300 hover:bg-slate-50 hover:text-purple-600 active:scale-95">
+                                        <svg class="h-3.5 w-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                        </svg>
+                                        <span class="label-salin-teks">Salin Tautan</span>
+                                    </button>
 
-                                <a href="{{ $tautanPublik }}" target="_blank" rel="noopener"
-                                    title="Buka tampilan tamu"
-                                    class="grid h-8 w-8 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 active:scale-95">
-                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
+                                    <a href="{{ $tautanPublik }}" target="_blank" rel="noopener"
+                                        title="Buka tampilan tamu"
+                                        class="grid h-8 w-8 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-purple-300 hover:text-purple-600 hover:bg-purple-50 active:scale-95">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                        </svg>
+                                    </a>
+                                </div>
+
+                                <a href="{{ $tautanAkses }}"
+                                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-purple-500/25 transition hover:bg-purple-700 active:scale-95">
+                                    <span>Kelola Dokumen &amp; Ruang Rapat</span>
+                                    <x-icon name="chevron" class="h-3.5 w-3.5 rotate-180" />
                                 </a>
-                            </div>
-
-                            <a href="{{ route('ruang-rapat.show', $ruangRapat) }}"
-                                class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-purple-500/25 transition hover:bg-purple-700 active:scale-95">
-                                <span>{{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola Dokumen & Ruang Rapat' : 'Lihat Informasi & Dokumen' }}</span>
-                                <x-icon name="chevron" class="h-3.5 w-3.5 rotate-180" />
-                            </a>
+                            @else
+                                {{-- Pegawai: hanya akses masuk ke halaman rapat umum, tanpa kontrol pengelolaan. --}}
+                                <a href="{{ $tautanPublik }}"
+                                    class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-purple-500/25 transition hover:bg-purple-700 active:scale-95">
+                                    <span>Masuk Rapat</span>
+                                    <x-icon name="chevron" class="h-3.5 w-3.5 rotate-180" />
+                                </a>
+                                <p class="text-center text-[10.5px] text-slate-400">Membuka halaman rapat umum (akses tamu).</p>
+                            @endif
                         </div>
                     </article>
                 @endforeach
@@ -338,6 +358,7 @@
                                         ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                                         : ($labelStatus === 'Kedaluwarsa' ? 'border-amber-200 bg-amber-50 text-amber-700' : 'border-slate-200 bg-slate-100 text-slate-600');
                                     $tautanPublik = route('rapat.buka', ['token' => $ruangRapat->token]);
+                                    $tautanAkses = $bolehKelola ? route('ruang-rapat.show', $ruangRapat) : $tautanPublik;
                                 @endphp
                                 <tr class="transition hover:bg-purple-50/30">
                                     <td class="py-4 pl-5 pr-3">
@@ -346,7 +367,7 @@
                                                 <x-icon name="agenda" class="h-4 w-4" />
                                             </span>
                                             <div class="min-w-0">
-                                                <a href="{{ route('ruang-rapat.show', $ruangRapat) }}" class="font-bold text-slate-900 hover:text-purple-600 transition block truncate max-w-xs md:max-w-sm">
+                                                <a href="{{ $tautanAkses }}" class="font-bold text-slate-900 hover:text-purple-600 transition block truncate max-w-xs md:max-w-sm">
                                                     {{ $ruangRapat->judul }}
                                                 </a>
                                                 @if ($ruangRapat->deskripsi)
@@ -397,21 +418,28 @@
                                     </td>
                                     <td class="py-4 pl-3 pr-5 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-1.5">
-                                            <button type="button" data-salin="{{ $tautanPublik }}"
-                                                class="btn-salin-kartu inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-slate-600 shadow-xs transition hover:border-purple-300 hover:text-purple-600">
-                                                <span class="label-salin-teks">Salin</span>
-                                            </button>
-                                            <a href="{{ $tautanPublik }}" target="_blank" rel="noopener"
-                                                title="Buka tampilan tamu"
-                                                class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 shadow-xs transition hover:border-purple-300 hover:text-purple-600">
-                                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                                </svg>
-                                            </a>
-                                            <a href="{{ route('ruang-rapat.show', $ruangRapat) }}"
-                                                class="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 shadow-xs">
-                                                {{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola' : 'Lihat' }}
-                                            </a>
+                                            @if ($bolehKelola)
+                                                <button type="button" data-salin="{{ $tautanPublik }}"
+                                                    class="btn-salin-kartu inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-bold text-slate-600 shadow-xs transition hover:border-purple-300 hover:text-purple-600">
+                                                    <span class="label-salin-teks">Salin</span>
+                                                </button>
+                                                <a href="{{ $tautanPublik }}" target="_blank" rel="noopener"
+                                                    title="Buka tampilan tamu"
+                                                    class="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 shadow-xs transition hover:border-purple-300 hover:text-purple-600">
+                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                                    </svg>
+                                                </a>
+                                                <a href="{{ $tautanAkses }}"
+                                                    class="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 shadow-xs">
+                                                    Kelola
+                                                </a>
+                                            @else
+                                                <a href="{{ $tautanPublik }}"
+                                                    class="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 shadow-xs">
+                                                    Masuk
+                                                </a>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>
@@ -425,6 +453,7 @@
                 {{ $ruangRapats->links() }}
             </div>
 
+            @if ($bolehKelola)
             {{-- 5. TIPS & PANDUAN PENGELOLAAN DOKUMEN TAMU (PENGISI RUANG & EDUKASI SOP) --}}
             <div class="mt-8 rounded-2xl border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-purple-50/20 p-5 sm:p-6 shadow-xs">
                 <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -464,6 +493,7 @@
                     </div>
                 </div>
             </div>
+            @endif
         @else
             <div class="clean-card overflow-hidden p-8">
                 @if ($q || $status !== 'semua' || $idBidang)
