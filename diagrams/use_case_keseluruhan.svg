@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="960" height="1010" viewBox="0 0 960 1010" xmlns="http://www.w3.org/2000/svg">
+        <rect x="210" y="35" width="540" height="910" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+        
+        <text x="228" y="59" font-family="'Times New Roman', Times, serif" font-size="12" fill="#000000">«subsystem»</text>
+        <text x="228" y="79" font-family="'Times New Roman', Times, serif" font-size="15" font-weight="bold" fill="#000000">Website Internal Dispar</text>
+        
+        <line x1="119" y1="280" x2="345" y2="110" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="110" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="110" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="171" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="171" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="171" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="232" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="232" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="232" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="293" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="293" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="354" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="354" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="354" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="415" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="415" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="476" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="538" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="538" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="599" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="599" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="599" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="660" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="660" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="660" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="721" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="721" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="782" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="660" x2="345" y2="782" stroke="#000000" stroke-width="1.2" /><line x1="841" y1="480" x2="615" y2="782" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="843" stroke="#000000" stroke-width="1.2" /><line x1="119" y1="280" x2="345" y2="905" stroke="#000000" stroke-width="1.2" />
+        
+        
+    <!-- Actor: Admin -->
+    <g class="actor">
+        <circle cx="95" cy="245" r="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+        <line x1="95" y1="259" x2="95" y2="296" stroke="#000000" stroke-width="1.8" />
+        <line x1="71" y1="272" x2="119" y2="272" stroke="#000000" stroke-width="1.8" />
+        <line x1="95" y1="296" x2="79" y2="330" stroke="#000000" stroke-width="1.8" />
+        <line x1="95" y1="296" x2="111" y2="330" stroke="#000000" stroke-width="1.8" />
+        <text x="95" y="352" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="15" font-weight="bold" fill="#000000">
+            Admin
+        </text>
+    </g>
+    
+        
+    <!-- Actor: Bidang -->
+    <g class="actor">
+        <circle cx="95" cy="625" r="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+        <line x1="95" y1="639" x2="95" y2="676" stroke="#000000" stroke-width="1.8" />
+        <line x1="71" y1="652" x2="119" y2="652" stroke="#000000" stroke-width="1.8" />
+        <line x1="95" y1="676" x2="79" y2="710" stroke="#000000" stroke-width="1.8" />
+        <line x1="95" y1="676" x2="111" y2="710" stroke="#000000" stroke-width="1.8" />
+        <text x="95" y="732" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="15" font-weight="bold" fill="#000000">
+            Bidang
+        </text>
+    </g>
+    
+        
+    <!-- Actor: Pegawai -->
+    <g class="actor">
+        <circle cx="865" cy="445" r="14" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+        <line x1="865" y1="459" x2="865" y2="496" stroke="#000000" stroke-width="1.8" />
+        <line x1="841" y1="472" x2="889" y2="472" stroke="#000000" stroke-width="1.8" />
+        <line x1="865" y1="496" x2="849" y2="530" stroke="#000000" stroke-width="1.8" />
+        <line x1="865" y1="496" x2="881" y2="530" stroke="#000000" stroke-width="1.8" />
+        <text x="865" y="552" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="15" font-weight="bold" fill="#000000">
+            Pegawai
+        </text>
+    </g>
+    
+        
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="110" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="115" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Login & Logout
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="171" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="176" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Kelola Profil & Sandi
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="232" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="237" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Akses Dashboard
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="293" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="298" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Kelola Data Dokumen
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="354" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="359" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Lihat & Unduh Dokumen
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="415" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="420" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Kelola Agenda Kegiatan
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="476" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="481" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Lihat Jadwal Agenda
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="538" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="543" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Peminjaman Ruang Rapat
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="599" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="604" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Lihat Data Pegawai
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="660" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="665" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Lihat Kinerja, Statistik & PAD
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="721" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="726" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Kelola Informasi Bidang
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="782" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="787" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Lihat & Baca Notifikasi
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="843" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="848" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Kelola Data Master & Import
+            </text>
+        </g>
+        
+        <g class="use-case">
+            <ellipse cx="480" cy="905" rx="135" ry="21" fill="#FFFFFF" stroke="#000000" stroke-width="1.5" />
+            <text x="480" y="910" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">
+                Kelola Akun & Log Aktivitas
+            </text>
+        </g>
+        
+        
+        <text x="480" y="995" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-style="italic" font-size="12" fill="#000000">
+            Use Case Diagram Lengkap - Website Internal Dinas Pariwisata
+        </text>
+    </svg>

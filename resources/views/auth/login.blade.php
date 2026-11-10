@@ -58,7 +58,7 @@
                     </h1>
                     <div class="mt-3 md:mt-3.5 h-1.5 w-16 rounded-full bg-gradient-to-r from-amber-400 to-purple-400"></div>
                     <p class="mt-3 md:mt-4 text-lg sm:text-xl font-medium text-slate-200">
-                        Sistem Informasi Pariwisata Dispar
+                        Sistem Informasi Pariwisata Dinas
                     </p>
                     {{-- Sembunyikan paragraf deskripsi panjang di mobile, tetap tampil di tablet dan desktop --}}
                     <p class="mt-3 text-slate-200 text-sm leading-relaxed max-w-md hidden md:block">

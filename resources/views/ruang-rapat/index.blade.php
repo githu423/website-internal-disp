@@ -39,10 +39,12 @@
                 </div>
                 <p class="mt-1 text-sm text-slate-500">Kelola paket tautan dokumen rapat tamu dengan kendali keamanan PIN dan masa berlaku otomatis.</p>
             </div>
-            <a href="{{ route('ruang-rapat.create') }}"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-purple-500/25 transition hover:from-purple-700 hover:to-indigo-700 active:scale-95">
-                <x-icon name="plus" class="h-4 w-4" /> Buat Ruang Rapat
-            </a>
+            @if ($u->isAdmin() || $u->isBidang())
+                <a href="{{ route('ruang-rapat.create') }}"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-purple-500/25 transition hover:from-purple-700 hover:to-indigo-700 active:scale-95">
+                    <x-icon name="plus" class="h-4 w-4" /> Buat Ruang Rapat
+                </a>
+            @endif
         </div>
 
         @if (session('sukses'))
@@ -124,8 +126,8 @@
                         @endif
                     </div>
 
-                    {{-- Filter Bidang (khusus Admin) --}}
-                    @if ($u->isAdmin() && $bidangs->isNotEmpty())
+                    {{-- Filter Bidang --}}
+                    @if ($bidangs->isNotEmpty())
                         <select name="id_bidang" onchange="this.form.submit()"
                             class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs md:text-sm text-slate-700 outline-none transition hover:border-slate-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/10">
                             <option value="">Semua Bidang</option>
@@ -287,7 +289,7 @@
 
                             <a href="{{ route('ruang-rapat.show', $ruangRapat) }}"
                                 class="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-purple-600 px-3.5 py-2 text-xs font-bold text-white shadow-sm shadow-purple-500/25 transition hover:bg-purple-700 active:scale-95">
-                                <span>Kelola Dokumen & Ruang Rapat</span>
+                                <span>{{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola Dokumen & Ruang Rapat' : 'Lihat Informasi & Dokumen' }}</span>
                                 <x-icon name="chevron" class="h-3.5 w-3.5 rotate-180" />
                             </a>
                         </div>
@@ -295,7 +297,7 @@
                 @endforeach
 
                 {{-- Action Card Dotted (Penyeimbang Grid jika dokumen sedikit agar tidak bolong melompong) --}}
-                @if ($ruangRapats->count() < 3 && empty($q) && $status === 'semua')
+                @if (($u->isAdmin() || $u->isBidang()) && $ruangRapats->count() < 3 && empty($q) && $status === 'semua')
                     <a href="{{ route('ruang-rapat.create') }}"
                         class="group flex min-h-[320px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-purple-200/80 bg-gradient-to-b from-purple-50/30 to-slate-50/50 p-6 text-center transition-all duration-200 hover:border-purple-400 hover:bg-purple-50/60 hover:shadow-md">
                         <span class="grid h-12 w-12 place-items-center rounded-2xl border border-purple-200 bg-white text-purple-600 shadow-sm transition group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white">
@@ -408,7 +410,7 @@
                                             </a>
                                             <a href="{{ route('ruang-rapat.show', $ruangRapat) }}"
                                                 class="rounded-lg bg-purple-600 px-3 py-1.5 text-[11px] font-bold text-white transition hover:bg-purple-700 shadow-xs">
-                                                Kelola
+                                                {{ ($u->isAdmin() || $u->isBidang()) ? 'Kelola' : 'Lihat' }}
                                             </a>
                                         </div>
                                     </td>
@@ -431,9 +433,11 @@
                         <h3 class="mt-1 text-sm font-extrabold text-slate-900">SOP Distribusi Dokumen Tamu Rapat</h3>
                         <p class="mt-0.5 text-xs text-slate-500">Standar keamanan dalam membagikan dokumen dinas kepada pihak eksternal.</p>
                     </div>
-                    <a href="{{ route('ruang-rapat.create') }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:border-purple-300 hover:text-purple-600">
-                        <x-icon name="plus" class="h-3.5 w-3.5" /> Buat Paket Baru
-                    </a>
+                    @if ($u->isAdmin() || $u->isBidang())
+                        <a href="{{ route('ruang-rapat.create') }}" class="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs transition hover:border-purple-300 hover:text-purple-600">
+                            <x-icon name="plus" class="h-3.5 w-3.5" /> Buat Paket Baru
+                        </a>
+                    @endif
                 </div>
 
                 <div class="mt-4 grid gap-3 sm:grid-cols-3 border-t border-slate-100 pt-4 text-xs text-slate-600">
@@ -475,10 +479,12 @@
                         </a>
                     </div>
                 @else
-                    <x-empty icon="agenda" title="Belum ada Ruang Rapat" desc="Buat paket berisi dokumen publik untuk dibagikan secara aman kepada peserta rapat atau tamu luar.">
-                        <a href="{{ route('ruang-rapat.create') }}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-purple-700 hover:to-indigo-700">
-                            <x-icon name="plus" class="h-4 w-4" /> Buat Ruang Rapat Baru
-                        </a>
+                    <x-empty icon="agenda" title="Belum ada Ruang Rapat" desc="Paket berisi dokumen publik untuk dibagikan secara aman kepada peserta rapat atau tamu luar.">
+                        @if ($u->isAdmin() || $u->isBidang())
+                            <a href="{{ route('ruang-rapat.create') }}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:from-purple-700 hover:to-indigo-700">
+                                <x-icon name="plus" class="h-4 w-4" /> Buat Ruang Rapat Baru
+                            </a>
+                        @endif
                     </x-empty>
                 @endif
             </div>

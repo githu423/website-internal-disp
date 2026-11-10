@@ -22,14 +22,14 @@ class RuangRapatController extends Controller
 {
     public function index(Request $request): View
     {
-        $user = $this->pastikanPengelola($request);
+        $user = $request->user();
         $status = (string) $request->query('status', 'semua');
         $q = trim((string) $request->query('q', ''));
         $idBidang = $request->query('id_bidang');
 
         $baseQuery = RuangRapat::query();
-        if (! $user->isAdmin()) {
-            $baseQuery->where('id_bidang', $user->id_bidang);
+        if ($idBidang) {
+            $baseQuery->where('id_bidang', $idBidang);
         }
 
         // Hitungan metrik untuk kartu ringkasan
@@ -42,10 +42,6 @@ class RuangRapatController extends Controller
             ->with(['bidang', 'pembuat'])
             ->withCount('dokumen')
             ->latest();
-
-        if ($user->isAdmin() && $idBidang) {
-            $query->where('id_bidang', $idBidang);
-        }
 
         if ($q !== '') {
             $query->where(function ($sub) use ($q) {
@@ -84,7 +80,7 @@ class RuangRapatController extends Controller
             'nonaktif' => $totalNonaktif,
         ];
 
-        $bidangs = $user->isAdmin() ? Bidang::query()->orderBy('nama')->get() : collect();
+        $bidangs = Bidang::query()->orderBy('nama')->get();
 
         return view('ruang-rapat.index', compact('ruangRapats', 'status', 'statusOptions', 'q', 'counts', 'bidangs', 'idBidang'));
     }
@@ -97,7 +93,7 @@ class RuangRapatController extends Controller
             ->where('visibility', 'publik')
             ->orderBy('judul')
             ->get();
-        $bidangs = $user->isAdmin() ? Bidang::query()->orderBy('nama')->get() : collect();
+        $bidangs = Bidang::query()->orderBy('nama')->get();
 
         return view('ruang-rapat.create', compact('dokumen', 'bidangs'));
     }
@@ -151,10 +147,6 @@ class RuangRapatController extends Controller
             }
         }
 
-        if (! $user->isAdmin() && ! $user->id_bidang) {
-            abort(403, 'Akun bidang harus terhubung ke bidang sebelum membuat Ruang Rapat.');
-        }
-
         $ruangRapat = DB::transaction(function () use ($user, $data, $dokumenIds, $pin): RuangRapat {
             $ruangRapat = RuangRapat::create([
                 'judul' => $data['judul'],
@@ -162,7 +154,7 @@ class RuangRapatController extends Controller
                 'tanggal_rapat' => $data['tanggal_rapat'] ?? null,
                 'lokasi' => $data['lokasi'] ?? null,
                 'link_virtual' => $data['link_virtual'] ?? null,
-                'id_bidang' => $user->isAdmin() ? ($data['id_bidang'] ?? null) : $user->id_bidang,
+                'id_bidang' => $data['id_bidang'] ?? ($user->id_bidang ?: null),
                 'pic_nama' => $data['pic_nama'] ?? null,
                 'pic_kontak' => $data['pic_kontak'] ?? null,
                 'izinkan_unduh_default' => (bool) $data['izinkan_unduh_default'],
@@ -197,9 +189,8 @@ class RuangRapatController extends Controller
 
     public function show(Request $request, RuangRapat $ruangRapat): View
     {
-        $this->pastikanPengelola($request, $ruangRapat);
         $ruangRapat->load(['bidang', 'pembuat', 'dokumen' => fn ($query) => $query->orderBy('judul')]);
-        $bidangs = $request->user()->isAdmin() ? Bidang::query()->orderBy('nama')->get() : collect();
+        $bidangs = Bidang::query()->orderBy('nama')->get();
         $tautanPublik = route('rapat.buka', ['token' => $ruangRapat->token]);
 
         return view('ruang-rapat.show', compact('ruangRapat', 'bidangs', 'tautanPublik'));
@@ -231,10 +222,8 @@ class RuangRapatController extends Controller
         $fields = [
             'judul', 'deskripsi', 'tanggal_rapat', 'lokasi', 'link_virtual',
             'pic_nama', 'pic_kontak', 'izinkan_unduh_default', 'berlaku_sampai',
+            'id_bidang',
         ];
-        if ($user->isAdmin()) {
-            $fields[] = 'id_bidang';
-        }
 
         $ruangRapat->fill(array_intersect_key($data, array_flip($fields)));
         $ruangRapat->izinkan_unduh_default = (bool) $data['izinkan_unduh_default'];
@@ -323,19 +312,7 @@ class RuangRapatController extends Controller
     private function pastikanPengelola(Request $request, ?RuangRapat $ruangRapat = null): User
     {
         $user = $request->user();
-        abort_unless($user && $user->isBisaUnggah(), 403, 'Ruang Rapat hanya dapat dikelola admin atau pengelola bidang.');
-
-        if (! $user->isAdmin() && ! $user->id_bidang) {
-            abort(403, 'Akun bidang belum terhubung ke bidang.');
-        }
-
-        if ($ruangRapat && ! $user->isAdmin()) {
-            abort_unless(
-                $ruangRapat->id_bidang !== null && (int) $ruangRapat->id_bidang === (int) $user->id_bidang,
-                403,
-                'Anda hanya dapat mengelola Ruang Rapat milik bidang Anda.'
-            );
-        }
+        abort_unless($user && ($user->isAdmin() || $user->isBidang()), 403, 'Ruang Rapat hanya dapat dikelola admin atau pegawai bidang.');
 
         return $user;
     }

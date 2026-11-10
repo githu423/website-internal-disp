@@ -104,6 +104,7 @@
         </section>
 
         <div class="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(300px,.8fr)]">
+            @if (auth()->user()->isAdmin() || auth()->user()->isBidang())
             <section class="clean-card space-y-5 p-5 sm:p-6">
                 <div>
                     <h2 class="text-base font-extrabold text-slate-900">Informasi dan pengaturan akses</h2>
@@ -167,7 +168,7 @@
                                 value="{{ old('pic_kontak', $ruangRapat->pic_kontak) }}"
                                 class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20">
                         </div>
-                        @if (auth()->user()->isAdmin())
+                        @if ($bidangs->isNotEmpty())
                             <div>
                                 <label for="id_bidang"
                                     class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-600">Bidang</label>
@@ -229,6 +230,71 @@
                     </button>
                 </form>
             </section>
+            @else
+            {{-- Tampilan Informasi Rapat untuk Pegawai Biasa (Read-Only) --}}
+            <section class="clean-card space-y-5 p-5 sm:p-6">
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900">Informasi Rapat</h2>
+                    <p class="mt-1 text-xs text-slate-500">Rincian agenda, lokasi, dan penyelenggara kegiatan rapat dinas.</p>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Judul Rapat</span>
+                        <p class="mt-0.5 text-base font-bold text-slate-800">{{ $ruangRapat->judul }}</p>
+                    </div>
+
+                    @if ($ruangRapat->deskripsi)
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Deskripsi</span>
+                            <p class="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ $ruangRapat->deskripsi }}</p>
+                        </div>
+                    @endif
+
+                    <div class="grid gap-3.5 sm:grid-cols-2 border-t border-slate-100 pt-3.5">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Tanggal dan Waktu</span>
+                            <p class="mt-0.5 text-sm font-semibold text-slate-700">{{ $ruangRapat->tanggal_rapat?->translatedFormat('l, d F Y, H:i') ?: 'Belum ditentukan' }}</p>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Lokasi</span>
+                            <p class="mt-0.5 text-sm font-semibold text-slate-700">{{ $ruangRapat->lokasi ?: 'Belum ditentukan' }}</p>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Bidang Penyelenggara</span>
+                            <p class="mt-0.5 text-sm font-semibold text-slate-700">{{ $ruangRapat->bidang?->nama ?: 'Dinas Pariwisata Kabupaten Ciamis' }}</p>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Masa Berlaku Tautan</span>
+                            <p class="mt-0.5 text-sm font-semibold text-slate-700">{{ $ruangRapat->berlaku_sampai->translatedFormat('d F Y') }}</p>
+                        </div>
+                    </div>
+
+                    @if ($ruangRapat->link_virtual)
+                        <div class="border-t border-slate-100 pt-3.5">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Rapat Virtual</span>
+                            <div class="mt-2">
+                                <a href="{{ $ruangRapat->link_virtual }}" target="_blank" rel="noopener noreferrer"
+                                    class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-purple-500/25 transition hover:from-purple-700 hover:to-indigo-700">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M14 3h7v7m-1-6L10 14" /><path d="M19 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6" /></svg>
+                                    Gabung Rapat Virtual
+                                </a>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if ($ruangRapat->pic_nama || $ruangRapat->pic_kontak)
+                        <div class="rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Narahubung (PIC)</span>
+                            <p class="mt-0.5 text-sm font-bold text-slate-800">{{ $ruangRapat->pic_nama ?: 'Panitia' }}</p>
+                            @if ($ruangRapat->pic_kontak)
+                                <p class="mt-0.5 text-xs text-slate-500">{{ $ruangRapat->pic_kontak }}</p>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            </section>
+            @endif
 
             <div class="space-y-5">
                 <section class="clean-card space-y-4 p-5 sm:p-6">
@@ -274,6 +340,7 @@
                     @endif
                 </section>
 
+                @if (auth()->user()->isAdmin() || auth()->user()->isBidang())
                 <section class="clean-card space-y-4 p-5 sm:p-6">
                     <div>
                         <h2 class="text-base font-extrabold text-slate-900">Unggah notulen</h2>
@@ -329,6 +396,7 @@
                         @endif
                     </div>
                 </section>
+                @endif
             </div>
         </div>
     </div>

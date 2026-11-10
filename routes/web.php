@@ -18,10 +18,11 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/dashboard')->name('home');
 
 // Tautan untuk tamu luar dinas: tanpa autentikasi, dibatasi untuk mencegah brute-force.
-Route::middleware(['throttle:10,1'])->group(function () {
+Route::middleware(['throttle:60,1'])->group(function () {
     Route::get('/rapat/{token}', [TamuRapatController::class, 'buka'])->name('rapat.buka');
-    Route::post('/rapat/{token}/pin', [TamuRapatController::class, 'verifikasiPin'])->name('rapat.pin');
+    Route::post('/rapat/{token}/pin', [TamuRapatController::class, 'verifikasiPin'])->name('rapat.pin')->middleware('throttle:10,1');
     Route::get('/rapat/{token}/dokumen/{dokumen}/lihat', [TamuRapatController::class, 'lihatDokumen'])->name('rapat.lihat');
+    Route::get('/rapat/{token}/dokumen/{dokumen}/raw', [TamuRapatController::class, 'rawDokumen'])->name('rapat.raw');
     Route::get('/rapat/{token}/dokumen/{dokumen}/unduh', [TamuRapatController::class, 'unduhDokumen'])->name('rapat.unduh');
 });
 
@@ -44,15 +45,19 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/agenda/{agenda}/status', [AgendaController::class, 'selesai'])->name('agenda.status');
     Route::delete('/agenda/{agenda}', [AgendaController::class, 'destroy'])->name('agenda.destroy');
 
-    // Ruang Rapat dikelola admin dan pengelola bidang, dengan pemeriksaan bidang di controller.
-    Route::prefix('ruang-rapat')->name('ruang-rapat.')->middleware('role:admin,bidang')->group(function () {
+    // Ruang Rapat: seluruh pegawai dapat melihat informasi, pengelolaan oleh admin dan pegawai bidang.
+    Route::prefix('ruang-rapat')->name('ruang-rapat.')->group(function () {
         Route::get('/', [RuangRapatController::class, 'index'])->name('index');
-        Route::get('/buat', [RuangRapatController::class, 'create'])->name('create');
-        Route::post('/', [RuangRapatController::class, 'store'])->name('store');
+
+        Route::middleware('role:admin,bidang')->group(function () {
+            Route::get('/buat', [RuangRapatController::class, 'create'])->name('create');
+            Route::post('/', [RuangRapatController::class, 'store'])->name('store');
+            Route::patch('/{ruangRapat}', [RuangRapatController::class, 'update'])->name('update');
+            Route::patch('/{ruangRapat}/nonaktifkan', [RuangRapatController::class, 'nonaktifkan'])->name('nonaktifkan');
+            Route::post('/{ruangRapat}/notulen', [RuangRapatController::class, 'uploadNotulen'])->name('notulen.upload');
+        });
+
         Route::get('/{ruangRapat}', [RuangRapatController::class, 'show'])->name('show');
-        Route::patch('/{ruangRapat}', [RuangRapatController::class, 'update'])->name('update');
-        Route::patch('/{ruangRapat}/nonaktifkan', [RuangRapatController::class, 'nonaktifkan'])->name('nonaktifkan');
-        Route::post('/{ruangRapat}/notulen', [RuangRapatController::class, 'uploadNotulen'])->name('notulen.upload');
     });
 
     Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
@@ -143,4 +148,4 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

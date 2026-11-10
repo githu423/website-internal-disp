@@ -136,7 +136,7 @@
                                                     </span>
                                                 @endif
                                             </div>
-                                            @if (request('belum'))
+                                            @if ($modeBelum)
                                                 <p class="text-[11px] text-slate-400 font-mono mt-0.5">
                                                     {{ $p->nip ?: 'Tanpa NIP' }} ·
                                                     {{ $p->jenis_kelamin === 'P' ? '♀ Perempuan' : '♂ Laki-laki' }} ·

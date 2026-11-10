@@ -163,7 +163,7 @@
 
                         {{-- Section Sub: Penanggung Jawab & Bidang --}}
                         <div class="grid gap-3.5 sm:grid-cols-2">
-                            @if ($u->isAdmin())
+                            @if ($u->isAdmin() || $u->isBidang())
                                 <div class="sm:col-span-2">
                                     <label for="id_bidang" class="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-600">
                                         Bidang Penyelenggara
@@ -172,7 +172,7 @@
                                         class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs md:text-sm text-slate-800 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20">
                                         <option value="">Lintas bidang / Seluruh Dinas</option>
                                         @foreach ($bidangs as $bidang)
-                                            <option value="{{ $bidang->id }}" @selected((string) old('id_bidang') === (string) $bidang->id)>{{ $bidang->nama }}</option>
+                                            <option value="{{ $bidang->id }}" @selected((string) old('id_bidang', $u->id_bidang) === (string) $bidang->id)>{{ $bidang->nama }}</option>
                                         @endforeach
                                     </select>
                                 </div>

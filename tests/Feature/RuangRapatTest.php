@@ -135,4 +135,119 @@ class RuangRapatTest extends TestCase
             ->assertSee('Tautan tidak aktif')
             ->assertSee($ruangRapat->judul);
     }
+
+    public function test_pegawai_biasa_dapat_melihat_ruang_rapat_tetapi_tidak_bisa_membuat_atau_mengubah(): void
+    {
+        $pembuat = $this->userBidang();
+        $dokumen = $this->buatDokumen($pembuat);
+        $ruangRapat = $this->buatRuangRapat($pembuat, $dokumen);
+
+        $pegawai = $this->userPegawai();
+
+        // Pegawai biasa dapat membuka halaman daftar dan detail
+        $this->actingAs($pegawai)
+            ->get(route('ruang-rapat.index'))
+            ->assertOk()
+            ->assertSee($ruangRapat->judul)
+            ->assertDontSee('Buat Ruang Rapat');
+
+        $this->actingAs($pegawai)
+            ->get(route('ruang-rapat.show', $ruangRapat))
+            ->assertOk()
+            ->assertSee($ruangRapat->judul)
+            ->assertSee('Informasi Rapat')
+            ->assertDontSee('Simpan pengaturan')
+            ->assertDontSee('Unggah notulen')
+            ->assertDontSee('Matikan tautan tamu');
+
+        // Pegawai biasa dilarang mengakses form buat dan aksi mutasi
+        $this->actingAs($pegawai)
+            ->get(route('ruang-rapat.create'))
+            ->assertForbidden();
+
+        $this->actingAs($pegawai)
+            ->post(route('ruang-rapat.store'), [
+                'judul' => 'Rapat Pegawai Ilegal',
+                'berlaku_sampai' => now()->addDays(5)->toDateString(),
+                'izinkan_unduh_default' => '1',
+                'dokumen' => [$dokumen->id],
+                'kelompok' => [$dokumen->id => 'agenda'],
+            ])
+            ->assertForbidden();
+
+        $this->actingAs($pegawai)
+            ->patch(route('ruang-rapat.update', $ruangRapat), [
+                'judul' => 'Rapat Diubah Pegawai',
+                'berlaku_sampai' => now()->addDays(5)->toDateString(),
+                'izinkan_unduh_default' => '1',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_pegawai_bidang_memiliki_akses_kelola_seperti_admin(): void
+    {
+        $userBidang = $this->userBidang();
+        $dokumen = $this->buatDokumen($userBidang);
+
+        // Pegawai bidang dapat mengakses halaman buat dan memilih bidang penyelenggara
+        $this->actingAs($userBidang)
+            ->get(route('ruang-rapat.create'))
+            ->assertOk()
+            ->assertSee('Bidang Penyelenggara');
+
+        // Pegawai bidang dapat membuat ruang rapat untuk bidang lain (id_bidang 2)
+        $this->actingAs($userBidang)
+            ->post(route('ruang-rapat.store'), [
+                'judul' => 'Rapat Kolaborasi Bidang',
+                'id_bidang' => 2,
+                'berlaku_sampai' => now()->addDays(7)->toDateString(),
+                'izinkan_unduh_default' => '1',
+                'dokumen' => [$dokumen->id],
+                'kelompok' => [$dokumen->id => 'agenda'],
+            ])
+            ->assertRedirect();
+
+        $ruangRapatBaru = RuangRapat::where('judul', 'Rapat Kolaborasi Bidang')->first();
+        $this->assertNotNull($ruangRapatBaru);
+        $this->assertSame(2, (int) $ruangRapatBaru->id_bidang);
+
+        // Pegawai bidang dapat memperbarui ruang rapat
+        $this->actingAs($userBidang)
+            ->patch(route('ruang-rapat.update', $ruangRapatBaru), [
+                'judul' => 'Rapat Kolaborasi Bidang - Diperbarui',
+                'id_bidang' => 3,
+                'berlaku_sampai' => now()->addDays(8)->toDateString(),
+                'izinkan_unduh_default' => '1',
+            ])
+            ->assertRedirect();
+
+        $this->assertSame(3, (int) $ruangRapatBaru->fresh()->id_bidang);
+        $this->assertSame('Rapat Kolaborasi Bidang - Diperbarui', $ruangRapatBaru->fresh()->judul);
+    }
+
+    public function test_lihat_dokumen_rapat_menampilkan_pratinjau_bukan_mengunduh(): void
+    {
+        $user = $this->userBidang();
+        $dokumen = $this->buatDokumen($user);
+        $ruangRapat = $this->buatRuangRapat($user, $dokumen);
+
+        // Akses route lihat: harus menampilkan halaman view pratinjau, bukan attachment unduhan
+        $parameter = ['token' => $ruangRapat->token, 'dokumen' => $dokumen->id];
+        $response = $this->get(route('rapat.lihat', $parameter));
+
+        $response->assertOk()
+            ->assertViewIs('tamu-rapat.lihat')
+            ->assertSee('Pratinjau')
+            ->assertSee($dokumen->judul);
+
+        // Akses route raw: menyajikan file secara inline
+        $rawResponse = $this->get(route('rapat.raw', $parameter));
+        $rawResponse->assertOk();
+        $this->assertStringContainsString('inline', (string) $rawResponse->headers->get('Content-Disposition'));
+
+        // Akses route unduh: menyajikan file dengan download
+        $unduhResponse = $this->get(route('rapat.unduh', $parameter));
+        $unduhResponse->assertOk();
+        $this->assertStringContainsString('attachment', (string) $unduhResponse->headers->get('Content-Disposition'));
+    }
 }

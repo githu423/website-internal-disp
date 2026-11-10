@@ -60,7 +60,7 @@ class TamuRapatController extends Controller
         return redirect()->route('rapat.buka', ['token' => $token]);
     }
 
-    public function lihatDokumen(Request $request, string $token, string $dokumen): Response
+    public function lihatDokumen(Request $request, string $token, string $dokumen): View|Response
     {
         $ruangRapat = $this->cariRuangRapat($token);
 
@@ -79,6 +79,41 @@ class TamuRapatController extends Controller
         $ruangRapat->increment('dibuka_count');
         $dokumenModel->increment('dibaca_count');
         LogAktivitas::catat('lihat dokumen ruang rapat', Str::limit($ruangRapat->judul.' · '.$dokumenModel->judul, 255, ''));
+
+        $mime = (string) ($dokumenModel->mime ?: mime_content_type($path) ?: '');
+        $isiTeks = null;
+        if ((str_starts_with($mime, 'text/') || in_array($mime, ['application/json', 'application/xml'], true)) && filesize($path) < 512000) {
+            $isiTeks = file_get_contents($path);
+        }
+
+        $bolehUnduh = $dokumenModel->pivot->izinkan_unduh === null
+            ? $ruangRapat->izinkan_unduh_default
+            : (bool) $dokumenModel->pivot->izinkan_unduh;
+
+        return view('tamu-rapat.lihat', [
+            'ruangRapat' => $ruangRapat,
+            'dokumen' => $dokumenModel,
+            'mime' => $mime,
+            'isiTeks' => $isiTeks,
+            'bolehUnduh' => $bolehUnduh,
+        ]);
+    }
+
+    public function rawDokumen(Request $request, string $token, string $dokumen): Response
+    {
+        $ruangRapat = $this->cariRuangRapat($token);
+
+        if ($ruangRapat->sudahKedaluwarsa()) {
+            return $this->tampilkanTautanTidakAktif($ruangRapat);
+        }
+
+        if (! $this->pinTerverifikasi($request, $ruangRapat)) {
+            return redirect()->route('rapat.buka', ['token' => $token]);
+        }
+
+        $dokumenModel = $this->dokumenPublikDiRuang($ruangRapat, $dokumen);
+        $path = Storage::disk('public')->path($dokumenModel->file_path);
+        abort_unless(is_file($path), 404, 'Berkas tidak ditemukan.');
 
         $mime = $dokumenModel->mime ?: (mime_content_type($path) ?: 'application/octet-stream');
         $namaBerkas = preg_replace('/[^A-Za-z0-9._-]/', '_', $dokumenModel->file_name);
@@ -129,6 +164,10 @@ class TamuRapatController extends Controller
 
     private function pinTerverifikasi(Request $request, RuangRapat $ruangRapat): bool
     {
+        if (auth()->check()) {
+            return true;
+        }
+
         if (! $ruangRapat->pin_hash) {
             return true;
         }

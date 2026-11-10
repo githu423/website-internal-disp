@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #FFFFFF;
+            font-family: 'Times New Roman', Times, serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 900px;
+            height: 960px;
+        }
+    </style>
+</head>
+<body>
+    <svg width="900" height="960" viewBox="0 0 900 960" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+            </marker>
+        </defs>
+
+        <!-- System Boundary Box -->
+        <rect x="25" y="25" width="850" height="910" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+        
+        <!-- Header -->
+        <text x="45" y="55" font-family="'Times New Roman', Times, serif" font-size="12" fill="#000000">«flowchart»</text>
+        <text x="45" y="75" font-family="'Times New Roman', Times, serif" font-size="16" font-weight="bold" fill="#000000">Flowchart Alur Kerja Sistem Keseluruhan</text>
+        <text x="45" y="94" font-family="'Times New Roman', Times, serif" font-size="12" font-style="italic" fill="#444444">Arsitektur alur kerja menyeluruh Website Internal Dinas Pariwisata</text>
+
+        <!-- Content Elements -->
+        
+    <rect x="380" y="112" width="140" height="36" rx="18" ry="18" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <text x="450" y="135" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">Mulai</text>
+    <line x1="450" y1="148" x2="450" y2="185" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <rect x="340" y="185" width="220" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="450" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="450" y="209">Login Akun Pengguna</tspan></text>
+    <line x1="450" y1="225" x2="450" y2="265" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <rect x="330" y="265" width="240" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="450" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="450" y="286">Masuk Halaman Dashboard Utama</tspan><tspan x="450" y="302">(Statistik, PAD, Agenda, Dokumen)</tspan></text>
+    <line x1="450" y1="315" x2="450" y2="360" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <polygon points="450,360 550,400 450,440 350,400" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="450" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12" font-weight="bold" fill="#000000"><tspan x="450" y="397">Pilih Modul</tspan><tspan x="450" y="412">Operasional?</tspan></text>
+    <path d="M 350 400 L 130 400 L 130 475" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><text x="220" y="390" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Admin Only</text>
+    <rect x="55" y="475" width="150" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="130" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="130" y="498">Kelola Master User,</tspan><tspan x="130" y="514">Data Pegawai, PAD,</tspan><tspan x="130" y="530">Kinerja & Log</tspan></text>
+    <path d="M 400 430 L 330 450 L 330 475" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" />
+    <rect x="255" y="475" width="150" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="330" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="330" y="498">Kelola Dokumen</tspan><tspan x="330" y="514">& Jadwal Agenda</tspan><tspan x="330" y="530">(Bidang / Admin)</tspan></text>
+    <path d="M 500 430 L 570 450 L 570 475" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" />
+    <rect x="495" y="475" width="150" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="570" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="570" y="498">Peminjaman Ruang</tspan><tspan x="570" y="514">Rapat & Akses Tamu</tspan><tspan x="570" y="530">(Admin / Bidang)</tspan></text>
+    <path d="M 550 400 L 770 400 L 770 475" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><text x="620" y="390" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Semua User</text>
+    <rect x="695" y="475" width="150" height="70" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="770" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="770" y="498">Lihat Data Publik,</tspan><tspan x="770" y="514">Profil, Notifikasi</tspan><tspan x="770" y="530">& Unduh Dokumen</tspan></text>
+    <path d="M 130 545 L 130 635 L 340 635 L 340 670" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><path d="M 330 545 L 330 635 L 410 635 L 410 670" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><path d="M 570 545 L 570 635 L 490 635 L 490 670" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><path d="M 770 545 L 770 635 L 560 635 L 560 670" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" />
+    <rect x="320" y="670" width="260" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="450" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="450" y="691">Sistem Memproses Transaksi</tspan><tspan x="450" y="707">& Memperbarui Basis Data</tspan></text>
+    <line x1="450" y1="720" x2="450" y2="765" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <polygon points="450,765 545,805 450,845 355,805" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="450" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12" font-weight="bold" fill="#000000"><tspan x="450" y="802">Lanjutkan Aktivitas</tspan><tspan x="450" y="817">atau Keluar?</tspan></text>
+    <path d="M 545 805 L 850 805 L 850 290 L 570 290" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><text x="800" y="795" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Lanjut</text><line x1="450" y1="845" x2="450" y2="890" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" /><text x="458" y="865" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Logout</text>
+    <rect x="380" y="891" width="140" height="38" rx="19" ry="19" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <text x="450" y="915" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">Selesai</text>
+    
+
+        <!-- Bottom Caption -->
+        <text x="450" y="948" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-style="italic" font-size="12" fill="#000000">
+            Flowchart Alur Kerja Sistem Keseluruhan - Website Internal Dinas Pariwisata
+        </text>
+    </svg>
+</body>
+</html>

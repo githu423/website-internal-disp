@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="820" height="880" viewBox="0 0 820 880" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#000000" />
+            </marker>
+        </defs>
+
+        <!-- System Boundary Box -->
+        <rect x="25" y="25" width="770" height="830" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+        
+        <!-- Header -->
+        <text x="45" y="55" font-family="'Times New Roman', Times, serif" font-size="12" fill="#000000">«flowchart»</text>
+        <text x="45" y="75" font-family="'Times New Roman', Times, serif" font-size="16" font-weight="bold" fill="#000000">Flowchart Autentikasi & Otorisasi Pengguna</text>
+        <text x="45" y="94" font-family="'Times New Roman', Times, serif" font-size="12" font-style="italic" fill="#444444">Alur proses masuk sistem (login) dan percabangan hak akses per role</text>
+
+        <!-- Content Elements -->
+        
+    <rect x="310" y="112" width="140" height="36" rx="18" ry="18" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <text x="380" y="135" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">Mulai</text>
+    <line x1="380" y1="148" x2="380" y2="185" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <rect x="280" y="185" width="200" height="40" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="380" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="380" y="209">Menampilkan Halaman Login</tspan></text>
+    <line x1="380" y1="225" x2="380" y2="260" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <polygon points="284,260 490,260 476,300 270,300" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="380" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="380" y="284">Input NIP & Password</tspan></text>
+    <line x1="380" y1="300" x2="380" y2="340" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" />
+    <polygon points="380,340 470,380 380,420 290,380" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="380" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12" font-weight="bold" fill="#000000"><tspan x="380" y="377">Validasi Akun</tspan><tspan x="380" y="392">& Status Aktif?</tspan></text>
+    <path d="M 470 380 L 620 380 L 620 205 L 480 205" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><text x="485" y="372" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Tidak (Gagal)</text><line x1="380" y1="420" x2="380" y2="475" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" /><text x="390" y="445" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Ya</text>
+    <polygon points="380,475 470,515 380,555 290,515" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="380" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12" font-weight="bold" fill="#000000"><tspan x="380" y="512">Pemeriksaan</tspan><tspan x="380" y="527">Role User?</tspan></text>
+    <path d="M 290 515 L 170 515 L 170 610" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><text x="230" y="508" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Admin</text>
+    <rect x="90" y="610" width="160" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="170" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="170" y="631">Akses Penuh Menu</tspan><tspan x="170" y="647">& Dashboard Admin</tspan></text>
+    <line x1="380" y1="555" x2="380" y2="610" stroke="#000000" stroke-width="1.4" marker-end="url(#arrow)" /><text x="388" y="580" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Bidang</text>
+    <rect x="295" y="610" width="170" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="380" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="380" y="631">Akses Menu Terkait</tspan><tspan x="380" y="647">Bidang Sendiri</tspan></text>
+    <path d="M 470 515 L 590 515 L 590 610" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><text x="490" y="508" font-family="Times New Roman" font-size="11.5" font-weight="bold" fill="#000000">Pegawai</text>
+    <rect x="510" y="610" width="160" height="50" fill="#FFFFFF" stroke="#000000" stroke-width="1.6" />
+    <text x="590" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="12.5" fill="#000000"><tspan x="590" y="631">Akses Menu Publik</tspan><tspan x="590" y="647">& Read-Only</tspan></text>
+    <path d="M 170 660 L 170 730 L 310 730 L 310 780" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><path d="M 380 660 L 380 780" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" /><path d="M 590 660 L 590 730 L 450 730 L 450 780" stroke="#000000" stroke-width="1.4" fill="none" marker-end="url(#arrow)" />
+    <rect x="310" y="781" width="140" height="38" rx="19" ry="19" fill="#FFFFFF" stroke="#000000" stroke-width="1.8" />
+    <text x="380" y="805" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-size="13" font-weight="bold" fill="#000000">Selesai</text>
+    
+
+        <!-- Bottom Caption -->
+        <text x="410" y="868" text-anchor="middle" font-family="'Times New Roman', Times, serif" font-style="italic" font-size="12" fill="#000000">
+            Flowchart Autentikasi & Otorisasi Pengguna - Website Internal Dinas Pariwisata
+        </text>
+    </svg>

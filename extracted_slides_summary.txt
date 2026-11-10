@@ -1,0 +1,934 @@
+
+==================================================
+FILE: 0691-P01.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+1. Laporan Akhir Mata Kuliah Proyek Sistem Informasi disusun sebagai bagian
+dari evaluasi proyek yang bertujuan memberikan pengalaman langsung
+dalam mengembangkan dan mengelola proyek sistem informasi berbasis
+teknologi sesuai kebutuhan bisnis atau organisasi.
+2. Laporan ini mencakup tahapan analisis, perancangan, implementasi, dan
+evaluasi sistem informasi, dengan fokus pada kerja tim dan pengembangan
+produk sistem informasi yang siap diuji dan didemonstrasikan.
+3. Fokus Pengembangan Sistem
+(IT Business Analyst, Database Administrator, Program Analyst)
+Sosialisasis Capstone Project: Proyek Sistem Informasi
+--- [Page 3] ---
+1. Laporan ditulis dalam bahasa Indonesia yang baku dan sesuai dengan
+kaidah Ejaan Yang Disempurnakan (EYD).
+2. Laporan diketik menggunakan font Noto Serif, ukuran 12 pt, dengan
+spasi 1.5.
+3. Laporan diserahkan dalam format digital (PDF).
+4. Batas waktu pengumpulan laporan adalah satu minggu sebelum
+presentasi proyek.
+5. Presentasi dilakukan secara kelompok dengan durasi maksimal 15
+menit, diikuti sesi tanya jawab selama 10 menit.
+Ketentuan Laporan Akhir Proyek Sistem Informasi
+--- [Page 4] ---
+Laporan tugas presentasi harus mengikuti struktur berikut untuk memastikan kelengkapan dan
+kesesuaian dengan tujuan pembelajaran mata kuliah. Struktur laporan adalah sebagai berikut:
+Halaman Sampul
+Halaman Pengesahan
+Lembar Bimbingan
+Kata Pengantar
+Daftar Isi
+Bab I: Pendahuluan
+Bab II: Analisis Kebutuhan
+Bab III Pembahasan Proyek Akhir
+Bab IV: Perancangan Sistem
+Bab V: Pengembangan Sistem
+Bab VI: Pengujian Sistem
+Bab VII: Evaluasi dan Dokumentasi
+Bab VIII: Manajemen Tim
+Bab IX: Penutup
+Daftar Pustaka
+Format Laporan Fokus PENGEMBANGAN SISTEM
+Lampiran :
+Tampilan aplikasi
+Gantchart/Rencana implementasi dan pengujian
+Video
+Video yang harus dibuat bertujuan:
+1. Mempromosikan produk yang dikembangkan,
+2. Menjelaskan cara kerja produk tersebut.
+3. Video Dokumentasi serah terima aplikasi.
+4. Total durasi video 4-7 menit termasuk title dan acknowledgment.
+HKI (optional)
+--- [Page 5] ---
+Laporan tugas presentasi harus mengikuti struktur berikut untuk memastikan kelengkapan dan
+kesesuaian dengan tujuan pembelajaran mata kuliah. Struktur laporan adalah sebagai berikut:
+Halaman Sampul
+Halaman Pengesahan
+Lembar Bimbingan
+Kata Pengantar
+Daftar Isi
+Bab I: Pendahuluan
+Bab II: Business Understanding
+Bab III Pembahasan Proyek Akhir
+Bab IV: Perancangan Sistem
+Bab V: Pengembangan Sistem
+Bab VI: Pengujian Sistem
+Bab VII: Evaluasi dan Dokumentasi
+Bab VIII: Manajemen Tim
+Bab IX: Penutup
+Daftar Pustaka
+Format Laporan Fokus ANALIS DATA
+Lampiran :
+Tampilan aplikasi
+Gantchart/Rencana implementasi dan pengujian
+Video
+Video yang harus dibuat bertujuan:
+1. Mempromosikan produk yang dikembangkan,
+2. Menjelaskan cara kerja produk tersebut.
+3. Video Dokumentasi serah terima aplikasi.
+4. Total durasi video 4-7 menit termasuk title dan acknowledgment.
+HKI (optional)
+--- [Page 6] ---
+Pembentukan Tim Proyek Sistem Informasi
+Pembentukan tim proyek merupakan tahap awal yang sangat menentukan
+keberhasilan pengembangan sistem informasi. Tim proyek idealnya dibentuk
+secara kolaboratif dengan mempertimbangkan kompetensi teknis,
+kemampuan komunikasi, serta sikap tanggung jawab setiap anggota. Tim
+yang efektif memiliki tujuan yang sama, saling melengkapi keahlian, dan
+mampu bekerja secara terkoordinasi untuk mencapai target proyek sesuai
+ruang lingkup, waktu, dan kualitas yang ditetapkan.
+1 kelompok terdiri dari 3 orang mahasiswa
+Pembentukan Tim dan Pembagian Tugas Antar Anggota
+--- [Page 7] ---
+Struktur dan Peran dalam Tim Proyek
+Dalam proyek sistem informasi, tim umumnya terdiri dari beberapa peran utama, antara lain:
+1. Project Manager: bertanggung jawab mengelola perencanaan, jadwal, dan
+koordinasi tim.
+2. System Analyst: menganalisis kebutuhan pengguna dan merancang spesifikasi
+sistem.
+3. Programmer/Developer: mengimplementasikan sistem sesuai desain.
+4. Database Designer: merancang dan mengelola basis data.
+5. Tester/Quality Assurance: menguji sistem untuk memastikan kualitas dan
+fungsionalitas.
+6. Documentation & Support: menyusun dokumentasi dan mendukung implementasi
+sistem
+(silakan sesuaikan)
+Pembentukan Tim dan Pembagian Tugas Antar Anggota
+--- [Page 8] ---
+Pembagian Tugas Antar Anggota Tim
+Pembagian tugas dilakukan secara jelas, adil, dan proporsional
+berdasarkan peran dan kemampuan masing-masing anggota. Setiap tugas
+harus memiliki deskripsi pekerjaan, target capaian, serta tenggat waktu
+yang terukur.
+Pembagian tugas yang baik membantu mencegah tumpang tindih
+pekerjaan, meningkatkan akuntabilitas, serta memastikan seluruh tahapan
+proyek berjalan sesuai rencana.
+Pembentukan Tim dan Pembagian Tugas Antar Anggota
+--- [Page 9] ---
+Koordinasi dan Kolaborasi Tim
+Agar pembagian tugas berjalan efektif, diperlukan koordinasi yang baik
+melalui rapat rutin, laporan progres, dan penggunaan tools kolaborasi
+proyek.
+Komunikasi yang terbuka dan saling menghargai antar anggota tim menjadi
+kunci untuk menyelesaikan masalah, menyesuaikan perubahan, serta
+menjaga kinerja tim selama siklus hidup proyek sistem informasi.
+Pembentukan Tim dan Pembagian Tugas Antar Anggota
+--- [Page 10] ---
+Pada mata kuliah Proyek Sistem Informasi, setiap mahasiswa atau tim
+diberikan tanggung jawab untuk mencari mitra proyek secara mandiri,
+baik dari instansi pemerintah, perusahaan, UMKM, sekolah, maupun
+organisasi lainnya. Mitra proyek berperan sebagai pengguna nyata
+(stakeholder) yang akan menjadi sumber kebutuhan sistem dan objek
+penerapan solusi sistem informasi yang dikembangkan.
+Masing-masing Tim Mencari Mitra
+--- [Page 11] ---
+Tujuan Pencarian Mitra Proyek
+Pencarian mitra proyek bertujuan untuk memberikan pengalaman nyata
+kepada mahasiswa dalam menghadapi permasalahan riil di lapangan.
+Melalui keterlibatan langsung dengan mitra, mahasiswa dapat melatih
+kemampuan analisis kebutuhan, komunikasi profesional, serta
+pemahaman proses bisnis, sehingga sistem informasi yang dikembangkan
+relevan dan memiliki nilai guna.
+Masing-masing Tim Mencari Mitra
+--- [Page 12] ---
+Kriteria dan Tanggung Jawab Mahasiswa
+Mitra proyek yang dipilih harus memiliki permasalahan atau kebutuhan
+sistem informasi yang jelas dan bersedia bekerja sama selama proses
+pengembangan. Mahasiswa bertanggung jawab untuk:
+1. Melakukan pendekatan awal kepada mitra,
+2. Menjelaskan tujuan dan ruang lingkup proyek akademik,
+3. Menggali kebutuhan sistem,
+4. Menjaga etika dan profesionalisme selama kerja sama berlangsung.
+Masing-masing Tim Mencari Mitra
+--- [Page 13] ---
+Manfaat bagi Mahasiswa dan Mitra
+Bagi mahasiswa, kegiatan ini meningkatkan keterampilan praktis,
+kesiapan kerja, dan portofolio proyek.
+Sementara bagi mitra, proyek ini memberikan solusi sistem informasi
+sederhana hingga menengah yang dapat membantu meningkatkan
+efektivitas dan efisiensi proses bisnis atau layanan.
+Masing-masing Tim Mencari Mitra
+--- [Page 14] ---
+1. Lembar bimbingan agar
+dibawa pada setiap mengikuti
+perkuliahan/bimbingan.
+2. Setiap kelompok cukup
+membawa 1 (satu) lembar
+bimbingan dan wajib ditanda
+tangani oleh dosen pengampu.
+3. Lembar bimbingan ini sebagai
+kartu kontrol kemajuan proyek
+yang dikembangkan.
+Lembar Bimbingan
+--- [Page 15] ---
+Detail Ketentuan Format Laporan Capstone Project Program Studi Sistem Informasi
+Detail Ketentuan Format Laporan Capstone Project
+Program Studi Sistem Informasi
+--- [Page 16] ---
+Pada minggu ke-1 setelah menentukan tim, masing-masing kelompok
+dapat melakukan observasi untuk mendapatkan mitra agar
+mendapatkan data dan informasi yang relevan terkait permasalahan,
+kebutuhan, serta potensi yang dapat dikembangkan melalui pilihan
+proyek sistem informasi
+Akses proposal untuk mitra dapat diunduh :
+Proposal Proyek Sistem Informasi
+Target Mitra
+
+==================================================
+FILE: 0691-P02.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+1.1 Latar Belakang Proyek
+Latar belakang proyek menjelaskan alasan utama mengapa proyek sistem
+informasi perlu dikembangkan. Bagian ini menguraikan kondisi nyata yang
+dihadapi organisasi atau pengguna, seperti permasalahan proses bisnis,
+keterbatasan sistem yang berjalan, ketidakefisienan pengolahan data, atau
+kebutuhan akan peningkatan kualitas layanan. Latar belakang juga
+menekankan peran sistem informasi sebagai solusi berbasis teknologi untuk
+mendukung efektivitas, efisiensi, dan pengambilan keputusan.
+Bimbingan Proyek Sistem Informasi
+BAB I  PENDAHULUAN
+--- [Page 3] ---
+1.2 Tujuan Proyek
+Tujuan proyek berisi pernyataan yang jelas dan terukur mengenai hasil yang
+ingin dicapai melalui pengembangan sistem informasi. Tujuan ini mencakup
+tujuan umum, yaitu membangun sistem informasi yang sesuai dengan
+kebutuhan pengguna, serta tujuan khusus seperti meningkatkan kecepatan
+proses, akurasi data, kemudahan akses informasi, dan dukungan terhadap
+pengelolaan organisasi. Tujuan proyek menjadi acuan utama dalam seluruh
+tahapan pelaksanaan proyek.
+Bimbingan Proyek Sistem Informasi
+BAB I  PENDAHULUAN
+--- [Page 4] ---
+1.3 Ruang Lingkup Proyek
+Ruang lingkup proyek menjelaskan batasan-batasan pekerjaan yang akan
+dilakukan dalam proyek sistem informasi. Bagian ini mencakup fitur atau
+modul yang dikembangkan, aktor atau pengguna sistem, proses bisnis yang
+terlibat, serta teknologi yang digunakan. Penetapan ruang lingkup bertujuan
+agar proyek tetap fokus, terarah, dan dapat diselesaikan sesuai waktu dan
+sumber daya yang tersedia.
+Bimbingan Proyek Sistem Informasi
+BAB I  PENDAHULUAN
+--- [Page 5] ---
+1.4 Manfaat Proyek
+Manfaat proyek menguraikan dampak positif yang diharapkan dari
+penerapan sistem informasi yang dikembangkan. Manfaat dapat dirasakan
+oleh pengguna, organisasi, maupun pengembang sistem, seperti
+peningkatan efisiensi kerja, kualitas informasi yang lebih baik, pengurangan
+kesalahan, serta peningkatan layanan. Selain itu, bagi mahasiswa, proyek
+ini memberikan manfaat akademis berupa pengalaman nyata dalam
+menerapkan konsep analisis, perancangan, dan implementasi sistem
+informasi.
+Bimbingan Proyek Sistem Informasi
+BAB I  PENDAHULUAN
+
+==================================================
+FILE: 0691-P03.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB II membahas proses analisis kebutuhan sebagai tahapan awal yang
+sangat krusial dalam pengembangan sistem informasi. Pada tahap ini,
+mahasiswa melakukan pengumpulan, pengolahan, dan pendefinisian
+kebutuhan sistem berdasarkan permasalahan nyata yang dihadapi oleh
+pengguna atau organisasi.
+Hasil analisis kebutuhan akan menjadi dasar dalam tahap perancangan dan
+implementasi sistem. Adapun struktur dibuat dalam sub judul sebagai berikut:
+2.1 Analisis kebutuhan fungsional dan non-fungsional
+2.2  Stakeholder yang terlibat
+2.3 Identifikasi masalah dan solusi yang diusulkan
+Bimbingan Proyek Sistem Informasi
+BAB II  ANALISIS KEBUTUHAN
+--- [Page 3] ---
+2.1 Analisis Kebutuhan Fungsional dan Non-Fungsional
+Analisis kebutuhan merupakan tahap penting untuk memastikan sistem informasi yang
+dikembangkan benar-benar sesuai dengan kebutuhan pengguna dan tujuan organisasi.
+Kebutuhan fungsional menjelaskan fungsi utama yang harus dimiliki sistem, seperti
+proses input, pengolahan data, penyimpanan, serta penyajian informasi dalam bentuk
+laporan atau dashboard. Kebutuhan ini biasanya dirumuskan berdasarkan proses bisnis
+yang berjalan.
+Sementara itu, kebutuhan non-fungsional berkaitan dengan kualitas sistem, seperti
+keamanan data, kemudahan penggunaan (usability), kinerja sistem, keandalan, serta
+kompatibilitas dengan perangkat dan teknologi yang digunakan. Kedua jenis kebutuhan ini
+harus dianalisis secara lengkap agar sistem dapat berjalan optimal.
+Bimbingan Proyek Sistem Informasi
+BAB II  ANALISIS KEBUTUHAN
+--- [Page 4] ---
+2.2 Stakeholder yang Terlibat
+Stakeholder adalah pihak-pihak yang terlibat secara langsung maupun tidak langsung
+dalam proyek sistem informasi. Stakeholder dapat berasal dari internal maupun eksternal
+organisasi.
+Pihak internal meliputi pengguna sistem, pimpinan, dan pengelola data, sedangkan pihak
+eksternal dapat berupa klien, mitra, atau pihak pengembang. Identifikasi stakeholder
+penting dilakukan untuk memahami peran, kebutuhan, dan tingkat kepentingan masing-
+masing pihak.
+Dengan mengenali stakeholder sejak awal, mahasiswa dapat memastikan komunikasi
+yang efektif dan meminimalkan kesalahpahaman dalam pengembangan sistem.
+Bimbingan Proyek Sistem Informasi
+BAB II  ANALISIS KEBUTUHAN
+--- [Page 5] ---
+2.3 Identifikasi Masalah dan Solusi yang Diusulkan
+Identifikasi masalah bertujuan untuk menemukan kendala atau kelemahan pada sistem
+atau proses yang sedang berjalan. Masalah dapat berupa proses manual yang tidak
+efisien, data yang tidak terintegrasi, keterlambatan informasi, atau tingkat kesalahan
+yang tinggi.
+Berdasarkan masalah tersebut, mahasiswa kemudian merumuskan solusi yang
+diusulkan dalam bentuk pengembangan atau perbaikan sistem informasi. Solusi harus
+bersifat logis, realistis, dan sesuai dengan kebutuhan stakeholder serta ruang lingkup
+proyek. Tahapan ini menjadi dasar dalam perancangan sistem pada tahap selanjutnya.
+Bimbingan Proyek Sistem Informasi
+BAB II  ANALISIS KEBUTUHAN
+
+==================================================
+FILE: 0691-P04.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB III membahas secara rinci proyek akhir yang dikembangkan oleh mahasiswa.
+Pada bab ini, mahasiswa menjelaskan gambaran umum proyek, tujuan spesifik
+yang ingin dicapai, serta konteks bisnis atau organisasi yang menjadi latar
+penerapan sistem informasi.
+Pembahasan ini bertujuan agar pembaca memahami arah, fokus, dan relevansi
+proyek secara menyeluruh.
+BAB III terdiri dari sub judul sebagai berikut:
+3.1 Deskripsi Proyek Akhir
+3.2 Tujuan Spesifik Proyek
+3.3 Konteks Bisnis atau Organisasi yang Relevan
+Bimbingan Proyek Sistem Informasi
+BAB III  PEMBAHASAN PROYEK AKHIR
+--- [Page 3] ---
+3.1 Deskripsi Proyek Akhir
+Deskripsi proyek akhir menjelaskan gambaran umum sistem informasi yang
+dikembangkan oleh mahasiswa. Uraian mencakup nama proyek, jenis sistem
+(misalnya sistem informasi manajemen, sistem layanan, atau aplikasi
+pendukung keputusan), serta fungsi utama sistem secara ringkas.
+Pada bagian ini juga dijelaskan alasan pemilihan proyek dan keterkaitannya
+dengan permasalahan yang telah dianalisis pada BAB II. Deskripsi proyek
+harus disampaikan secara jelas agar pembaca memperoleh pemahaman awal
+tentang solusi sistem informasi yang ditawarkan.
+Bimbingan Proyek Sistem Informasi
+BAB III  PEMBAHASAN PROYEK AKHIR
+--- [Page 4] ---
+3.2 Tujuan Spesifik Proyek
+Tujuan spesifik proyek berisi target atau capaian yang ingin diwujudkan melalui
+pengembangan sistem informasi. Tujuan ini diturunkan dari tujuan umum proyek
+dan dirumuskan secara lebih terarah dan terukur.
+Tujuan spesifik dapat mencakup peningkatan efisiensi proses, pengurangan
+kesalahan pengolahan data, penyediaan informasi yang akurat dan tepat waktu,
+serta peningkatan kualitas layanan kepada pengguna.
+Perumusan tujuan spesifik membantu mahasiswa dalam mengevaluasi
+keberhasilan proyek pada tahap akhir.
+Bimbingan Proyek Sistem Informasi
+BAB III  PEMBAHASAN PROYEK AKHIR
+--- [Page 5] ---
+3.3 Konteks Bisnis atau Organisasi yang Relevan
+Konteks bisnis atau organisasi menjelaskan lingkungan tempat sistem informasi
+akan diterapkan.
+Bagian ini menguraikan profil singkat organisasi, karakteristik proses bisnis, serta
+peran sistem informasi dalam mendukung aktivitas organisasi tersebut.
+Pemahaman konteks bisnis penting agar sistem yang dikembangkan selaras
+dengan kebutuhan nyata dan kondisi operasional organisasi.
+Dengan menjelaskan konteks ini, mahasiswa dapat menunjukkan bahwa proyek
+akhir tidak hanya bersifat teknis, tetapi juga memiliki nilai strategis dan relevan bagi
+pengguna.
+Bimbingan Proyek Sistem Informasi
+BAB III  PEMBAHASAN PROYEK AKHIR
+
+==================================================
+FILE: 0691-P05.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB IV membahas proses perancangan sistem informasi yang akan
+dikembangkan berdasarkan hasil analisis kebutuhan pada bab sebelumnya.
+Perancangan sistem bertujuan untuk menggambarkan bagaimana sistem akan
+dibangun, bagaimana komponen saling berinteraksi, serta teknologi apa saja yang
+digunakan. Tahap ini sangat penting karena menjadi acuan utama dalam proses
+implementasi dan pengujian sistem.
+BAB IV terdiri dari sub judul sebagai berikut:
+4.1  Desain Arsitektur Sistem
+4.2  Diagram Sistem (misalnya, UML, ERD, DFD)
+4.3  Teknologi Yang Digunakan
+Bimbingan Proyek Sistem Informasi
+BAB IV  PERANCANGAN SISTEM
+--- [Page 3] ---
+4.1 Desain Arsitektur Sistem
+Desain arsitektur sistem menjelaskan struktur umum sistem informasi yang
+dikembangkan, termasuk komponen utama dan hubungan antar komponen
+tersebut. Arsitektur sistem dapat mencakup pembagian antara sisi pengguna
+(client), sisi server, basis data, serta layanan pendukung lainnya.
+Pada bagian ini, mahasiswa menjelaskan alur kerja sistem secara keseluruhan,
+mulai dari input data oleh pengguna, proses pengolahan oleh sistem, hingga
+output berupa informasi atau laporan. Desain arsitektur yang baik akan
+membantu memastikan sistem bersifat modular, mudah dikembangkan, dan
+mudah dipelihara di masa mendatang.
+Bimbingan Proyek Sistem Informasi
+BAB IV  PERANCANGAN SISTEM
+--- [Page 4] ---
+4.2 Diagram Sistem (UML, ERD, DFD)
+Diagram sistem digunakan untuk memvisualisasikan rancangan sistem secara lebih detail
+dan terstruktur. Diagram membantu pengembang dan pengguna memahami fungsi, alur
+data, serta struktur sistem informasi.
+1. Diagram UML digunakan untuk menggambarkan interaksi antara aktor dan sistem,
+struktur kelas, serta alur proses sistem.
+2. ERD (Entity Relationship Diagram) digunakan untuk memodelkan struktur basis
+data, termasuk entitas, atribut, dan hubungan antar entitas.
+3. DFD (Data Flow Diagram) digunakan untuk menunjukkan aliran data dalam
+sistem, mulai dari input, proses, hingga output.
+Penggunaan diagram sistem bertujuan untuk meminimalkan kesalahan pemahaman dan
+menjadi pedoman teknis dalam tahap implementasi.
+Bimbingan Proyek Sistem Informasi
+BAB IV  PERANCANGAN SISTEM
+--- [Page 5] ---
+4.3 Teknologi yang Digunakan
+Bagian ini menjelaskan teknologi yang digunakan dalam pengembangan sistem
+informasi. Teknologi dapat meliputi bahasa pemrograman, framework, basis
+data, sistem operasi, serta tools pendukung lainnya.
+Mahasiswa perlu menjelaskan alasan pemilihan teknologi tersebut, misalnya
+karena kemudahan penggunaan, kesesuaian dengan kebutuhan sistem,
+ketersediaan sumber daya, atau dukungan komunitas. Pemilihan teknologi yang
+tepat akan mendukung kinerja sistem, keamanan data, dan keberhasilan
+implementasi proyek akhir.
+Bimbingan Proyek Sistem Informasi
+BAB IV  PERANCANGAN SISTEM
+
+==================================================
+FILE: 0691-P06.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB V membahas tahapan pengembangan sistem informasi secara teknis, mulai
+dari proses pembangunan aplikasi hingga penanganan kendala yang muncul
+selama pengembangan. Pada bab ini, mahasiswa menunjukkan kemampuan
+implementatif dengan menerjemahkan desain sistem ke dalam bentuk aplikasi
+yang dapat dijalankan, baik berbasis web maupun mobile.
+BAB V terdiri dari sub judul berikut:
+5.1  Tahapan pengembangan aplikasi atau Sistem berbasis web dan/atau mobile
+(Fokus Pengembangan Sistem)
+5.2  Kendala yang dihadapi dan solusinya
+Bimbingan Proyek Sistem Informasi
+BAB V  PENGEMBANGAN SISTEM
+--- [Page 3] ---
+5.1 Tahapan Pengembangan Aplikasi atau Sistem Berbasis Web dan/atau Mobile
+Tahapan pengembangan sistem menjelaskan langkah-langkah yang dilakukan mahasiswa
+dalam membangun aplikasi sesuai dengan desain dan kebutuhan sistem. Tahapan ini
+umumnya dimulai dari persiapan lingkungan pengembangan, pembuatan struktur aplikasi,
+hingga pengujian awal sistem.
+Pada sistem berbasis web, tahapan dapat mencakup pembuatan antarmuka pengguna,
+pengembangan logika aplikasi, integrasi basis data, serta pengujian fungsi utama. Sementara
+pada sistem berbasis mobile, tahapan pengembangan meliputi perancangan tampilan aplikasi,
+pengelolaan navigasi, pemrograman fitur, dan pengujian pada perangkat atau emulator.
+Fokus utama pada tahap ini adalah memastikan setiap fungsi yang telah dirancang dapat
+berjalan dengan baik, sesuai kebutuhan pengguna, dan memenuhi tujuan proyek yang telah
+ditetapkan.
+Bimbingan Proyek Sistem Informasi
+BAB V  PENGEMBANGAN SISTEM
+--- [Page 4] ---
+5.2 Kendala yang Dihadapi dan Solusinya
+Dalam proses pengembangan sistem, mahasiswa sering menghadapi berbagai kendala, baik
+teknis maupun non-teknis. Kendala teknis dapat berupa kesalahan pemrograman, integrasi
+sistem yang belum optimal, keterbatasan perangkat, atau masalah kompatibilitas teknologi.
+Kendala non-teknis dapat meliputi keterbatasan waktu, perubahan kebutuhan pengguna, atau
+kurangnya data pendukung.
+Pada bagian ini, mahasiswa menjelaskan kendala yang dihadapi secara objektif dan sistematis,
+kemudian menguraikan solusi yang dilakukan untuk mengatasinya. Solusi dapat berupa
+perbaikan kode program, penyesuaian desain, penggunaan alternatif teknologi, atau
+pengaturan ulang jadwal pengembangan. Pembahasan kendala dan solusi menunjukkan
+kemampuan problem solving serta kedewasaan mahasiswa dalam mengelola proyek sistem
+informasi.
+Bimbingan Proyek Sistem Informasi
+BAB V  PENGEMBANGAN SISTEM
+
+==================================================
+FILE: 0691-P07.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB VI membahas proses pengujian sistem informasi yang telah dikembangkan.
+Pengujian bertujuan untuk memastikan bahwa sistem berjalan sesuai kebutuhan
+fungsional dan non-fungsional, bebas dari kesalahan kritis, serta siap digunakan.
+Pada bab ini, mahasiswa menunjukkan kemampuan evaluasi terhadap hasil
+pengembangan sistem secara objektif dan sistematis.
+BAB VI terdiri dari sub judul berikut:
+6.1 Metode pengujian (misalnya, black-box, white-box)
+6.2 Hasil pengujian dan analisis
+Bimbingan Proyek Sistem Informasi
+BAB VI  PENGUJIAN SISTEM
+--- [Page 3] ---
+6.1 Metode Pengujian
+Metode pengujian menjelaskan pendekatan yang digunakan untuk menguji fungsi dan logika
+sistem. Pemilihan metode pengujian disesuaikan dengan karakteristik sistem dan tujuan pengujian.
+1. Pengujian black-box dilakukan dengan menguji fungsi sistem berdasarkan input dan output
+tanpa melihat struktur kode program. Metode ini berfokus pada kesesuaian fungsi sistem
+dengan kebutuhan pengguna, seperti validasi form, proses transaksi, dan hasil laporan.
+2. Pengujian white-box dilakukan dengan memperhatikan struktur internal program, seperti
+alur logika, kondisi percabangan, dan proses perulangan. Metode ini bertujuan untuk
+memastikan bahwa logika pemrograman berjalan dengan benar dan tidak menimbulkan
+kesalahan tersembunyi.
+Mahasiswa dapat menggunakan satu atau kombinasi beberapa metode pengujian untuk
+memperoleh hasil yang lebih komprehensif.
+Bimbingan Proyek Sistem Informasi
+BAB VI  PENGUJIAN SISTEM
+--- [Page 4] ---
+6.2 Hasil Pengujian dan Analisis
+Bagian hasil pengujian menyajikan ringkasan temuan dari proses pengujian sistem. Hasil ini
+dapat ditampilkan dalam bentuk tabel, daftar skenario uji, atau deskripsi singkat yang
+menunjukkan apakah fungsi sistem berjalan sesuai harapan.
+Analisis hasil pengujian menjelaskan interpretasi terhadap temuan tersebut, termasuk fungsi
+yang berhasil dijalankan, kesalahan yang ditemukan, serta tingkat keberhasilan sistem secara
+keseluruhan. Jika ditemukan masalah, mahasiswa menjelaskan penyebabnya dan langkah
+perbaikan yang telah atau akan dilakukan.
+Analisis ini penting untuk menilai kesiapan sistem sebelum diimplementasikan dan menjadi
+dasar evaluasi keberhasilan proyek sistem informasi.
+Bimbingan Proyek Sistem Informasi
+BAB V  PENGEMBANGAN SISTEM
+
+==================================================
+FILE: 0691-P08.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+Bagian awal laporan Proyek Sistem Informasi berfungsi sebagai identitas
+dan pengantar laporan sebelum pembahasan inti. Bagian ini memuat
+halaman sampul sebagai identitas resmi laporan, halaman pengesahan
+sebagai bentuk validasi akademik, lembar bimbingan sebagai dokumentasi
+proses pendampingan, kata pengantar yang menjelaskan tujuan dan
+gambaran umum proyek, serta daftar isi sebagai panduan sistematis bagi
+pembaca dalam memahami struktur laporan.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN AWAL
+--- [Page 3] ---
+Halaman Sampul
+• Halaman sampul merupakan identitas utama dari laporan proyek yang disusun. Pada
+halaman ini dicantumkan judul laporan yaitu “Laporan Proyek Sistem Informasi: [Nama
+Proyek]” yang menggambarkan secara ringkas fokus dan ruang lingkup proyek yang
+dikembangkan.
+• Selain itu, halaman sampul memuat nama kelompok beserta seluruh anggota,
+lengkap dengan Nomor Induk Mahasiswa (NIM) masing-masing sebagai bentuk
+tanggung jawab akademik atas karya yang disusun. Logo universitas ditampilkan
+sebagai simbol resmi institusi penyelenggara pendidikan.
+• Informasi lain yang dicantumkan meliputi nama fakultas dan universitas, serta tahun
+akademik pelaksanaan proyek. Seluruh elemen pada halaman sampul disusun secara
+rapi, proporsional, dan formal untuk mencerminkan kualitas akademik laporan.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN AWAL
+--- [Page 4] ---
+Halaman Pengesahan
+• Halaman pengesahan berfungsi sebagai bukti legal dan akademik bahwa
+laporan proyek telah disusun dan diselesaikan sesuai ketentuan Mata
+Kuliah Proyek Sistem Informasi. Pada halaman ini terdapat pernyataan
+resmi bahwa laporan disusun sebagai bagian dari pemenuhan tugas mata
+kuliah tersebut.
+• Halaman ini juga memuat tanda tangan ketua kelompok sebagai
+perwakilan tim proyek dan tanda tangan dosen pengampu sebagai
+bentuk pengesahan, validasi, dan persetujuan terhadap hasil proyek yang
+telah dikerjakan oleh mahasiswa.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN AWAL
+--- [Page 5] ---
+Lembar Bimbingan
+Lembar bimbingan digunakan untuk mencatat proses
+konsultasi dan arahan yang diberikan oleh dosen
+pembimbing selama pelaksanaan proyek. Lembar ini
+berisi informasi mengenai tanggal bimbingan,
+pokok bahasan atau masukan yang diberikan,
+serta paraf atau tanda tangan dosen
+pembimbing/pengampu.
+Keberadaan lembar bimbingan menunjukkan bahwa
+proyek telah melalui proses pendampingan
+akademik yang sistematis dan berkelanjutan.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN AWAL
+--- [Page 6] ---
+Kata Pengantar
+Kata pengantar berisi ungkapan rasa syukur kepada Tuhan Yang Maha Esa atas
+terselesaikannya Laporan Proyek Sistem Informasi ini. Pada bagian ini juga
+disampaikan tujuan penyusunan laporan, yaitu sebagai dokumentasi hasil
+perencanaan, pengembangan, dan evaluasi proyek sistem informasi yang dilakukan
+oleh mahasiswa.
+Selain itu, kata pengantar memberikan gambaran umum mengenai proyek yang
+dikerjakan, meliputi latar belakang singkat, ruang lingkup, serta harapan agar laporan
+ini dapat memberikan manfaat bagi pengembangan pengetahuan, khususnya di
+bidang sistem informasi. Penulis juga dapat menyampaikan ucapan terima kasih
+kepada pihak-pihak yang telah membantu dalam proses penyusunan proyek.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN AWAL
+--- [Page 7] ---
+Daftar Isi
+Daftar isi menyajikan susunan sistematis seluruh bagian dan
+subbagian laporan, lengkap dengan nomor halaman masing-
+masing. Bagian ini bertujuan untuk memudahkan pembaca dalam
+menelusuri isi laporan serta memahami struktur penulisan secara
+keseluruhan.
+Daftar isi disusun secara berurutan mulai dari bagian awal, isi utama,
+hingga bagian penutup laporan serta lampirannya, sehingga
+mencerminkan alur logis dan keterpaduan dokumen proyek.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN AWAL
+--- [Page 8] ---
+Bagian lampiran berfungsi sebagai pendukung dan pelengkap laporan utama yang menyajikan bukti teknis, visual,
+dan administratif dari proyek sistem informasi yang dikembangkan.
+Bagian lampiran terdiri dari:
+• Tampilan aplikasi
+• Gantchart/Rencana implementasi dan pengujian
+• Video
+1. Video yang harus dibuat bertujuan:
+2. mempromosikan produk yang dikembangkan,
+3. menjelaskan cara kerja produk tersebut.
+4. Video Dokumentasi serah terima aplikasi.
+5. Total durasi video 4-7 menit termasuk title dan acknowledgment.
+• HKI (optional)
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN LAMPIRAN
+--- [Page 9] ---
+Tampilan Aplikasi
+Lampiran tampilan aplikasi berisi dokumentasi visual antarmuka sistem
+informasi yang dikembangkan.
+Bagian ini menampilkan fitur-fitur utama, alur penggunaan, serta hasil
+implementasi sistem melalui tangkapan layar (screenshot) untuk
+memberikan gambaran nyata mengenai fungsi dan operasional aplikasi.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN LAMPIRAN
+--- [Page 10] ---
+Gantt Chart / Rencana Implementasi dan Pengujian
+Lampiran Gantt chart menyajikan jadwal pelaksanaan proyek secara
+terstruktur, mencakup tahap perencanaan, pengembangan, implementasi,
+dan pengujian sistem.
+Bagian ini menunjukkan pengelolaan waktu dan pembagian aktivitas proyek
+secara sistematis sesuai dengan rencana kerja tim.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN LAMPIRAN
+--- [Page 11] ---
+Video
+Lampiran video merupakan media pendukung yang bertujuan untuk
+mempromosikan produk sistem informasi yang dikembangkan, menjelaskan
+cara kerja serta fitur utama aplikasi, dan mendokumentasikan proses serah
+terima aplikasi kepada pengguna. Video disusun dengan durasi total 4–7
+menit, termasuk bagian judul (title) dan ucapan terima kasih
+(acknowledgment).
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN LAMPIRAN
+--- [Page 12] ---
+HKI (Opsional)
+Lampiran Hak Kekayaan Intelektual (HKI) disertakan sebagai bukti
+perlindungan hukum atas produk sistem informasi yang dikembangkan.
+Bagian ini memuat dokumen pendukung pendaftaran HKI apabila telah atau
+sedang diajukan, sebagai bentuk pengakuan atas orisinalitas karya tim
+proyek.
+Kerja Mandiri Proyek Sistem Informasi
+BAGIAN LAMPIRAN
+
+==================================================
+FILE: 0691-P09.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB VII – Evaluasi dan Dokumentasi
+BAB VII membahas tahap akhir dari proyek sistem informasi, yaitu evaluasi hasil
+proyek dan penyusunan dokumentasi. Pada bab ini, mahasiswa menilai sejauh
+mana sistem yang dikembangkan telah mencapai tujuan awal,
+mendokumentasikan sistem secara teknis dan fungsional, serta menyusun
+rencana pengembangan lanjutan. Tahapan ini penting untuk memastikan sistem
+dapat dipahami, digunakan, dan dikembangkan di masa depan.
+BAB VII terdiri dari sub judul berikut:
+7.1  Evaluasi hasil proyek terhadap tujuan awal
+7.2  Dokumentasi teknis dan pengguna
+7.3  Rencana pengembangan lanjutan
+Bimbingan Proyek Sistem Informasi
+BAB VII  EVALUASI DAN DOKUMENTASI
+--- [Page 3] ---
+7.1 Evaluasi Hasil Proyek terhadap Tujuan Awal
+Evaluasi hasil proyek bertujuan untuk menilai kesesuaian antara tujuan yang
+telah ditetapkan pada tahap awal proyek dengan hasil sistem yang telah
+dikembangkan. Mahasiswa membandingkan tujuan umum dan tujuan
+spesifik proyek dengan capaian nyata sistem, baik dari sisi fungsi, kinerja,
+maupun manfaat bagi pengguna.
+Evaluasi dapat dilakukan berdasarkan hasil pengujian sistem, umpan balik
+pengguna, serta pencapaian indikator keberhasilan proyek. Melalui evaluasi
+ini, mahasiswa dapat mengidentifikasi kelebihan, kekurangan, dan tingkat
+keberhasilan proyek sistem informasi secara objektif.
+Bimbingan Proyek Sistem Informasi
+BAB VII  EVALUASI DAN DOKUMENTASI
+--- [Page 4] ---
+7.2 Dokumentasi Teknis dan Pengguna
+Dokumentasi merupakan bagian penting dalam proyek sistem informasi
+karena berfungsi sebagai panduan penggunaan dan pemeliharaan sistem.
+Dokumentasi teknis berisi penjelasan mengenai arsitektur sistem, struktur
+basis data, konfigurasi aplikasi, serta penjelasan kode program secara
+umum. Dokumentasi ini ditujukan bagi pengembang atau pihak teknis.
+Sementara itu, dokumentasi pengguna berisi panduan operasional sistem,
+seperti cara login, penggunaan fitur, pengelolaan data, serta langkah-
+langkah penyelesaian masalah sederhana. Dokumentasi yang baik
+membantu memastikan sistem dapat digunakan secara efektif dan
+berkelanjutan oleh pengguna.
+Bimbingan Proyek Sistem Informasi
+BAB VII  EVALUASI DAN DOKUMENTASI
+--- [Page 5] ---
+7.3 Rencana Pengembangan Lanjutan
+Rencana pengembangan lanjutan menjelaskan potensi pengembangan
+sistem di masa depan. Bagian ini memuat saran penambahan fitur,
+peningkatan performa, integrasi dengan sistem lain, atau pengembangan
+platform baru, seperti dari web ke mobile.
+Rencana pengembangan lanjutan disusun berdasarkan hasil evaluasi
+proyek, masukan pengguna, serta perkembangan teknologi. Dengan adanya
+rencana ini, mahasiswa menunjukkan bahwa sistem informasi yang
+dikembangkan bersifat adaptif dan memiliki peluang untuk terus
+dikembangkan sesuai kebutuhan organisasi.
+Bimbingan Proyek Sistem Informasi
+BAB VII  EVALUASI DAN DOKUMENTASI
+
+==================================================
+FILE: 0691-P10.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB VIII – Manajemen Tim
+BAB VIII membahas bagaimana tim proyek sistem informasi dikelola secara efektif
+agar tujuan proyek dapat tercapai sesuai rencana. Manajemen tim mencakup
+pembagian tugas yang jelas, penerapan strategi manajemen proyek yang tepat,
+serta evaluasi kolaborasi antar anggota tim. Aspek ini sangat penting karena
+keberhasilan proyek tidak hanya ditentukan oleh teknologi, tetapi juga oleh kerja
+sama tim.
+BAB VIII terdiri dari sub judul berikut:
+8.1 Pembagian tugas antar anggota tim
+8.2 Strategi manajemen proyek (misalnya, Agile, Scrum)
+8.3 Evaluasi kolaborasi tim
+Bimbingan Proyek Sistem Informasi
+BAB VIII  MANAJEMEN TIM
+--- [Page 3] ---
+8.1 Pembagian Tugas Antar Anggota Tim
+Pembagian tugas menjelaskan peran dan tanggung jawab masing-masing
+anggota tim dalam proyek sistem informasi. Setiap anggota tim biasanya
+memiliki peran tertentu, seperti ketua tim, analis sistem, perancang sistem,
+programmer, dan penguji sistem.
+Pembagian tugas dilakukan berdasarkan kompetensi, minat, dan beban
+kerja agar pekerjaan dapat berjalan efektif dan seimbang. Dengan
+pembagian tugas yang jelas, setiap anggota tim memahami tanggung
+jawabnya, meminimalkan tumpang tindih pekerjaan, serta meningkatkan
+akuntabilitas dalam penyelesaian proyek.
+Bimbingan Proyek Sistem Informasi
+BAB VIII  MANAJEMEN TIM
+--- [Page 4] ---
+8.2 Strategi Manajemen Proyek
+Strategi manajemen proyek menjelaskan pendekatan yang digunakan tim dalam
+mengelola dan mengendalikan pelaksanaan proyek sistem informasi. Strategi ini
+mengatur perencanaan pekerjaan, pembagian waktu, pengendalian perubahan, serta
+koordinasi antar anggota tim.
+• Pendekatan Agile menekankan fleksibilitas, komunikasi intensif, dan pengembangan
+sistem secara bertahap sesuai kebutuhan pengguna.
+• Pendekatan Scrum sebagai salah satu kerangka kerja Agile mengatur pekerjaan
+dalam siklus singkat (sprint), dengan pembagian tugas yang terstruktur dan evaluasi
+rutin.
+Pemilihan strategi manajemen proyek membantu tim bekerja lebih terorganisir, adaptif,
+dan fokus pada hasil.
+Bimbingan Proyek Sistem Informasi
+BAB VIII  MANAJEMEN TIM
+--- [Page 5] ---
+8.3 Evaluasi Kolaborasi Tim
+Evaluasi kolaborasi tim bertujuan untuk menilai efektivitas kerja sama antar
+anggota selama proyek berlangsung. Evaluasi ini mencakup aspek
+komunikasi, komitmen, kontribusi individu, serta kemampuan tim dalam
+menyelesaikan masalah dan konflik.
+Hasil evaluasi digunakan untuk mengidentifikasi kelebihan dan kekurangan
+kerja tim, serta sebagai bahan refleksi untuk perbaikan pada proyek
+selanjutnya. Melalui evaluasi kolaborasi, mahasiswa belajar pentingnya kerja
+tim, tanggung jawab bersama, dan profesionalisme dalam proyek sistem
+informasi.
+Bimbingan Proyek Sistem Informasi
+BAB VIII  MANAJEMEN TIM
+
+==================================================
+FILE: 0691-P11.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+BAB IX – Penutup
+BAB IX berisi penutup dari keseluruhan laporan proyek sistem informasi.
+Pada bab ini, mahasiswa menyajikan kesimpulan berdasarkan hasil
+pengembangan, pengujian, dan evaluasi sistem, serta memberikan saran
+yang bersifat konstruktif untuk pengembangan proyek di masa mendatang.
+Bagian ini menunjukkan kemampuan mahasiswa dalam melakukan refleksi
+akademis terhadap proyek yang telah dikerjakan.
+BAB IX terdiri dari sub judul berikut:
+9.1 Kesimpulan proyek
+9.2 Saran untuk pengembangan proyek di masa depan
+Bimbingan Proyek Sistem Informasi
+BAB IX  PENUTUP
+--- [Page 3] ---
+9.1 Kesimpulan Proyek
+Kesimpulan proyek berisi ringkasan hasil utama dari seluruh rangkaian
+proyek sistem informasi. Mahasiswa menjelaskan secara singkat
+pencapaian tujuan proyek, kesesuaian sistem dengan kebutuhan
+pengguna, serta manfaat yang dihasilkan dari implementasi sistem.
+Kesimpulan disusun berdasarkan hasil analisis kebutuhan,
+perancangan, pengembangan, pengujian, dan evaluasi sistem. Bagian
+ini tidak memuat data baru, tetapi menegaskan kembali temuan dan
+capaian penting proyek secara padat, jelas, dan objektif.
+Bimbingan Proyek Sistem Informasi
+BAB IX  PENUTUP
+--- [Page 4] ---
+9.2 Saran untuk Pengembangan Proyek di Masa Depan
+Saran berisi rekomendasi pengembangan lanjutan yang dapat dilakukan
+penambahan fitur, peningkatan performa dan keamanan, pengembangan ke
+terhadap sistem informasi yang telah dibangun. Saran dapat mencakup
+platform lain, atau integrasi dengan sistem eksternal.
+Saran juga dapat ditujukan bagi pengguna, pengelola sistem, maupun
+peneliti selanjutnya. Melalui bagian ini, mahasiswa menunjukkan
+pemahaman bahwa sistem informasi bersifat dinamis dan dapat terus
+disempurnakan sesuai dengan kebutuhan dan perkembangan teknologi.
+Bimbingan Proyek Sistem Informasi
+BAB IX  PENUTUP
+--- [Page 5] ---
+Daftar Pustaka
+Daftar pustaka merupakan bagian akhir laporan proyek sistem informasi yang
+berisi seluruh sumber referensi yang digunakan selama proses penulisan dan
+pengembangan proyek. Sumber ini dapat berupa buku, jurnal ilmiah, prosiding,
+standar, laporan resmi, maupun sumber daring yang relevan dan dapat
+dipertanggungjawabkan.
+Keberadaan daftar pustaka menunjukkan bahwa proyek disusun berdasarkan
+kajian teori, konsep, dan praktik yang valid secara akademik, bukan hanya
+berdasarkan opini atau asumsi pribadi.
+• Referensi yang digunakan dalam proyek
+• Format penulisan referensi sesuai standar (misalnya, APA)
+Bimbingan Proyek Sistem Informasi
+DAFTAR PUSTAKA
+--- [Page 6] ---
+Fungsi Daftar Pustaka
+• Daftar pustaka memiliki beberapa fungsi utama dalam proyek sistem
+informasi, yaitu:
+• Menjadi landasan teori dan konsep dalam analisis, perancangan, dan
+pengembangan sistem
+• Menunjukkan kejujuran akademik dan menghindari plagiarisme
+• Memperkuat argumen dan keputusan teknis yang diambil dalam
+proyek
+• Memberikan rujukan bagi pembaca atau peneliti selanjutnya
+Bimbingan Proyek Sistem Informasi
+DAFTAR PUSTAKA
+--- [Page 7] ---
+Jenis Sumber Referensi
+Sumber referensi yang digunakan dalam proyek sistem informasi sebaiknya
+relevan dan mutakhir, antara lain:
+• Buku teks bidang sistem informasi, rekayasa perangkat lunak, dan manajemen
+proyek TI
+• Jurnal ilmiah nasional maupun internasional
+• Prosiding seminar atau konferensi
+• Standar dan dokumentasi resmi (misalnya framework, metode, atau teknologi)
+• Situs web ilmiah atau dokumentasi resmi teknologi, bukan blog pribadi tanpa
+referensi jelas
+Bimbingan Proyek Sistem Informasi
+DAFTAR PUSTAKA
+--- [Page 8] ---
+Keterkaitan Daftar Pustaka dengan Isi Proyek
+Daftar pustaka harus selaras dengan isi laporan proyek, terutama pada bagian
+pendahuluan, analisis kebutuhan, perancangan sistem, metode
+pengembangan, dan pengujian. Referensi yang digunakan sebaiknya benar-
+benar mendukung topik dan metode yang diterapkan dalam proyek sistem
+informasi.
+Penekanan untuk Mahasiswa
+Mahasiswa diharapkan menggunakan referensi yang berkualitas, relevan, dan
+terbaru agar proyek sistem informasi yang dikembangkan memiliki dasar ilmiah
+yang kuat. Penyusunan daftar pustaka yang baik mencerminkan kedisiplinan
+akademik dan profesionalisme mahasiswa dalam menyelesaikan proyek.
+Bimbingan Proyek Sistem Informasi
+DAFTAR PUSTAKA
+
+==================================================
+FILE: 0691-P12-P15.pdf
+==================================================
+--- [Page 1] ---
+--- [Page 2] ---
+Ketentuan Laporan Akhir Proyek Sistem Informasi
+• Laporan ditulis dalam bahasa Indonesia yang baku dan sesuai dengan
+kaidah Ejaan Yang Disempurnakan (EYD).
+• Laporan diketik menggunakan font Noto Serif, ukuran 12 pt, dengan spasi
+1.5.
+• Laporan diserahkan dalam format digital (PDF).
+• Batas waktu pengumpulan laporan adalah satu minggu sebelum
+presentasi proyek.
+• Presentasi dilakukan secara kelompok dengan durasi maksimal 15 menit,
+diikuti sesi tanya jawab selama 10 menit.
+Presentasi Proyek Sistem Informasi
+--- [Page 3] ---
+Laporan Proyek Sistem Informasi harus mengikuti struktur berikut untuk memastikan kelengkapan
+dan kesesuaian dengan tujuan pembelajaran mata kuliah.  Struktur laporan adalah sebagai berikut:
+Presentasi Proyek Sistem Informasi
+• Bab IV: Perancangan Sistem
+• Bab V: Pengembangan Sistem
+• Bab VI: Pengujian Sistem
+• Bab VII: Evaluasi dan Dokumentasi
+• Bab VIII: Manajemen Tim
+• Bab IX: Penutup
+• Daftar Pustaka
+• Lampiran
+• Halaman Sampul
+• Halaman Pengesahan
+• Lembar Bimbingan
+• Kata Pengantar
+• Daftar Isi
+• Bab I: Pendahuluan
+• Bab II: Analisis Kebutuhan
+• Bab III Pembahasan Proyek Akhir
+Lampiran
+• Tampilan aplikasi
+• Gantchart/Rencana implementasi dan
+pengujian
+• Video
+Video yang harus dibuat bertujuan:
+1. mempromosikan produk yang
+dikembangkan,
+2. menjelaskan cara kerja produk tersebut.
+3. Video Dokumentasi serah terima
+aplikasi.
+4. Total durasi video 4-7 menit termasuk
+title dan acknowledgment.
+HKI (optional)
+--- [Page 4] ---
+Penilaian
+CPMK Deskripsi CMPK Objek Penilaian Kriteria Penilaian Bobot
+CPMK.09.1
+Mampu menjelaskan konsep analisis, perancangan,
+implementasi, evaluasi, manajemen pengelolaan, dan
+penelitian untuk pengembangan aplikasi interaktif atau sistem
+informasi.
+BAB I
+BAB II
+❑ Presentasi
+❑ Kualitas
+Konten
+25
+CPMK.06.1
+Mampu menganalisis, merancang, mengimplementasikan,
+menguji, dan mengevaluasi aplikasi interaktif atau sistem
+informasi secara individu atau tim.
+BAB IV
+BAB VI 15
+CPMK.11.2 Mampu menguasai konsep teoritis IPTEKS dan memformulasi penyelesaian masalah prosedural di industri. BAB IIIBAB V 45
+CPMK.04.2
+Mampu memelihara dan mengembangkan jaringan kerja,
+bertanggung jawab atas hasil kerja kelompok, melakukan
+supervisi, evaluasi, dan mengelola pembelajaran secara
+mandiri.
+BAB VII
+BAB VIII
+BAB IX
+❑ Kelengkap
+an konten
+❑ Kolaborasi
+Tim
+15
