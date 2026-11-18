@@ -4,6 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Prestasi / penghargaan.
+ *
+ * is_featured = dipilih manual admin untuk tampil di dashboard;
+ * tanpa tanda, dirotasi otomatis setiap hari.
+ */
 class Prestasi extends Model
 {
     protected $table = 'prestasi';
@@ -13,11 +19,13 @@ class Prestasi extends Model
         'is_featured' => 'boolean',
     ];
 
+    // ===== DAFTAR TAHUN =====
     public static function tahunTersedia(): array
     {
-        return static::query()->distinct()->orderByDesc('tahun')->pluck('tahun')->map(fn ($t) => (int) $t)->all();
+        return static::query()->distinct()->orderByDesc('tahun')->pluck('tahun')->map(fn ($tahun) => (int) $tahun)->all();
     }
 
+    // ===== PRESTASI UNTUK SLIDER DASHBOARD =====
     /**
      * Ambil data prestasi untuk ditampilkan di slider dashboard:
      * 1. Prioritaskan prestasi yang dipilih/ditandai manual oleh admin (is_featured = true).
@@ -25,33 +33,33 @@ class Prestasi extends Model
      */
     public static function untukDashboard(int $limit = 10)
     {
-        // 1. Prestasi pilihan manual admin
-        $featured = static::where('is_featured', true)
+        // ===== 1. PRESTASI PILIHAN MANUAL ADMIN =====
+        $pilihanAdmin = static::where('is_featured', true)
             ->orderByDesc('tahun')
             ->orderByDesc('id')
             ->take($limit)
             ->get();
 
-        $sisa = $limit - $featured->count();
-        if ($sisa <= 0) {
-            return $featured;
+        $sisaKuota = $limit - $pilihanAdmin->count();
+        if ($sisaKuota <= 0) {
+            return $pilihanAdmin;
         }
 
-        // 2. Sisa kuota diisi rotasi harian dari prestasi lainnya
-        $nonFeatured = static::where('is_featured', false)->get();
-        if ($nonFeatured->isEmpty()) {
-            return $featured;
+        // ===== 2. ROTASI HARIAN UNTUK SISA KUOTA =====
+        $bukanPilihan = static::where('is_featured', false)->get();
+        if ($bukanPilihan->isEmpty()) {
+            return $pilihanAdmin;
         }
 
         // Seed deterministik berbasis tanggal hari ini (YYYYMMDD) agar selama seharian urutannya stabil,
         // lalu otomatis berganti kombinasi saat memasuki hari berikutnya (jam 00:00).
         mt_srand((int) date('Ymd'));
-        $pool = $nonFeatured->all();
-        shuffle($pool);
+        $kumpulan = $bukanPilihan->all();
+        shuffle($kumpulan);
         mt_srand(); // reset seed
 
-        $rotasi = collect($pool)->take($sisa);
+        $rotasiHarian = collect($kumpulan)->take($sisaKuota);
 
-        return $featured->concat($rotasi);
+        return $pilihanAdmin->concat($rotasiHarian);
     }
 }

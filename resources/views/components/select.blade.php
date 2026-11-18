@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · dropdown pilihan bertema. ===== --}}
 @props([
     'name',
     'options' => [],
@@ -30,6 +31,7 @@
     }
     $label = $label ?? ($placeholder ?? ($value !== '' ? $value : 'Pilih…'));
 @endphp
+{{-- ===== BAGIAN: PEMILIH KUSTOM ===== --}}
 <div class="relative {{ $class }}" data-custom-select @if($autoSubmit) data-autosubmit="1" @endif>
     <input type="hidden" name="{{ $name }}" value="{{ $value }}">
     <button type="button" data-cs-trigger 
@@ -40,6 +42,7 @@
         </svg>
     </button>
     
+    {{-- ===== BAGIAN: MENU PILIHAN ===== --}}
     <div data-cs-menu class="absolute left-0 top-full z-[80] mt-1.5 hidden w-full min-w-[200px] overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-xl shadow-purple-950/10">
         <ul class="max-h-60 overflow-y-auto thin-scroll py-1 divide-y divide-slate-50">
             @foreach ($normalizedOptions as $optValue => $optLabel)

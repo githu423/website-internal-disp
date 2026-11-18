@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Kinerja — daftar kegiatan + ringkasan tuntas/berjalan/lambat. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kegiatan & Capaian Kinerja')
@@ -13,7 +14,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -22,7 +23,7 @@
         <span class="text-slate-700 font-semibold">Kegiatan &amp; Kinerja</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -34,9 +35,9 @@
             <p class="text-sm text-slate-500 mt-1">Sumber: Kinerja Fisik Dinas — monitoring kegiatan, target, dan realisasi per bidang.</p>
         </div>
 
-        <!-- Quick Actions -->
+        {{-- ===== BAGIAN: Quick Actions ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Pilihan Tahun Anggaran (Segmented Pill) -->
+            {{-- ===== BAGIAN: Pilihan Tahun Anggaran (Segmented Pill) ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 @foreach ($tahunList as $t)
                     <a href="{{ route('kinerja.publik', array_merge(request()->query(), ['tahun' => $t])) }}" 
@@ -46,7 +47,7 @@
                 @endforeach
             </div>
 
-            <!-- Tombol Sekunder: Matriks Capaian Kinerja -->
+            {{-- ===== BAGIAN: Tombol Sekunder: Matriks Capaian Kinerja ===== --}}
             <a href="{{ route('kinerja.capaian') }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
                 <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +56,7 @@
                 Matriks Capaian →
             </a>
 
-            <!-- Tombol Utama (Hanya Admin: Kelola Kinerja) -->
+            {{-- ===== BAGIAN: Tombol Utama (Hanya Admin: Kelola Kinerja) ===== --}}
             @if($u->isAdmin())
             <a href="{{ route('admin.kinerja.index', ['tahun' => $tahun]) }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
@@ -68,7 +69,7 @@
         </div>
     </div>
 
-    <!-- 3. Lingkup Data (Jika akun terafiliasi ke bidang) -->
+    {{-- ===== BAGIAN: Lingkup Data (Jika akun terafiliasi ke bidang) ===== --}}
     @if ($punyaBidang)
     <div class="flex items-center gap-2 text-xs">
         <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Lingkup Data:</span>
@@ -85,7 +86,7 @@
     </div>
     @endif
 
-    <!-- 4. Stat Cards Ringkasan Kinerja -->
+    {{-- ===== BAGIAN: Stat Cards Ringkasan Kinerja ===== --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
@@ -132,9 +133,9 @@
         </div>
     </div>
 
-    <!-- 5. Kontainer Data Tabel & Filter -->
+    {{-- ===== BAGIAN: Kontainer Data Tabel & Filter ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
-        <!-- Toolbar Filter & Pencarian -->
+        {{-- ===== BAGIAN: Toolbar Filter & Pencarian ===== --}}
         <div class="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50">
             <form method="GET" class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
                 <input type="hidden" name="tahun" value="{{ $tahun }}">
@@ -169,7 +170,7 @@
             </form>
         </div>
 
-        <!-- Tabel Data -->
+        {{-- ===== BAGIAN: Tabel Data ===== --}}
         <div class="overflow-x-auto thin-scroll">
             <table class="data w-full min-w-[920px]">
                 <thead>

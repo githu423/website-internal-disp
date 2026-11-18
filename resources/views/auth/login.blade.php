@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Autentikasi — halaman login. ===== --}}
 <!DOCTYPE html>
 <html lang="id" class="h-full">
 <head>
@@ -15,9 +16,9 @@
 </head>
 <body class="h-full bg-gradient-to-br from-purple-950 via-purple-900 to-slate-900 text-gray-800 antialiased selection:bg-purple-500 selection:text-white relative min-h-screen flex flex-col justify-start lg:justify-center overflow-x-hidden">
 
-    <!-- ================= LATAR BELAKANG GLOBAL SEAMLESS ================= -->
+    {{-- ===== BAGIAN: LATAR BELAKANG GLOBAL SEAMLESS ===== --}}
     <div class="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <!-- Subtle SVG Dot Pattern (opacity-10) di seluruh layar -->
+        {{-- ===== BAGIAN: Subtle SVG Dot Pattern (opacity-10) di seluruh layar ===== --}}
         <svg class="absolute inset-0 w-full h-full opacity-10 text-white fill-current" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <pattern id="dot-pattern" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
@@ -27,18 +28,18 @@
             <rect width="100%" height="100%" fill="url(#dot-pattern)" />
         </svg>
 
-        <!-- Ambient Light Glow Global Halus -->
+        {{-- ===== BAGIAN: Ambient Light Glow Global Halus ===== --}}
         <div class="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-purple-600/20 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-32 -right-32 w-[32rem] h-[32rem] bg-indigo-700/20 rounded-full blur-3xl"></div>
     </div>
 
-    <!-- ================= KONTEN UTAMA ================= -->
+    {{-- ===== BAGIAN: KONTEN UTAMA ===== --}}
     <div class="relative z-10 w-full min-h-screen flex flex-col lg:flex-row justify-start lg:justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4 lg:py-12">
         
-        <!-- ================= PANEL KIRI (Branding Minimalis & Kontras Tinggi) ================= -->
+        {{-- ===== BAGIAN: PANEL KIRI (Branding Minimalis & Kontras Tinggi) ===== --}}
         <div class="w-full lg:w-1/2 max-w-lg text-white mb-4 lg:mb-0 px-4 sm:px-0 lg:pr-8 xl:pr-12 flex flex-col justify-between h-auto lg:min-h-[500px]">
             <div>
-                <!-- Logo Instansi Ciamis & Badge Pemerintah -->
+                {{-- ===== BAGIAN: Logo Instansi Ciamis & Badge Pemerintah ===== --}}
                 <div class="flex items-center gap-3.5">
                     <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/95 p-2 shadow-xl shadow-black/30 flex items-center justify-center flex-shrink-0 border border-white/20 backdrop-blur-sm">
                         <img src="{{ asset('images/logo-dispar.jpg') }}" alt="Logo Dinas Pariwisata Ciamis" class="w-full h-full object-contain rounded-xl">
@@ -51,7 +52,7 @@
                     </div>
                 </div>
 
-                <!-- Judul Utama SIPARDIS & Deskripsi -->
+                {{-- ===== BAGIAN: Judul Utama SIPARDIS & Deskripsi ===== --}}
                 <div class="mt-4 md:mt-12 xl:mt-16">
                     <h1 class="text-3xl sm:text-4xl xl:text-5xl font-extrabold tracking-tight text-white leading-tight">
                         SIPARDIS
@@ -67,7 +68,7 @@
                 </div>
             </div>
 
-            <!-- Footer Slogan Sisi Kiri (Tampil di layar besar) -->
+            {{-- ===== BAGIAN: Footer Slogan Sisi Kiri (Tampil di layar besar) ===== --}}
             <div class="mt-8 lg:mt-0 pb-2 lg:pb-6 hidden lg:block">
                 <p class="text-sm text-slate-200 font-medium tracking-wide flex items-center gap-2">
                     <span class="text-amber-400">✦</span> Mahayunan Ayunan Kadatuan — Tatar Galuh Ciamis
@@ -78,17 +79,17 @@
             </div>
         </div>
 
-        <!-- ================= PANEL KANAN / FLOATING CARD (Pemeran Utama) ================= -->
+        {{-- ===== BAGIAN: PANEL KANAN / FLOATING CARD (Pemeran Utama) ===== --}}
         <div class="w-full lg:w-1/2 flex items-center justify-center lg:justify-end relative px-4 sm:px-0">
             
-            <!-- Ambient Light Glow Besar di Belakang Kartu Login -->
+            {{-- ===== BAGIAN: Ambient Light Glow Besar di Belakang Kartu Login ===== --}}
             <div class="absolute -top-12 -left-12 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-12 -right-12 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- Kartu Login Putih Murni dengan Aksen Garis Emas di Atas -->
+            {{-- ===== BAGIAN: Kartu Login Putih Murni dengan Aksen Garis Emas di Atas ===== --}}
             <div class="w-full max-w-md bg-white p-6 sm:p-8 md:p-10 rounded-2xl rounded-t-2xl border-t-4 border-amber-400 shadow-2xl shadow-black/40 border-x border-b border-slate-100 relative z-10 overflow-hidden">
 
-                <!-- Form Header & Badge -->
+                {{-- ===== BAGIAN: Form Header & Badge ===== --}}
                 <div class="mb-6">
                     <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-100 mb-3">
                         <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
@@ -98,7 +99,7 @@
                     <p class="text-sm text-gray-500">Silakan masukkan NIP dan kata sandi Anda untuk melanjutkan ke dashboard.</p>
                 </div>
 
-                <!-- Pesan Error Validasi -->
+                {{-- ===== BAGIAN: Pesan Error Validasi ===== --}}
                 @if ($errors->any())
                     <div class="mb-5 rounded-xl bg-red-50 border border-red-200 p-3.5 text-sm text-red-700 flex items-start gap-2.5">
                         <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,11 +112,11 @@
                     </div>
                 @endif
 
-                <!-- Form Login -->
+                {{-- ===== BAGIAN: Form Login ===== --}}
                 <form method="POST" action="{{ route('login.post') }}" class="space-y-4">
                     @csrf
 
-                    <!-- Input NIP / Username dengan Ikon User & Focus Glow Lembut -->
+                    {{-- ===== BAGIAN: Input NIP / Username dengan Ikon User & Focus Glow Lembut ===== --}}
                     <div>
                         <label for="nip" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
                             NIP / Username
@@ -133,7 +134,7 @@
                         </div>
                     </div>
 
-                    <!-- Input Password dengan Ikon Lock & Focus Glow Lembut -->
+                    {{-- ===== BAGIAN: Input Password dengan Ikon Lock & Focus Glow Lembut ===== --}}
                     <div>
                         <label for="password-field" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 mb-1.5">
                             Password
@@ -149,12 +150,12 @@
                                 class="w-full pl-11 pr-11 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-gray-900 placeholder:text-slate-500 outline-none transition text-sm shadow-sm">
                             <button type="button" id="toggle-password" title="Lihat / Sembunyikan Password"
                                 class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-purple-600 focus:outline-none transition cursor-pointer">
-                                <!-- Ikon Mata Terbuka -->
+                                {{-- ===== BAGIAN: Ikon Mata Terbuka ===== --}}
                                 <svg id="eye-open" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                 </svg>
-                                <!-- Ikon Mata Tertutup -->
+                                {{-- ===== BAGIAN: Ikon Mata Tertutup ===== --}}
                                 <svg id="eye-closed" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
                                 </svg>
@@ -166,7 +167,7 @@
                         </p>
                     </div>
 
-                    <!-- Baris Flex: Checkbox "Ingat saya" & "Lupa password?" -->
+                    {{-- ===== BAGIAN: Baris Flex: Checkbox "Ingat saya" & "Lupa password?" ===== --}}
                     <div class="flex items-center justify-between pt-0.5">
                         <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
                             <input type="checkbox" name="remember" class="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500">
@@ -177,7 +178,7 @@
                         </button>
                     </div>
 
-                    <!-- Tombol Masuk ke Sistem -->
+                    {{-- ===== BAGIAN: Tombol Masuk ke Sistem ===== --}}
                     <button type="submit" class="w-full bg-purple-600 text-white font-semibold py-3 rounded-lg shadow-lg shadow-purple-500/30 transition-all duration-200 hover:brightness-110 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer mt-2">
                         <span>Masuk ke Sistem</span>
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,7 +187,7 @@
                     </button>
                 </form>
 
-                <!-- Slogan untuk Mobile -->
+                {{-- ===== BAGIAN: Slogan untuk Mobile ===== --}}
                 <div class="lg:hidden mt-6 text-center pt-4 border-t border-slate-100">
                     <p class="text-[11px] text-amber-700 font-semibold">✦ Mahayunan Ayunan Kadatuan — Tatar Galuh Ciamis ✦</p>
                 </div>
@@ -194,7 +195,7 @@
         </div>
     </div>
 
-    <!-- Modal Informasi Lupa Password -->
+    {{-- ===== BAGIAN: Modal Informasi Lupa Password ===== --}}
     <div id="forgot-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm hidden" aria-modal="true" role="dialog">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-gray-100 transform transition-all">
             <div class="w-12 h-12 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-4">

@@ -29,7 +29,7 @@ class ImportService
     public static function rowsFrom(string $path, ?string $nama_asli = null): array
     {
         $magic = '';
-        if (is_readable($path) && ($bh = @fopen($path, 'rb'))) { $magic = (string) fread($bh, 8); fclose($bh); }
+        if (is_readable($path) && ($berkas = @fopen($path, 'rb'))) { $magic = (string) fread($berkas, 8); fclose($berkas); }
         $zip = str_starts_with($magic, "PK\x03\x04");          // xlsx / xlsb / ods (semuanya container zip)
         $ole = str_starts_with($magic, "\xD0\xCF\x11\xE0"); // xls lama
         $ext = strtolower(pathinfo($nama_asli ?: $path, PATHINFO_EXTENSION));
@@ -43,17 +43,17 @@ class ImportService
                 copy($path, $pathUse);
             }
             try {
-                $ss = IOFactory::load($pathUse);
+                $spreadsheet = IOFactory::load($pathUse);
                 // 9 Sep 2026: sheet 0 kadang berupa sampul kosong — pakai sheet pertama yang benar-benar berisi data
                 $sheet = null;
-                for ($i = 0; $i < $ss->getSheetCount(); $i++) {
-                    $cand = $ss->getSheet($i);
-                    foreach ($cand->toArray(null, true, false, false) as $rr) {
-                        if (is_array($rr) && trim(implode('', array_map(fn ($x) => (string) $x, $rr))) !== '') { $sheet = $cand; break 2; }
+                for ($i = 0; $i < $spreadsheet->getSheetCount(); $i++) {
+                    $kandidat = $spreadsheet->getSheet($i);
+                    foreach ($kandidat->toArray(null, true, false, false) as $barisUji) {
+                        if (is_array($barisUji) && trim(implode('', array_map(fn ($sel) => (string) $sel, $barisUji))) !== '') { $sheet = $kandidat; break 2; }
                     }
                 }
-                $rows = ($sheet ?? $ss->getSheet(0))->toArray(null, true, false, false);
-                $ss->disconnectWorksheets();
+                $rows = ($sheet ?? $spreadsheet->getSheet(0))->toArray(null, true, false, false);
+                $spreadsheet->disconnectWorksheets();
             } finally {
                 if ($pathUse !== $path) @unlink($pathUse);
             }
@@ -61,11 +61,11 @@ class ImportService
             $rows = IOFactory::load($path)->getSheet(0)->toArray(null, true, false, false);
         } else {
             $rows = [];
-            if (($fh = fopen($path, 'r')) !== false) {
-                while (($line = fgetcsv($fh)) !== false) {
+            if (($berkas = fopen($path, 'r')) !== false) {
+                while (($line = fgetcsv($berkas)) !== false) {
                     $rows[] = $line;
                 }
-                fclose($fh);
+                fclose($berkas);
             }
         }
 
@@ -80,9 +80,12 @@ class ImportService
             }
             unset($cell);
         }
-        return array_values(array_filter($rows, fn ($r) => implode('', $r) !== ''));
+        return array_values(array_filter($rows, fn ($baris) => implode('', $baris) !== ''));
     }
 
+    /**
+     * Angka dari teks sel: koma & spasi dibuang; teks non-angka dianggap 0.
+     */
     protected static function num(?string $v): float
     {
         $v = str_replace([',', ' '], '', (string) $v);
@@ -109,6 +112,9 @@ class ImportService
         return null;
     }
 
+    /**
+     * Menemukan id bidang dari teks nama unit (mis. "Kepala Bidang Kebudayaan").
+     */
     protected static function bidangDariTeks(string $t): ?int
     {
         return Bidang::tebakDariTeks($t);
@@ -296,6 +302,13 @@ class ImportService
         return ['rows' => $out, 'years' => array_keys($years), 'bulanan' => $bulanan];
     }
 
+    /**
+     * Menyimpan hasil parseKinerja ke tabel capaian_program & capaian_bulanan.
+     *
+     * @param  array  $rows  Baris mentah hasil rowsFrom()
+     * @param  bool  $gantiTahun  true = hapus semua data tahun terkait dulu (mode "ganti")
+     * @return array{imported:int, years:int[], dibuat:int, diperbarui:int, mode:string}
+     */
     public static function applyKinerja(array $rows, bool $gantiTahun = false): array
     {
         $p = self::parseKinerja($rows);
@@ -334,6 +347,12 @@ class ImportService
 
     /* ================= PAD (pendapatan retribusi daerah) ================= */
 
+    /**
+     * Membaca layout PAD: baris TAHUN, header No./No. Rekening, kategori A/B/C,
+     * lalu baris objek penerimaan beserta 12 kolom realisasi bulanan.
+     *
+     * @return array<int, array<string, mixed>>
+     */
     public static function parsePad(array $rows): array
     {
         $out = []; $tahun = null; $kategori = null; $targetHeader = null;
@@ -382,6 +401,11 @@ class ImportService
         return $out;
     }
 
+    /**
+     * Menyimpan hasil parsePad ke tabel pads (upsert per tahun + no_rekening).
+     *
+     * @return array{imported:int, years:int[], dibuat:int, diperbarui:int, mode:string}
+     */
     public static function applyPad(array $rows): array
     {
         $p = self::parsePad($rows);
@@ -402,30 +426,36 @@ class ImportService
 
     /* ================= PEGAWAI ================= */
 
+    /**
+     * Membaca daftar pegawai: kolom dikenali dari teks header (baris 1-3),
+     * dengan fallback ke posisi template Dinas lama.
+     *
+     * @return array<int, array<string, mixed>>
+     */
     public static function parsePegawai(array $rows): array
     {
         $out = []; $batas = [];
         // v21: kolom dikenali dari TEKS HEADER (baris 1-3), bukan posisi tetap — susunan
         // file user apa pun terbaca. Fallback ke posisi template Dinas lama bila header absen.
-        $hx = []; $pangkatCols = [];
-        foreach (array_slice($rows, 0, 3) as $hr) {
-            if (! is_array($hr)) continue;
-            foreach ($hr as $ci => $cv) {
-                $t = str_replace([' ', '.'], '', strtoupper(trim((string) $cv)));
-                if ($t === '') continue;
-                if (str_contains($t, 'PANGKAT') && str_contains($t, 'GOL')) { if (! in_array($ci, $pangkatCols, true)) $pangkatCols[] = $ci; continue; }
-                if (str_starts_with($t, 'ASN')) $hx['jenis_asn'] ??= $ci;
+        $petaKolom = []; $kolomPangkat = [];
+        foreach (array_slice($rows, 0, 3) as $barisHeader) {
+            if (! is_array($barisHeader)) continue;
+            foreach ($barisHeader as $indeksKolom => $nilaiHeader) {
+                $teksHeader = str_replace([' ', '.'], '', strtoupper(trim((string) $nilaiHeader)));
+                if ($teksHeader === '') continue;
+                if (str_contains($teksHeader, 'PANGKAT') && str_contains($teksHeader, 'GOL')) { if (! in_array($indeksKolom, $kolomPangkat, true)) $kolomPangkat[] = $indeksKolom; continue; }
+                if (str_starts_with($teksHeader, 'ASN')) $petaKolom['jenis_asn'] ??= $indeksKolom;
                 foreach ([
                     'TEMPATLAHIR' => 'tempat_lahir', 'TANGGALLAHIR' => 'tanggal_lahir',
                     'TMTCPNS' => 'tmt_cpns', 'TMTSEKARANG' => 'tmt_sekarang', 'TMTJABATAN' => 'tmt_jabatan',
                     'JABATANSEKARANG' => 'jabatan', 'PENDIDIKANUMUM' => 'pendidikan',
                     'DIKLATSTRUKTURAL' => 'diklat_struktural', 'DIKLATFUNGSIONAL' => 'diklat_fungsional',
                     'DIKLATTEKNIS' => 'diklat_teknis', 'JENISKELAMIN' => 'jenis_kelamin', 'UNITKERJA' => 'unit_kerja',
-                ] as $k => $f) { if ($t === $k) $hx[$f] ??= $ci; }
+                ] as $kunci => $field) { if ($teksHeader === $kunci) $petaKolom[$field] ??= $indeksKolom; }
             }
         }
-        $at = fn (array $r, ?int $i): string => $i === null ? '' : trim((string) ($r[$i] ?? ''));
-        $col = fn (string $f, int $lama): int => $hx[$f] ?? $lama;
+        $sel = fn (array $r, ?int $i): string => $i === null ? '' : trim((string) ($r[$i] ?? ''));
+        $kolom = fn (string $field, int $lama): int => $petaKolom[$field] ?? $lama;
 
         foreach ($rows as $r) {
             if (! is_array($r)) continue;
@@ -439,16 +469,16 @@ class ImportService
             if ($jkv !== '') $jk = str_starts_with($jkv, 'L') ? 'L' : (str_starts_with($jkv, 'P') ? 'P' : null);
             if (! $jk) {
                 foreach ($r as $cell) {
-                    $u = strtoupper(trim((string) $cell));
-                    if (in_array($u, ['L', 'P', 'LAKI-LAKI', 'PEREMPUAN'], true)) { $jk = str_starts_with($u, 'L') ? 'L' : 'P'; break; }
+                    $teksSel = strtoupper(trim((string) $cell));
+                    if (in_array($teksSel, ['L', 'P', 'LAKI-LAKI', 'PEREMPUAN'], true)) { $jk = str_starts_with($teksSel, 'L') ? 'L' : 'P'; break; }
                 }
             }
             // dua header "PANGKAT/GOL" -> kolom pertama = pangkat AWAL, terakhir = pangkat TERAKHIR
-            $pgAwal = count($pangkatCols) >= 2 ? $pangkatCols[0] : null;
-            $pgAkhir = $pangkatCols ? end($pangkatCols) : 7;
-            $jabatan = $at($r, $col('jabatan', 10));
-            $unit = $at($r, $col('unit_kerja', 18));
-            $pendidikan = $at($r, $col('pendidikan', 12));
+            $pgAwal = count($kolomPangkat) >= 2 ? $kolomPangkat[0] : null;
+            $pgAkhir = $kolomPangkat ? end($kolomPangkat) : 7;
+            $jabatan = $sel($r, $kolom('jabatan', 10));
+            $unit = $sel($r, $kolom('unit_kerja', 18));
+            $pendidikan = $sel($r, $kolom('pendidikan', 12));
             if (preg_match('/^(S-\d|D-\d|SLTA|SMA|SD)/iu', $pendidikan, $mm)) $pendidikan = $mm[1];
 
             $out[] = [
@@ -487,7 +517,7 @@ class ImportService
             foreach ($batas as $k) if (str_starts_with((string) $k, 'UPTD')) { Bidang::pastikanUptd(); break; }
             foreach ($out as $row) if (str_starts_with((string) self::kodeDariUnitKerja($row['unit_kerja'] ?? null), 'UPTD')) { Bidang::pastikanUptd(); break; }
             $idDariKode = [];
-            foreach (Bidang::all() as $b) $idDariKode[$b->kode] = (int) $b->id;
+            foreach (Bidang::all() as $bidang) $idDariKode[$bidang->kode] = (int) $bidang->id;
             $current = $idDariKode['1'] ?? null; // di atas batas pertama = Sekretariat
             foreach ($out as $i => $row) {
                 $k = $batas[$i] ?? null;
@@ -508,6 +538,12 @@ class ImportService
         return $out;
     }
 
+    /**
+     * Menyimpan hasil parsePegawai: upsert pegawai per NIP, catat ketua bidang,
+     * lalu sinkronkan akun login + peran/bidangnya.
+     *
+     * @return array{dibuat:int, diperbarui:int, akun_baru:int, akun_disinkron:int}
+     */
     public static function applyPegawai(array $rows): array
     {
         $p = self::parsePegawai($rows);
@@ -527,8 +563,8 @@ class ImportService
             // Dinas") → catat namanya sebagai ketua bidang, bila kolom ketua masih kosong.
             $kepalaKode = self::kepalaBidangDariJabatan($data['jabatan']);
             if ($kepalaKode) {
-                $b = Bidang::where('kode', $kepalaKode)->first();
-                if ($b && ! trim((string) $b->ketua)) $b->update(['ketua' => $data['nama']]);
+                $bidangKepala = Bidang::where('kode', $kepalaKode)->first();
+                if ($bidangKepala && ! trim((string) $bidangKepala->ketua)) $bidangKepala->update(['ketua' => $data['nama']]);
             }
 
             $bidang = $data['id_bidang'];
@@ -574,61 +610,61 @@ class ImportService
      */
     public static function parseCapaian(array $rows): array
     {
-        $g = fn (array $r, int $i): string => trim((string) ($r[$i] ?? ''));
+        $sel = fn (array $r, int $i): string => trim((string) ($r[$i] ?? ''));
 
-        $h = null;
-        foreach ($rows as $i => $r) {
-            if (preg_match('/^no\.?$/i', $g($r, 0))) { $h = $i; break; }
+        $barisHeader = null;
+        foreach ($rows as $i => $baris) {
+            if (preg_match('/^no\.?$/i', $sel($baris, 0))) { $barisHeader = $i; break; }
         }
-        if ($h === null) return [];
+        if ($barisHeader === null) return [];
 
-        // deteksi kolom tahun (baris setelah header), tiap tahun = awal triplet (t, t+1, t+2)
+        // deteksi kolom tahun (baris setelah header), tiap tahun = awal triplet (target, realisasi, persen)
         $years = [];
-        for ($i = $h + 1; $i <= $h + 3 && $i < count($rows); $i++) {
-            foreach ($rows[$i] as $c => $cell) {
-                if (preg_match('/^(20\d{2})$/', trim((string) $cell), $m)) {
-                    $years[(int) $m[1]] = ['t' => $c];
+        for ($i = $barisHeader + 1; $i <= $barisHeader + 3 && $i < count($rows); $i++) {
+            foreach ($rows[$i] as $indeksKolom => $cell) {
+                if (preg_match('/^(20\d{2})$/', trim((string) $cell), $match)) {
+                    $years[(int) $match[1]] = ['t' => $indeksKolom];
                 }
             }
             if ($years) break;
         }
         if (!$years) return [];
 
-        $bersih = function (string $v): ?string {
+        $bersihkanTeks = function (string $v): ?string {
             if ($v === '' || strcasecmp($v, 'n/a') === 0 || $v === '-') return null;
             return $v;
         };
 
         $out = [];
-        $cur = -1;
-        for ($i = $h + 1; $i < count($rows); $i++) {
-            $r = array_values($rows[$i]);
-            $no = $g($r, 0); $sas = $g($r, 1); $ind = $g($r, 2); $sat = $g($r, 3);
+        $induk = -1;
+        for ($i = $barisHeader + 1; $i < count($rows); $i++) {
+            $baris = array_values($rows[$i]);
+            $nomor = $sel($baris, 0); $teksSasaran = $sel($baris, 1); $teksIndikator = $sel($baris, 2); $teksSatuan = $sel($baris, 3);
 
-            if ($no !== '' && $sas !== '' && preg_match('/^\d+$/', $no)) {
+            if ($nomor !== '' && $teksSasaran !== '' && preg_match('/^\d+$/', $nomor)) {
                 $cakupan = null;
-                if (preg_match('/Sasaran\s*Tahun\s*:?\s*(.+)/i', $sas, $m)) {
-                    $cakupan = trim($m[1]);
-                    $sas = trim(preg_replace('/\n?Sasaran\s*Tahun.*/is', '', $sas));
+                if (preg_match('/Sasaran\s*Tahun\s*:?\s*(.+)/i', $teksSasaran, $match)) {
+                    $cakupan = trim($match[1]);
+                    $teksSasaran = trim(preg_replace('/\n?Sasaran\s*Tahun.*/is', '', $teksSasaran));
                 }
-                $sas = trim(preg_replace('/\s*\n\s*/', ' ', $sas));
-                $out[] = ['nomor' => (int) $no, 'judul' => $sas, 'cakupan' => $cakupan ?: null,
-                    'id_bidang' => \App\Models\Bidang::tebakDariTeks($sas), 'indikator' => []];
-                $cur = count($out) - 1;
+                $teksSasaran = trim(preg_replace('/\s*\n\s*/', ' ', $teksSasaran));
+                $out[] = ['nomor' => (int) $nomor, 'judul' => $teksSasaran, 'cakupan' => $cakupan ?: null,
+                    'id_bidang' => \App\Models\Bidang::tebakDariTeks($teksSasaran), 'indikator' => []];
+                $induk = count($out) - 1;
             }
 
-            if ($cur < 0 || $ind === '' || mb_stripos($ind, 'indikator kinerja') !== false) continue;
+            if ($induk < 0 || $teksIndikator === '' || mb_stripos($teksIndikator, 'indikator kinerja') !== false) continue;
 
             $nilai = [];
-            foreach ($years as $y => $pos) {
-                $t = $bersih($g($r, $pos['t']));
-                $rl = $bersih($g($r, $pos['t'] + 1));
-                $p = $bersih($g($r, $pos['t'] + 2));
-                if ($t !== null || $rl !== null || $p !== null) {
-                    $nilai[$y] = ['target' => $t, 'realisasi' => $rl, 'persen' => $p];
+            foreach ($years as $tahun => $posisi) {
+                $target = $bersihkanTeks($sel($baris, $posisi['t']));
+                $realisasi = $bersihkanTeks($sel($baris, $posisi['t'] + 1));
+                $persen = $bersihkanTeks($sel($baris, $posisi['t'] + 2));
+                if ($target !== null || $realisasi !== null || $persen !== null) {
+                    $nilai[$tahun] = ['target' => $target, 'realisasi' => $realisasi, 'persen' => $persen];
                 }
             }
-            $out[$cur]['indikator'][] = ['nama' => $ind, 'satuan' => $sat ?: null, 'nilai' => $nilai];
+            $out[$induk]['indikator'][] = ['nama' => $teksIndikator, 'satuan' => $teksSatuan ?: null, 'nilai' => $nilai];
         }
 
         return $out;
@@ -727,29 +763,29 @@ class ImportService
         $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
         $ubah = 0;
         // 1) sinkron User yang punya Pegawai (dua arah status)
-        foreach (User::with('pegawai')->get() as $u) {
-            $p = $u->pegawai ?: Pegawai::where('nip', $u->nip)->first();
+        foreach (User::with('pegawai')->get() as $user) {
+            $p = $user->pegawai ?: Pegawai::where('nip', $user->nip)->first();
             if ($p) {
-                $d = [];
+                $perubahan = [];
                 // peran/bidang/jabatan hanya untuk non-admin (admin tetap admin)
-                if ($u->role !== 'admin') {
-                    $bid = $p->id_bidang ?? Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
-                    if ($bid && (int) $u->id_bidang !== (int) $bid) $d['id_bidang'] = $bid;
+                if ($user->role !== 'admin') {
+                    $idBidang = $p->id_bidang ?? Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : '')));
+                    if ($idBidang && (int) $user->id_bidang !== (int) $idBidang) $perubahan['id_bidang'] = $idBidang;
                     $peran = self::peranDariJabatan($p->jabatan);
-                    if ($u->role !== $peran) $d['role'] = $peran;
-                    if ($p->jabatan && $u->jabatan !== $p->jabatan) $d['jabatan'] = $p->jabatan;
+                    if ($user->role !== $peran) $perubahan['role'] = $peran;
+                    if ($p->jabatan && $user->jabatan !== $p->jabatan) $perubahan['jabatan'] = $p->jabatan;
                 }
                 // status: dua arah, pensiun > nonaktif > aktif
                 $desired = 'aktif';
-                if ($u->status === 'pensiun' || $p->status === 'pensiun') $desired = 'pensiun';
-                elseif ($u->status === 'nonaktif' || $p->status === 'nonaktif') $desired = 'nonaktif';
-                if ($u->status !== $desired) $d['status'] = $desired;
-                if ($d) { $u->update($d); $ubah++; }
+                if ($user->status === 'pensiun' || $p->status === 'pensiun') $desired = 'pensiun';
+                elseif ($user->status === 'nonaktif' || $p->status === 'nonaktif') $desired = 'nonaktif';
+                if ($user->status !== $desired) $perubahan['status'] = $desired;
+                if ($perubahan) { $user->update($perubahan); $ubah++; }
                 if ($p->status !== $desired) { $p->update(['status' => $desired]); $ubah++; }
             } else {
                 // 2) akun nonaktif/pensiun tanpa pegawai → buat pegawai minimal agar filter Data Pegawai ada isinya
-                if (in_array($u->status, ['nonaktif', 'pensiun'], true)) {
-                    Pegawai::create(['nip' => $u->nip, 'nama' => $u->name, 'status' => $u->status, 'id_bidang' => $u->id_bidang, 'jabatan' => $u->jabatan]);
+                if (in_array($user->status, ['nonaktif', 'pensiun'], true)) {
+                    Pegawai::create(['nip' => $user->nip, 'nama' => $user->name, 'status' => $user->status, 'id_bidang' => $user->id_bidang, 'jabatan' => $user->jabatan]);
                     $ubah++;
                 }
             }
@@ -794,52 +830,52 @@ class ImportService
      */
     public static function parseStatistik(array $rows): array
     {
-        $h = null;
-        foreach ($rows as $i => $r) {
-            foreach ($r as $cv) {
-                if (mb_strtoupper(trim((string) $cv)) === 'INDIKATOR') { $h = $i; break 2; }
+        $barisHeader = null;
+        foreach ($rows as $i => $baris) {
+            foreach ($baris as $nilaiSel) {
+                if (mb_strtoupper(trim((string) $nilaiSel)) === 'INDIKATOR') { $barisHeader = $i; break 2; }
             }
         }
-        if ($h === null) return [];
+        if ($barisHeader === null) return [];
 
         $noCol = $indCol = $satCol = $ketCol = null;
-        foreach ($rows[$h] as $c => $v) {
-            $u = mb_strtoupper(trim((string) $v));
-            if ($noCol === null && preg_match('/^NO\.?$/u', $u)) $noCol = $c;
-            elseif ($u === 'INDIKATOR') $indCol = $c;
-            elseif ($u === 'SATUAN') $satCol = $c;
-            elseif ($u === 'KETERANGAN') $ketCol = $c;
+        foreach ($rows[$barisHeader] as $indeksKolom => $nilai) {
+            $teks = mb_strtoupper(trim((string) $nilai));
+            if ($noCol === null && preg_match('/^NO\.?$/u', $teks)) $noCol = $indeksKolom;
+            elseif ($teks === 'INDIKATOR') $indCol = $indeksKolom;
+            elseif ($teks === 'SATUAN') $satCol = $indeksKolom;
+            elseif ($teks === 'KETERANGAN') $ketCol = $indeksKolom;
         }
         $noCol ??= 0; $indCol ??= $noCol + 1; $satCol ??= $indCol + 1;
 
         // tahun = sel 4 digit di baris header / 2 baris berikutnya, di kolom kanan SATUAN
         $tahunCols = [];
-        $cands = array_slice($rows, $h, 3);
-        $width = 0; foreach ($cands as $rr) $width = max($width, count($rr));
-        for ($c = 0; $c < $width; $c++) {
-            if ($c <= $satCol) continue;
-            foreach ($cands as $rr) {
-                if (preg_match('/^(19|20)\d{2}$/', trim((string) ($rr[$c] ?? '')), $m)) { $tahunCols[$c] = (int) $m[0]; break; }
+        $kandidatTahun = array_slice($rows, $barisHeader, 3);
+        $lebar = 0; foreach ($kandidatTahun as $barisTahun) $lebar = max($lebar, count($barisTahun));
+        for ($indeksKolom = 0; $indeksKolom < $lebar; $indeksKolom++) {
+            if ($indeksKolom <= $satCol) continue;
+            foreach ($kandidatTahun as $barisTahun) {
+                if (preg_match('/^(19|20)\d{2}$/', trim((string) ($barisTahun[$indeksKolom] ?? '')), $match)) { $tahunCols[$indeksKolom] = (int) $match[0]; break; }
             }
         }
         if (!$tahunCols) return [];
 
         $out = [];
-        for ($i = $h + 1; $i < count($rows); $i++) {
-            $r = $rows[$i];
-            $ind = trim((string) ($r[$indCol] ?? ''));
-            if ($ind === '' || mb_strtoupper($ind) === 'INDIKATOR') continue; // baris sub-header/tahun
+        for ($indeks = $barisHeader + 1; $indeks < count($rows); $indeks++) {
+            $baris = $rows[$indeks];
+            $indikator = trim((string) ($baris[$indCol] ?? ''));
+            if ($indikator === '' || mb_strtoupper($indikator) === 'INDIKATOR') continue; // baris sub-header/tahun
             $nilai = [];
-            foreach ($tahunCols as $c => $t) {
-                $val = self::angkaSel((string) ($r[$c] ?? ''));
-                if ($val !== null) $nilai[$t] = $val;
+            foreach ($tahunCols as $indeksKolom => $tahun) {
+                $angka = self::angkaSel((string) ($baris[$indeksKolom] ?? ''));
+                if ($angka !== null) $nilai[$tahun] = $angka;
             }
-            $no = trim((string) ($r[$noCol] ?? ''));
+            $nomor = trim((string) ($baris[$noCol] ?? ''));
             $out[] = [
-                'no' => ctype_digit($no) ? (int) $no : null,
-                'indikator' => preg_replace('/\s+/', ' ', $ind),
-                'satuan' => ($sat = trim((string) ($r[$satCol] ?? ''))) !== '' ? $sat : null,
-                'keterangan' => $ketCol !== null ? (trim((string) ($r[$ketCol] ?? '')) ?: null) : null,
+                'no' => ctype_digit($nomor) ? (int) $nomor : null,
+                'indikator' => preg_replace('/\s+/', ' ', $indikator),
+                'satuan' => ($satuan = trim((string) ($baris[$satCol] ?? ''))) !== '' ? $satuan : null,
+                'keterangan' => $ketCol !== null ? (trim((string) ($baris[$ketCol] ?? '')) ?: null) : null,
                 'nilai' => $nilai,
             ];
         }
@@ -849,23 +885,23 @@ class ImportService
     /** Upsert per nama indikator (toleran besar/kecil & spasi ganda); tahun yang tidak disebut file dibiarkan. */
     public static function applyStatistik(array $p): array
     {
-        $dibuat = 0; $diperbarui = 0; $sel = 0;
-        foreach ($p as $baris) {
+        $dibuat = 0; $diperbarui = 0; $jumlahSel = 0;
+        foreach ($data as $baris) {
             $key = mb_strtoupper(preg_replace('/\s+/', ' ', trim($baris['indikator'])));
-            $st = \App\Models\Statistik::whereRaw('upper(indikator) = ?', [$key])->first();
-            if ($st) { $diperbarui++; } else { $st = new \App\Models\Statistik(); $dibuat++; }
-            $st->indikator = trim($baris['indikator']);
-            $st->no_urut = $baris['no']; $st->satuan = $baris['satuan']; $st->keterangan = $baris['keterangan'];
-            $st->save();
-            foreach ($baris['nilai'] as $t => $v) {
+            $statistik = \App\Models\Statistik::whereRaw('upper(indikator) = ?', [$key])->first();
+            if ($statistik) { $diperbarui++; } else { $statistik = new \App\Models\Statistik(); $dibuat++; }
+            $statistik->indikator = trim($baris['indikator']);
+            $statistik->no_urut = $baris['no']; $statistik->satuan = $baris['satuan']; $statistik->keterangan = $baris['keterangan'];
+            $statistik->save();
+            foreach ($baris['nilai'] as $tahun => $nilai) {
                 \App\Models\StatistikNilai::updateOrCreate(
-                    ['id_statistik' => $st->id, 'tahun' => (int) $t],
-                    ['nilai' => $v],
+                    ['id_statistik' => $statistik->id, 'tahun' => (int) $tahun],
+                    ['nilai' => $nilai],
                 );
-                $sel++;
+                $jumlahSel++;
             }
         }
-        return ['dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'sel' => $sel];
+        return ['dibuat' => $dibuat, 'diperbarui' => $diperbarui, 'sel' => $jumlahSel];
     }
 
     /* ================= PRESTASI ================= */
@@ -903,14 +939,14 @@ class ImportService
 
             if (str_contains($rowStr, 'penghargaan') && str_contains($rowStr, 'penerima')) {
                 $colNo = $colNama = $colPenerima = $colPemberi = $colTahun = $colTingkat = null;
-                foreach ($r as $ci => $cv) {
-                    $u = mb_strtolower(trim((string) $cv));
-                    if ($u === 'no') $colNo = $ci;
-                    elseif ($u === 'nama penghargaan') $colNama = $ci;
-                    elseif ($u === 'nama penerima') $colPenerima = $ci;
-                    elseif ($u === 'pemberi penghargaan') $colPemberi = $ci;
-                    elseif (str_starts_with($u, 'tahun')) $colTahun = $ci;
-                    elseif ($u === 'tingkat') $colTingkat = $ci;
+                foreach ($r as $indeksKolom => $nilaiHeader) {
+                    $teks = mb_strtolower(trim((string) $nilaiHeader));
+                    if ($teks === 'no') $colNo = $indeksKolom;
+                    elseif ($teks === 'nama penghargaan') $colNama = $indeksKolom;
+                    elseif ($teks === 'nama penerima') $colPenerima = $indeksKolom;
+                    elseif ($teks === 'pemberi penghargaan') $colPemberi = $indeksKolom;
+                    elseif (str_starts_with($teks, 'tahun')) $colTahun = $indeksKolom;
+                    elseif ($teks === 'tingkat') $colTingkat = $indeksKolom;
                 }
                 continue;
             }

@@ -12,10 +12,17 @@ use App\Models\Pegawai;
 use App\Models\User;
 use Illuminate\View\View;
 
+/**
+ * Dashboard khusus admin: ringkasan jumlah data + log aktivitas terbaru.
+ */
 class DashboardController extends Controller
 {
+    /**
+     * Menampilkan kartu statistik dan 12 log aktivitas terakhir.
+     */
     public function index(): View
     {
+        // ===== KUMPULKAN STATISTIK & LOG TERBARU =====
         return view('admin.dashboard.index', [
             'stats' => [
                 'users' => User::count(),

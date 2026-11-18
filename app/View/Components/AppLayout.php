@@ -5,6 +5,9 @@ namespace App\View\Components;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
+/**
+ * Layout aplikasi untuk halaman yang memakai sidebar.
+ */
 class AppLayout extends Component
 {
     /**
@@ -12,6 +15,7 @@ class AppLayout extends Component
      */
     public function render(): View
     {
+        // ===== LAYOUT UTAMA APLIKASI =====
         return view('layouts.app');
     }
 }

@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · pemilih kategori bertingkat. ===== --}}
 @props([
     'name' => 'id_kategori',
     'teksName' => 'kategori',
@@ -38,11 +39,13 @@
     $showNew = $withNew && $newLabel !== null && $newLabel !== '';
 @endphp
 
+{{-- ===== BAGIAN: PEMILIH KATEGORI ===== --}}
 <div id="{{ $uid }}">
     @if ($treeLabel !== null && $treeLabel !== '')
         <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">{{ $treeLabel }}</label>
     @endif
 
+    {{-- ===== BAGIAN: Pemicu & Menu Pilihan ===== --}}
     <div class="relative {{ $class }}" data-custom-select @if($autoSubmit) data-autosubmit="1" @endif>
         <input type="hidden" name="{{ $name }}" value="{{ $valueStr }}">
         <button type="button" data-cs-trigger
@@ -91,6 +94,7 @@
             @endif
         </label>
         @if (!empty($suggestions))
+            {{-- ===== BAGIAN: DAFTAR PILIHAN (datalist) ===== --}}
             <datalist id="{{ $listId }}">
                 @foreach ($suggestions as $sug)
                     <option value="{{ $sug }}">
@@ -101,6 +105,7 @@
 </div>
 
 @if ($showNew)
+{{-- ===== BAGIAN: SKRIP PEMILIH ===== --}}
     <script>
         (function () {
             var root = document.getElementById('{{ $uid }}');

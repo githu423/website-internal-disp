@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · Pesan status sesi login. ===== --}}
 @props(['status'])
 
 @if ($status)

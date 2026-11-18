@@ -16,39 +16,48 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 /**
- * Halaman bidang: profil dapat DILIHAT seluruh user (banyak pilihan bidang),
- * tetapi hanya bisa DIKELOLA (profil + dokumen privat) oleh anggota bidang itu sendiri / admin.
+ * Halaman bidang.
+ *
+ * Profil bidang dapat DILIHAT seluruh pengguna (banyak pilihan bidang),
+ * tetapi hanya bisa DIKELOLA (profil + dokumen privat) oleh anggota bidang
+ * tersebut atau admin.
  */
 class BidangController extends Controller
 {
+    /**
+     * Daftar seluruh bidang beserta rekap kecil per kartu.
+     */
     public function index(Request $request): View
     {
-        $u = $request->user();
-        // rekap kecil per kartu bidang: satu query agregat (portabel MySQL & sqlite).
-        // Kriteria "belum lengkap" (blm) dibangun dari daftar kolom yang SAMA dengan
-        // penanda di Data Pegawai & halaman /profil (Pegawai::KOLOM_LENGKAP), supaya
-        // angka di kartu bidang tidak pernah berbeda dengan tabelnya.
+        $pengguna = $request->user();
+
+        // ===== REKAP JUMLAH PER BIDANG =====
+        // Satu query agregat (portabel MySQL & sqlite). Kriteria "belum lengkap"
+        // dibangun dari daftar kolom yang SAMA dengan penanda di Data Pegawai &
+        // halaman /profil (Pegawai::KOLOM_LENGKAP), supaya angka di kartu bidang
+        // tidak pernah berbeda dengan tabelnya.
         // Kolom DATE (tmt_*) hanya cek IS NULL — MySQL strict menolak `= ''` untuk DATE.
-        $kurang = collect(array_keys(Pegawai::KOLOM_LENGKAP))
-            ->map(fn ($c) => in_array($c, Pegawai::KOLOM_DATE, true)
-                ? "$c IS NULL"
-                : "$c IS NULL OR $c = ''")
+        $kurangSyarat = collect(array_keys(Pegawai::KOLOM_LENGKAP))
+            ->map(fn ($kolom) => in_array($kolom, Pegawai::KOLOM_DATE, true)
+                ? "$kolom IS NULL"
+                : "$kolom IS NULL OR $kolom = ''")
             ->implode(' OR ');
-        $rek = DB::table('pegawai')->selectRaw(
+        $rekap = DB::table('pegawai')->selectRaw(
             "id_bidang,
              SUM(CASE WHEN jenis_kelamin='L' THEN 1 ELSE 0 END) l,
              SUM(CASE WHEN jenis_kelamin='P' THEN 1 ELSE 0 END) p,
              SUM(CASE WHEN jenis_asn='PNS' THEN 1 ELSE 0 END) pns,
-             SUM(CASE WHEN $kurang THEN 1 ELSE 0 END) blm"
+             SUM(CASE WHEN $kurangSyarat THEN 1 ELSE 0 END) blm"
         )
             ->whereNotNull('id_bidang')->groupBy('id_bidang')->get()->keyBy('id_bidang');
 
+        // ===== DAFTAR BIDANG + HAK KELOLA =====
         $bidangList = Bidang::withCount(['pegawais', 'dokumen', 'agenda'])->orderBy('kode')->get()
-            ->map(function ($b) use ($u, $rek) {
-                $b->boleh_kelola = $u->isAdmin() || $u->id_bidang === $b->id;
-                $b->rek = $rek->get($b->id);
+            ->map(function ($bidangItem) use ($pengguna, $rekap) {
+                $bidangItem->boleh_kelola = $pengguna->isAdmin() || $pengguna->id_bidang === $bidangItem->id;
+                $bidangItem->rek = $rekap->get($bidangItem->id);
 
-                return $b;
+                return $bidangItem;
             });
 
         return view('bidang.index', ['bidangList' => $bidangList]);
@@ -61,96 +70,122 @@ class BidangController extends Controller
      */
     private function anggotaBidang(Bidang $bidang)
     {
-        $adaUnit = Schema::hasColumn('pegawai', 'unit_kerja');
-        $utama = Pegawai::where('id_bidang', $bidang->id)->orderBy('nama')->get();
-        $tambahan = collect();
-        foreach (Pegawai::whereNull('id_bidang')->get() as $p) {
-            if ((int) Bidang::tebakDariTeks(trim(((string) $p->jabatan).' '.($adaUnit ? (string) ($p->unit_kerja ?? '') : ''))) === (int) $bidang->id) {
-                $tambahan->push($p);
+        $punyaUnitKerja = Schema::hasColumn('pegawai', 'unit_kerja');
+        $anggotaUtama = Pegawai::where('id_bidang', $bidang->id)->orderBy('nama')->get();
+        $anggotaTambahan = collect();
+        foreach (Pegawai::whereNull('id_bidang')->get() as $pegawai) {
+            if ((int) Bidang::tebakDariTeks(trim(((string) $pegawai->jabatan).' '.($punyaUnitKerja ? (string) ($pegawai->unit_kerja ?? '') : ''))) === (int) $bidang->id) {
+                $anggotaTambahan->push($pegawai);
             }
         }
-        $tambahan = $tambahan->sortBy('nama');
+        $anggotaTambahan = $anggotaTambahan->sortBy('nama');
 
-        return $utama->concat($tambahan)->values();
+        return $anggotaUtama->concat($anggotaTambahan)->values();
     }
 
+    /**
+     * Halaman detail satu bidang: profil, statistik, anggota, dokumen, agenda.
+     */
     public function show(Request $request, Bidang $bidang): View
     {
-        $u = $request->user();
-        $anggota = $u->isAdmin() || $u->id_bidang === $bidang->id;
+        $pengguna = $request->user();
+        $bolehKelola = $pengguna->isAdmin() || $pengguna->id_bidang === $bidang->id;
 
-        $dq = Dokumen::where('id_bidang', $bidang->id)->with(['uploader', 'kategoriRel.induk.induk']);
-        if ($anggota) {
-            $dq->where(fn ($w) => $w->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $u->id));
+        // ===== DAFTAR DOKUMEN BIDANG (sesuai hak akses) =====
+        $queryDokumen = Dokumen::where('id_bidang', $bidang->id)->with(['uploader', 'kategoriRel.induk.induk']);
+        if ($bolehKelola) {
+            $queryDokumen->where(fn ($query) => $query->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $pengguna->id));
         } else {
-            $dq->where('visibility', 'publik');
+            $queryDokumen->where('visibility', 'publik');
         }
 
-        // daftar anggota dulu; rekap jumlah dihitung dari kumpulan yang SAMA
-        // (termasuk anggota fallback tebak-jabatan), jadi angkanya tidak mungkin beda dengan tabelnya
+        // ===== STATISTIK ANGGOTA =====
+        // Daftar anggota dihitung dulu; rekap jumlah diambil dari kumpulan yang SAMA
+        // (termasuk anggota fallback tebak-jabatan), jadi angkanya tidak mungkin beda dengan tabelnya.
         $pegawais = $this->anggotaBidang($bidang);
         $statistik = [
             'semua' => $pegawais->count(),
             'l' => $pegawais->where('jenis_kelamin', 'L')->count(),
             'p' => $pegawais->where('jenis_kelamin', 'P')->count(),
             'pns' => $pegawais->where('jenis_asn', 'PNS')->count(),
-            'nonpns' => $pegawais->filter(fn ($x) => $x->jenis_asn !== 'PNS')->count(),
+            'nonpns' => $pegawais->filter(fn ($item) => $item->jenis_asn !== 'PNS')->count(),
             // Konfirmasi Dinas 10 Sep: rekap anggota mencantumkan non-aktif & pensiun juga
             'nonaktif' => $pegawais->where('status', 'nonaktif')->count(),
             'pensiun' => $pegawais->where('status', 'pensiun')->count(),
         ];
 
+        // ===== RESPONS: TAMPILKAN HALAMAN BIDANG =====
         return view('bidang.show', [
             'b' => $bidang,
-            'bolehKelola' => $anggota,
+            'bolehKelola' => $bolehKelola,
             'semuaBidang' => Bidang::orderBy('kode')->get(),
             'pegawais' => $pegawais,
             'statistik' => $statistik,
-            'dokumens' => $dq->latest()->limit(15)->get(),
+            'dokumens' => $queryDokumen->latest()->limit(15)->get(),
             'agenda' => Agenda::where('id_bidang', $bidang->id)->orderByDesc('tanggal')->limit(6)->get(),
             'kategoris' => KategoriDokumen::with('anak.anak')->orderBy('nama')->get(),
         ]);
     }
 
+    /**
+     * Memperbarui profil bidang (nama, ketua, deskripsi).
+     */
     public function update(Request $request, Bidang $bidang): RedirectResponse
     {
-        $u = $request->user();
-        abort_unless($u->isAdmin() || $u->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat mengubah halaman bidangnya.');
-        $d = $request->validate([
+        // ===== PEMERIKSAAN AKSES =====
+        $pengguna = $request->user();
+        abort_unless($pengguna->isAdmin() || $pengguna->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat mengubah halaman bidangnya.');
+
+        // ===== VALIDASI & SIMPAN =====
+        $data = $request->validate([
             'nama' => ['required', 'string', 'max:180'],
             'ketua' => ['nullable', 'string', 'max:120'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
         ]);
-        $bidang->update($d);
+        $bidang->update($data);
+
+        // ===== CATAT LOG & RESPONS =====
         LogAktivitas::catat('ubah profil bidang', $bidang->nama);
 
         return back()->with('sukses', 'Halaman bidang diperbarui.');
     }
 
-    /** Anggota bidang (peran apa pun) menjadwalkan agenda bidangnya sendiri dari halaman bidang. */
+    /**
+     * Anggota bidang (peran apa pun) menjadwalkan agenda bidangnya sendiri dari halaman bidang.
+     */
     public function tambahAgenda(Request $request, Bidang $bidang): RedirectResponse
     {
-        $u = $request->user();
-        abort_unless($u->isAdmin() || $u->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat menjadwalkan agenda di sini.');
-        $d = $request->validate([
+        // ===== PEMERIKSAAN AKSES =====
+        $pengguna = $request->user();
+        abort_unless($pengguna->isAdmin() || $pengguna->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat menjadwalkan agenda di sini.');
+
+        // ===== VALIDASI & SIMPAN =====
+        $data = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'tanggal' => ['required', 'date'],
             'jam_mulai' => ['nullable', 'date_format:H:i'],
             'lokasi' => ['nullable', 'string', 'max:120'],
             'kategori' => ['nullable', 'in:rapat,kegiatan,kunjungan,lainnya'],
         ]);
-        $a = Agenda::create($d + ['id_bidang' => $bidang->id, 'created_by' => $u->id, 'status' => 'belum']);
-        LogAktivitas::catat('tambah agenda bidang', $a->judul.' ('.$bidang->nama.')');
+        $agendaBaru = Agenda::create($data + ['id_bidang' => $bidang->id, 'created_by' => $pengguna->id, 'status' => 'belum']);
+
+        // ===== CATAT LOG & RESPONS =====
+        LogAktivitas::catat('tambah agenda bidang', $agendaBaru->judul.' ('.$bidang->nama.')');
 
         return back()->with('sukses', 'Agenda bidang ditambahkan dan tampil di halaman ini.');
     }
 
-    /** Anggota bidang (peran apa pun, termasuk staf) menyimpan arsip privat untuk bidangnya sendiri. */
+    /**
+     * Anggota bidang (peran apa pun, termasuk staf) menyimpan arsip privat untuk bidangnya sendiri.
+     */
     public function unggahDokumen(Request $request, Bidang $bidang): RedirectResponse
     {
-        $u = $request->user();
-        abort_unless($u->isAdmin() || $u->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat menyimpan dokumen di sini.');
-        $d = $request->validate([
+        // ===== PEMERIKSAAN AKSES =====
+        $pengguna = $request->user();
+        abort_unless($pengguna->isAdmin() || $pengguna->id_bidang === $bidang->id, 403, 'Hanya anggota bidang ini yang dapat menyimpan dokumen di sini.');
+
+        // ===== VALIDASI INPUT (termasuk batas 50 MB) =====
+        $data = $request->validate([
             'judul' => ['required', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
             'kategori' => ['nullable', 'string', 'max:180'],
@@ -159,7 +194,7 @@ class BidangController extends Controller
                 'required',
                 'file',
                 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,txt',
-                'max:51200',
+                'max:51200', // 50 MB (satuan KB)
                 function ($attribute, $value, $fail) {
                     $ext = strtolower($value->getClientOriginalExtension());
                     $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'txt'];
@@ -169,22 +204,26 @@ class BidangController extends Controller
                 },
             ],
         ], ['file.max' => 'Ukuran dokumen maksimal 50 MB.']);
+
+        // ===== PENYIMPANAN BERKAS =====
         $file = $request->file('file');
         $path = $file->storeAs('dokumen', time().'_'.preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
 
+        // ===== PENENTUAN KATEGORI =====
         // Prioritas: 1) kategori terpilih dari pohon; 2) teks kategori baru (berjenjang
         // dengan garis miring); 3) fallback 'Arsip Bidang'.
-        $idKategori = isset($d['id_kategori']) && $d['id_kategori'] !== '' ? (int) $d['id_kategori'] : null;
-        if ($idKategori === null && ! empty($d['kategori'])) {
-            $idKategori = KategoriDokumenService::dapatkanAtauBuatBerjenjang((string) $d['kategori'])->id;
+        $idKategori = isset($data['id_kategori']) && $data['id_kategori'] !== '' ? (int) $data['id_kategori'] : null;
+        if ($idKategori === null && ! empty($data['kategori'])) {
+            $idKategori = KategoriDokumenService::dapatkanAtauBuatBerjenjang((string) $data['kategori'])->id;
         }
         if ($idKategori === null) {
             $idKategori = KategoriDokumenService::dapatkanAtauBuat('Arsip Bidang')->id;
         }
 
+        // ===== PENYIMPANAN DATA DOKUMEN =====
         Dokumen::create([
-            'judul' => $d['judul'],
-            'deskripsi' => $d['deskripsi'] ?? null,
+            'judul' => $data['judul'],
+            'deskripsi' => $data['deskripsi'] ?? null,
             'kategori' => null,
             'id_kategori' => $idKategori,
             'visibility' => 'bidang',
@@ -193,9 +232,11 @@ class BidangController extends Controller
             'file_name' => $file->getClientOriginalName(),
             'file_size' => $file->getSize(),
             'mime' => $file->getClientMimeType(),
-            'uploaded_by' => $u->id,
+            'uploaded_by' => $pengguna->id,
         ]);
-        LogAktivitas::catat('unggah dokumen bidang', $d['judul'].' ('.$bidang->nama.')');
+
+        // ===== CATAT LOG & RESPONS =====
+        LogAktivitas::catat('unggah dokumen bidang', $data['judul'].' ('.$bidang->nama.')');
 
         return back()->with('sukses', 'Dokumen tersimpan sebagai arsip privat bidang — hanya terlihat oleh rekan sebidang dan admin.');
     }

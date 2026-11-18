@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · Dropdown generik. ===== --}}
 @props(['align' => 'right', 'width' => '48', 'contentClasses' => 'py-1 bg-white'])
 
 @php
@@ -14,10 +15,12 @@ $width = match ($width) {
 @endphp
 
 <div class="relative" x-data="{ open: false }" @click.outside="open = false" @close.stop="open = false">
+    {{-- ===== BAGIAN: PEMICU ===== --}}
     <div @click="open = ! open">
         {{ $trigger }}
     </div>
 
+    {{-- ===== BAGIAN: PANEL PILIHAN ===== --}}
     <div x-show="open"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"

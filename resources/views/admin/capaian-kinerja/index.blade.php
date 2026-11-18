@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Capaian Kinerja — matriks sasaran, indikator, dan nilai per tahun. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Capaian Kinerja')
@@ -13,7 +14,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -22,7 +23,7 @@
         <span class="text-slate-700 font-semibold">Kelola Capaian Kinerja</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -34,7 +35,7 @@
             <p class="text-sm text-slate-500 mt-1">Matriks sasaran strategis &rarr; indikator &rarr; target/realisasi per tahun dinas. Ubah manual atau impor berkas resmi.</p>
         </div>
 
-        <!-- Quick Actions -->
+        {{-- ===== BAGIAN: Quick Actions ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
             <a href="{{ route('kinerja.capaian') }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
@@ -53,9 +54,9 @@
         </div>
     </div>
 
-    <!-- 3. Top Action Grid: Impor Berkas & Tambah Sasaran Baru -->
+    {{-- ===== BAGIAN: Top Action Grid: Impor Berkas & Tambah Sasaran Baru ===== --}}
     <div class="grid lg:grid-cols-2 gap-5">
-        <!-- Card 1: Impor Berkas Capaian -->
+        {{-- ===== BAGIAN: Card 1: Impor Berkas Capaian ===== --}}
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
             <div>
                 <div class="flex items-start gap-3 mb-2">
@@ -94,7 +95,7 @@
             </div>
         </div>
 
-        <!-- Card 2: Tambah Sasaran Baru -->
+        {{-- ===== BAGIAN: Card 2: Tambah Sasaran Baru ===== --}}
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col justify-between">
             <div>
                 <div class="flex items-start gap-3 mb-2">
@@ -147,11 +148,11 @@
         </div>
     </div>
 
-    <!-- 4. Daftar Sasaran & Indikator Kinerja -->
+    {{-- ===== BAGIAN: Daftar Sasaran & Indikator Kinerja ===== --}}
     <div class="space-y-4">
         @forelse ($sasarans as $s)
             <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
-                <!-- Header Sasaran -->
+                {{-- ===== BAGIAN: Header Sasaran ===== --}}
                 <div class="px-5 py-3.5 flex flex-wrap items-center gap-3 border-b border-slate-100 bg-slate-50/75">
                     <span class="h-8 w-8 rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white font-black grid place-items-center shadow-sm shadow-purple-500/20 text-sm shrink-0">
                         {{ $s->nomor }}
@@ -168,7 +169,7 @@
                         </div>
                     </div>
 
-                    <!-- Actions Sasaran: Edit & Hapus -->
+                    {{-- ===== BAGIAN: Actions Sasaran: Edit & Hapus ===== --}}
                     <div class="flex items-center gap-2">
                         <details class="relative">
                             <summary class="cursor-pointer list-none rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-purple-300 hover:text-purple-700 transition">
@@ -214,7 +215,7 @@
                     </div>
                 </div>
 
-                <!-- Tabel Indikator -->
+                {{-- ===== BAGIAN: Tabel Indikator ===== --}}
                 <div class="overflow-x-auto thin-scroll">
                     <table class="data w-full min-w-[720px]">
                         <thead>
@@ -257,7 +258,7 @@
                                     </td>
                                 </tr>
 
-                                <!-- Form Inline: Atur Nilai per Tahun -->
+                                {{-- ===== BAGIAN: Form Inline: Atur Nilai per Tahun ===== --}}
                                 <tr class="bg-slate-50/40 border-t border-slate-100">
                                     <td colspan="5" class="py-2.5 px-4">
                                         <details class="group/nilai">
@@ -355,7 +356,7 @@
                     </table>
                 </div>
 
-                <!-- Form Tambah Indikator Baru -->
+                {{-- ===== BAGIAN: Form Tambah Indikator Baru ===== --}}
                 <form method="POST" action="{{ route('admin.capaian.indikator.store') }}" class="px-5 py-3 flex flex-wrap items-center gap-2.5 border-t border-slate-100 bg-slate-50/50">
                     @csrf
                     <input type="hidden" name="sasaran_id" value="{{ $s->id }}">

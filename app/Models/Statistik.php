@@ -14,6 +14,7 @@ class Statistik extends Model
 
     protected $fillable = ['no_urut', 'indikator', 'satuan', 'keterangan'];
 
+    // ===== RELASI =====
     public function nilais()
     {
         return $this->hasMany(StatistikNilai::class, 'id_statistik')->orderBy('tahun');

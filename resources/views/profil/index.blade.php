@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Profil — data akun & kepegawaian + ganti password. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Profil Saya')
@@ -27,7 +28,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-xs sm:text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -36,7 +37,7 @@
         <span class="text-slate-700 font-semibold">Profil Saya</span>
     </nav>
 
-    <!-- 2. Header Halaman -->
+    {{-- ===== BAGIAN: Header Halaman ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/70">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -57,10 +58,10 @@
         </div>
     </div>
 
-    <!-- 3. Grid Konten: Form Profil (Kiri) & Kartu Ringkasan (Kanan) -->
+    {{-- ===== BAGIAN: Grid Konten: Form Profil (Kiri) & Kartu Ringkasan (Kanan) ===== --}}
     <div class="grid lg:grid-cols-3 gap-5 items-start">
         
-        <!-- Kolom Kiri: Form Data Kepegawaian -->
+        {{-- ===== BAGIAN: KOLOM KIRI — form data kepegawaian ===== --}}
         <div class="lg:col-span-2 space-y-4 min-w-0">
             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
                 <div class="flex items-start justify-between gap-4">
@@ -103,7 +104,7 @@
                 <form method="POST" action="{{ route('profil.simpan') }}" class="space-y-6">
                     @csrf @method('PATCH')
 
-                    <!-- Sub-bagian 1: Identitas Pribadi -->
+                    {{-- ===== BAGIAN: IDENTITAS PRIBADI ===== --}}
                     <div class="space-y-3.5">
                         <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100 text-xs font-extrabold uppercase tracking-wider text-slate-500">
                             <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
@@ -144,7 +145,7 @@
                         </div>
                     </div>
 
-                    <!-- Sub-bagian 2: Kedudukan & Kepegawaian -->
+                    {{-- ===== BAGIAN: KEDUDUKAN & KEEPANGAWAIAN ===== --}}
                     <div class="space-y-3.5">
                         <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100 text-xs font-extrabold uppercase tracking-wider text-slate-500">
                             <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -183,7 +184,7 @@
                         </div>
                     </div>
 
-                    <!-- Sub-bagian 3: Riwayat TMT & Masa Kerja -->
+                    {{-- ===== BAGIAN: RIWAYAT TMT & MASA KERJA ===== --}}
                     <div class="space-y-3.5">
                         <div class="flex items-center gap-2 pb-1.5 border-b border-slate-100 text-xs font-extrabold uppercase tracking-wider text-slate-500">
                             <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -208,7 +209,7 @@
                         </div>
                     </div>
 
-                    <!-- Footer Form & Tombol Simpan -->
+                    {{-- ===== BAGIAN: TOMBOL SIMPAN ===== --}}
                     <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <p class="text-xs text-slate-400">
                             Setiap perubahan tersimpan otomatis dan tercatat pada log aktivitas sistem.
@@ -222,10 +223,10 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Kartu Profil, Kelengkapan Data & Informasi -->
+        {{-- ===== BAGIAN: KOLOM KANAN — kartu profil ===== --}}
         <div class="space-y-4">
             
-            <!-- 1. Kartu Profil Ringkas Aparatur -->
+            {{-- ===== BAGIAN: Kartu Profil Ringkas Aparatur ===== --}}
             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
                 <div class="flex items-center gap-3.5 pb-4 border-b border-slate-100">
                     <div class="relative shrink-0">
@@ -280,7 +281,7 @@
                 </dl>
             </div>
 
-            <!-- 2. Kartu Status Kelengkapan Data Profil -->
+            {{-- ===== BAGIAN: Kartu Status Kelengkapan Data Profil ===== --}}
             <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-3.5">
                 <div class="flex items-center justify-between">
                     <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
@@ -416,6 +417,7 @@
 
 </div>
 
+{{-- ===== BAGIAN: SKRIP INTERAKTIF ===== --}}
 <script>
 function togglePw(id, btn) {
     const input = document.getElementById(id);

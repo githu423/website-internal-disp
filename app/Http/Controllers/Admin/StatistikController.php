@@ -22,27 +22,35 @@ use Illuminate\View\View;
  */
 class StatistikController extends Controller
 {
+    /**
+     * Daftar indikator + nilai per tahun dalam bentuk grid.
+     */
     public function index(Request $request): View
     {
-        $rows = Statistik::with('nilais')->orderByRaw('COALESCE(no_urut, 99999)')->orderBy('indikator')->get();
-        $tahunList = StatistikNilai::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($t) => (int) $t)->all();
-        if (!$tahunList) $tahunList = [(int) now()->year];
+        $baris = Statistik::with('nilais')->orderByRaw('COALESCE(no_urut, 99999)')->orderBy('indikator')->get();
+        $tahunList = StatistikNilai::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($tahun) => (int) $tahun)->all();
+        if (! $tahunList) {
+            $tahunList = [(int) now()->year];
+        }
 
         return view('admin.statistik.index', [
-            'rows' => $rows->map(fn ($r) => [
-                'id' => $r->id, 'no' => $r->no_urut, 'indikator' => $r->indikator,
-                'satuan' => $r->satuan, 'ket' => $r->keterangan,
-                'nilai' => $r->nilais->pluck('nilai', 'tahun')->map(fn ($v) => (string) $v)->all(),
+            'rows' => $baris->map(fn ($barisItem) => [
+                'id' => $barisItem->id, 'no' => $barisItem->no_urut, 'indikator' => $barisItem->indikator,
+                'satuan' => $barisItem->satuan, 'ket' => $barisItem->keterangan,
+                'nilai' => $barisItem->nilais->pluck('nilai', 'tahun')->map(fn ($nilai) => (string) $nilai)->all(),
             ])->values(),
             'tahunList' => $tahunList,
             'total' => Statistik::count(),
         ]);
     }
 
-    /** Simpan seluruh grid sekaligus; baris ber-id dgn indikator dikosongkan/cek hapus = dihapus. */
+    /**
+     * Simpan seluruh grid sekaligus; baris ber-id dgn indikator dikosongkan/cek hapus = dihapus.
+     */
     public function store(Request $request): RedirectResponse
     {
-        $d = $request->validate([
+        // ===== 1. VALIDASI INPUT GRID =====
+        $data = $request->validate([
             'tahunList' => ['required', 'array'],
             'rows' => ['nullable', 'array'],
             'rows.*.id' => ['nullable', 'integer', 'exists:statistik,id'],
@@ -54,65 +62,100 @@ class StatistikController extends Controller
             'rows.*.hapus' => ['nullable', 'boolean'],
         ]);
 
-        $years = array_values(array_unique(array_map('intval', (array) $d['tahunList'])));
-        $tersimpan = 0; $terhapus = 0;
+        $daftarTahun = array_values(array_unique(array_map('intval', (array) $data['tahunList'])));
+        $totalSimpan = 0;
+        $totalHapus = 0;
 
-        foreach ((array) ($d['rows'] ?? []) as $r) {
-            $id = $r['id'] ?? null;
-            if ($id && !empty($r['hapus'])) { Statistik::destroy((int) $id); $terhapus++; continue; }
-            $nama = trim((string) ($r['indikator'] ?? ''));
-            if ($nama === '') continue; // baris baru kosong -> abaikan
-            $st = $id ? Statistik::find((int) $id) : null;
-            if (!$st) { // cari berdasarkan nama agar tidak dobel dgn hasil import
-                $st = Statistik::whereRaw('upper(indikator) = ?', [mb_strtoupper(preg_replace('/\s+/', ' ', $nama))])->first()
+        // ===== 2. PROSES TIAP BARIS =====
+        foreach ((array) ($data['rows'] ?? []) as $barisInput) {
+            $idBaris = $barisInput['id'] ?? null;
+            if ($idBaris && ! empty($barisInput['hapus'])) {
+                Statistik::destroy((int) $idBaris);
+                $totalHapus++;
+
+                continue;
+            }
+
+            $namaIndikator = trim((string) ($barisInput['indikator'] ?? ''));
+            if ($namaIndikator === '') {
+                continue; // baris baru kosong -> abaikan
+            }
+
+            $statistik = $idBaris ? Statistik::find((int) $idBaris) : null;
+            if (! $statistik) {
+                // Cari berdasarkan nama agar tidak dobel dgn hasil import.
+                $statistik = Statistik::whereRaw('upper(indikator) = ?', [mb_strtoupper(preg_replace('/\s+/', ' ', $namaIndikator))])->first()
                     ?? new Statistik();
             }
-            $st->indikator = preg_replace('/\s+/', ' ', $nama);
-            $st->no_urut = ($n = trim((string) ($r['no_urut'] ?? ''))) !== '' ? (int) $n : null;
-            $st->satuan = trim((string) ($r['satuan'] ?? '')) ?: null;
-            $st->keterangan = trim((string) ($r['keterangan'] ?? '')) ?: null;
-            $st->save();
 
-            foreach ($years as $t) {
-                $raw = trim((string) (($r['nilai'][$t] ?? '')));
-                if ($raw === '') { StatistikNilai::where('id_statistik', $st->id)->where('tahun', $t)->delete(); continue; }
-                $v = ImportService::angkaSel($raw);
-                if ($v === null) continue; // tidak bisa dibaca -> jangan menimpa data lama
-                StatistikNilai::updateOrCreate(['id_statistik' => $st->id, 'tahun' => $t], ['nilai' => $v]);
+            $statistik->indikator = preg_replace('/\s+/', ' ', $namaIndikator);
+            $statistik->no_urut = ($noUrut = trim((string) ($barisInput['no_urut'] ?? ''))) !== '' ? (int) $noUrut : null;
+            $statistik->satuan = trim((string) ($barisInput['satuan'] ?? '')) ?: null;
+            $statistik->keterangan = trim((string) ($barisInput['keterangan'] ?? '')) ?: null;
+            $statistik->save();
+
+            // ===== 3. SIMPAN NILAI PER TAHUN =====
+            foreach ($daftarTahun as $tahun) {
+                $teksNilai = trim((string) ($barisInput['nilai'][$tahun] ?? ''));
+                if ($teksNilai === '') {
+                    StatistikNilai::where('id_statistik', $statistik->id)->where('tahun', $tahun)->delete();
+
+                    continue;
+                }
+                $nilai = ImportService::angkaSel($teksNilai);
+                if ($nilai === null) {
+                    continue; // tidak bisa dibaca -> jangan menimpa data lama
+                }
+                StatistikNilai::updateOrCreate(['id_statistik' => $statistik->id, 'tahun' => $tahun], ['nilai' => $nilai]);
             }
-            $tersimpan++;
+
+            $totalSimpan++;
         }
 
-        LogAktivitas::catat('ubah statistik pariwisata', "grid manual: $tersimpan baris disimpan, $terhapus dihapus");
-        return back()->with('sukses', 'Statistik tersimpan' . ($terhapus ? " — $tersimpan baris diperbarui, $terhapus dihapus." : '.'));
+        // ===== 4. CATAT LOG & RESPONS =====
+        LogAktivitas::catat('ubah statistik pariwisata', "grid manual: $totalSimpan baris disimpan, $totalHapus dihapus");
+
+        return back()->with('sukses', 'Statistik tersimpan'.($totalHapus ? " — $totalSimpan baris diperbarui, $totalHapus dihapus." : '.'));
     }
 
-    /** Impor file Excel/CSV format Data Statistik (judul & baris tahun deteksi otomatis). */
+    /**
+     * Impor file Excel/CSV format Data Statistik (judul & baris tahun deteksi otomatis).
+     */
     public function import(Request $request): RedirectResponse
     {
+        // ===== 1. VALIDASI BERKAS =====
         $request->validate(['file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:20480']]);
-        $f = $request->file('file');
+        $file = $request->file('file');
+
+        // ===== 2. BACA & PARSE =====
         try {
-            $rows = ImportService::rowsFrom($f->getRealPath(), $f->getClientOriginalName());
-        } catch (\Throwable $e) {
-            return back()->with('gagal', 'File gagal dibaca: ' . $e->getMessage());
+            $rows = ImportService::rowsFrom($file->getRealPath(), $file->getClientOriginalName());
+        } catch (\Throwable $kesalahan) {
+            return back()->with('gagal', 'File gagal dibaca: '.$kesalahan->getMessage());
         }
-        $p = ImportService::parseStatistik($rows);
-        if (!$p) {
+        $parsed = ImportService::parseStatistik($rows);
+        if (! $parsed) {
             return back()->with('gagal', 'Baris indikator tidak dikenali. Gunakan format file "Data Statistik Pariwisata": baris judul bebas, lalu header "No. | Indikator | Satuan | Tahun | Keterangan", baris daftar tahun (mis. 2017..2025), kemudian datanya.');
         }
-        $h = ImportService::applyStatistik($p);
+
+        // ===== 3. TERAPKAN & KABARI =====
+        $hasil = ImportService::applyStatistik($parsed);
         NotifikasiService::broadcast('Statistik pariwisata diperbarui',
-            "Import statistik: {$h['dibuat']} indikator baru, {$h['diperbarui']} diperbarui, {$h['sel']} sel nilai terisi.",
+            "Import statistik: {$hasil['dibuat']} indikator baru, {$hasil['diperbarui']} diperbarui, {$hasil['sel']} sel nilai terisi.",
             'import', route('statistik.index'));
-        LogAktivitas::catat('impor statistik pariwisata', json_encode($h));
-        return back()->with('sukses', "Import statistik selesai: {$h['dibuat']} indikator baru, {$h['diperbarui']} diperbarui, {$h['sel']} sel nilai terisi.");
+        LogAktivitas::catat('impor statistik pariwisata', json_encode($hasil));
+
+        return back()->with('sukses', "Import statistik selesai: {$hasil['dibuat']} indikator baru, {$hasil['diperbarui']} diperbarui, {$hasil['sel']} sel nilai terisi.");
     }
 
+    /**
+     * Menghapus satu indikator.
+     */
     public function destroy(Statistik $statistik): RedirectResponse
     {
         $statistik->delete();
         LogAktivitas::catat('hapus indikator statistik', $statistik->indikator);
-        return back()->with('sukses', 'Indikator "' . $statistik->indikator . '" dihapus.');
+
+        return back()->with('sukses', 'Indikator "'.$statistik->indikator.'" dihapus.');
     }
 }

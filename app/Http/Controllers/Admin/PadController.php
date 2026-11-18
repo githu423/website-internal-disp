@@ -11,12 +11,19 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Pengelolaan data PAD oleh admin (manual + import Excel/CSV).
+ */
 class PadController extends Controller
 {
+    /**
+     * Daftar PAD per tahun.
+     */
     public function index(Request $request): View
     {
-$tahunList = Pad::tahunTersedia();
+        $tahunList = Pad::tahunTersedia();
         $tahun = (int) ($request->query('tahun') ?: (in_array(now()->year, $tahunList) ? now()->year : ($tahunList[0] ?? now()->year)));
+
         return view('admin.pad.index', [
             'rows' => Pad::where('tahun', $tahun)->orderBy('kategori')->orderBy('id')->get(),
             'tahunList' => $tahunList,
@@ -24,47 +31,70 @@ $tahunList = Pad::tahunTersedia();
         ]);
     }
 
+    /**
+     * Menambah satu baris PAD manual.
+     */
     public function store(Request $request): RedirectResponse
     {
         Pad::create($this->validateData($request));
         LogAktivitas::catat('tambah PAD manual');
+
         return back()->with('sukses', 'Data PAD ditambahkan.');
     }
 
+    /**
+     * Memperbarui satu baris PAD.
+     */
     public function update(Request $request, Pad $pad): RedirectResponse
     {
         $pad->update($this->validateData($request));
+
         return back()->with('sukses', 'Data PAD diperbarui.');
     }
 
+    /**
+     * Menghapus satu baris PAD.
+     */
     public function destroy(Pad $pad): RedirectResponse
     {
         $pad->delete();
+
         return back()->with('sukses', 'Baris dihapus.');
     }
 
-    /** Import PAD dari Excel/CSV (format: TAHUN, No./Uraian/Target/Realisasi bulanan) */
+    /**
+     * Import PAD dari Excel/CSV (format: TAHUN, No./Uraian/Target/Realisasi bulanan).
+     */
     public function import(Request $request): RedirectResponse
     {
+        // ===== 1. VALIDASI BERKAS =====
         $request->validate(['file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:20480']]);
-        $f = $request->file('file');
-        $path = $f->getRealPath();
-        $namaAsli = $f->getClientOriginalName();
+        $file = $request->file('file');
+        $pathSementara = $file->getRealPath();
+        $namaAsli = $file->getClientOriginalName();
+
+        // ===== 2. BACA & TERAPKAN =====
         try {
-            $hasil = ImportService::applyPad(ImportService::rowsFrom($path, $namaAsli));
-        } catch (\Throwable $e) {
-            return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
+            $hasil = ImportService::applyPad(ImportService::rowsFrom($pathSementara, $namaAsli));
+        } catch (\Throwable $kesalahan) {
+            return back()->with('gagal', 'File gagal dibaca: '.$kesalahan->getMessage());
         }
         if ($hasil['imported'] === 0) {
             return back()->with('gagal', 'Tidak ada data PAD yang dikenali. Gunakan format file PAD (blok TAHUN + kolom No., No. Rekening, Uraian, Target, Realisasi Jan-Des, Jumlah, Sisa, %).');
         }
-        $yrs = implode(', ', $hasil['years']);
-        $pesan = "Import PAD: {$hasil['dibuat']} objek baru, {$hasil['diperbarui']} diperbarui (tahun $yrs) — koreksi manual & data bulan lalu tetap aman.";
+
+        // ===== 3. NOTIFIKASI & LOG =====
+        $daftarTahun = implode(', ', $hasil['years']);
+        $pesan = "Import PAD: {$hasil['dibuat']} objek baru, {$hasil['diperbarui']} diperbarui (tahun $daftarTahun) — koreksi manual & data bulan lalu tetap aman.";
         NotifikasiService::broadcast('Data PAD diperbarui', $pesan, 'import', route('pad.index'));
-        LogAktivitas::catat('import PAD', "rows={$hasil['imported']} baru={$hasil['dibuat']} ubah={$hasil['diperbarui']} years=$yrs");
+        LogAktivitas::catat('import PAD', "rows={$hasil['imported']} baru={$hasil['dibuat']} ubah={$hasil['diperbarui']} years=$daftarTahun");
+
         return back()->with('sukses', $pesan);
     }
 
+    /**
+     * Aturan validasi satu baris PAD.
+     */
     private function validateData(Request $request): array
     {
         return $request->validate([

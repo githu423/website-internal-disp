@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Kinerja — matriks capaian indikator per tahun. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Capaian Kinerja & Sasaran')
@@ -20,7 +21,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -29,7 +30,7 @@
         <span class="text-slate-700 font-semibold">Capaian Kinerja</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -41,9 +42,9 @@
             <p class="text-sm text-slate-500 mt-1">Matriks target vs realisasi tiap indikator kinerja resmi sedinas.</p>
         </div>
 
-        <!-- Quick Actions Bar -->
+        {{-- ===== BAGIAN: Quick Actions Bar ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Mode Tampilan Switcher (Segmented Pill) -->
+            {{-- ===== BAGIAN: Mode Tampilan Switcher (Segmented Pill) ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 <a href="{{ route('kinerja.capaian') }}" 
                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $tampilan === 'matriks' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50' }}">
@@ -57,13 +58,13 @@
                 </a>
             </div>
 
-            <!-- Tombol Sekunder: Kegiatan Fisik -->
+            {{-- ===== BAGIAN: Tombol Sekunder: Kegiatan Fisik ===== --}}
             <a href="{{ route('kinerja.publik') }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
                 ← Kegiatan Fisik
             </a>
 
-            <!-- Tombol Utama (Hanya Admin: Kelola Capaian Kinerja) -->
+            {{-- ===== BAGIAN: Tombol Utama (Hanya Admin: Kelola Capaian Kinerja) ===== --}}
             @if($u->isAdmin())
             <a href="{{ route('admin.capaian.index') }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
@@ -76,7 +77,7 @@
         </div>
     </div>
 
-    <!-- 3. Stat Cards Ringkasan -->
+    {{-- ===== BAGIAN: Stat Cards Ringkasan ===== --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
         <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
@@ -123,7 +124,7 @@
         </div>
     </div>
 
-    <!-- 4. Konten Matriks atau Grafik -->
+    {{-- ===== BAGIAN: Konten Matriks atau Grafik ===== --}}
     @if ($tampilan === 'matriks')
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="overflow-x-auto thin-scroll">
@@ -230,7 +231,7 @@
         </div>
     </div>
     @else
-    <!-- Tampilan Mode Grafik & Visualisasi Tren -->
+    {{-- ===== BAGIAN: Tampilan Mode Grafik & Visualisasi Tren ===== --}}
     <div class="space-y-4">
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
             <div class="flex items-center justify-between gap-3 mb-2">

@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · PAD — daftar target/realisasi + import Excel. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola PAD')
@@ -13,7 +14,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -22,7 +23,7 @@
         <span class="text-slate-700 font-semibold">Kelola PAD</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -34,9 +35,9 @@
             <p class="text-sm text-slate-500 mt-1">{{ $rows->count() }} objek pendapatan terdata · Pembukuan target, perubahan, realisasi, dan kumulatif kas daerah.</p>
         </div>
 
-        <!-- Quick Actions -->
+        {{-- ===== BAGIAN: Quick Actions ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Pilihan Tahun (Segmented Pill) -->
+            {{-- ===== BAGIAN: Pilihan Tahun (Segmented Pill) ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 @foreach ($tahunList as $t)
                     <a href="{{ route('admin.pad.index', ['tahun' => $t]) }}" 
@@ -46,7 +47,7 @@
                 @endforeach
             </div>
 
-            <!-- Tombol Sekunder: Lihat Publik -->
+            {{-- ===== BAGIAN: Tombol Sekunder: Lihat Publik ===== --}}
             <a href="{{ route('pad.index', ['tahun' => $tahun]) }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
                 <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +57,7 @@
                 Lihat Publik
             </a>
 
-            <!-- Tombol Utama: Tambah Manual -->
+            {{-- ===== BAGIAN: Tombol Utama: Tambah Manual ===== --}}
             <button data-modal-open="modal-pad" 
                     class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
                 <x-icon name="plus" class="h-4 w-4" />
@@ -65,9 +66,9 @@
         </div>
     </div>
 
-    <!-- 3. Konten Grid: Tabel Data & Panel Impor/Panduan -->
+    {{-- ===== BAGIAN: Konten Grid: Tabel Data & Panel Impor/Panduan ===== --}}
     <div class="grid lg:grid-cols-3 gap-5">
-        <!-- Kolom Kiri: Tabel Data PAD -->
+        {{-- ===== BAGIAN: Kolom Kiri: Tabel Data PAD ===== --}}
         <div class="lg:col-span-2">
             <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
                 <div class="overflow-x-auto thin-scroll">
@@ -206,7 +207,7 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Panel Impor & Catatan -->
+        {{-- ===== BAGIAN: Kolom Kanan: Panel Impor & Catatan ===== --}}
         <div class="space-y-4">
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                 <div class="flex items-start gap-3.5 mb-3">
@@ -240,7 +241,7 @@
                 </form>
             </div>
 
-            <!-- Panduan & Catatan PAD -->
+            {{-- ===== BAGIAN: Panduan & Catatan PAD ===== --}}
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm text-sm">
                 <h3 class="font-extrabold text-[14px] text-slate-900 mb-2.5 flex items-center gap-2">
                     <span>💡</span> Catatan Sistem

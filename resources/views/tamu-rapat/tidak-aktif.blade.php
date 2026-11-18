@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Rapat publik — pemberitahuan tautan tidak aktif. ===== --}}
 @extends('tamu-rapat.layout')
 
 @section('title', 'Tautan Tidak Aktif')

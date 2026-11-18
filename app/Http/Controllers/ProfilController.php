@@ -12,21 +12,31 @@ use Illuminate\View\View;
 
 /**
  * Halaman profil pribadi — untuk SEMUA user tanpa terkecuali (permintaan Ricky, 7 Sep 2026).
+ *
  * Data yang diisi di sini menulis ke baris pegawai tertaut-NIP, sehingga kolom "—" di
  * daftar Data Pegawai terisi dan masa kerja ikut terkoreksi real-time.
  */
 class ProfilController extends Controller
 {
+    /**
+     * Menampilkan profil akun dan data kepegawaian tertaut.
+     */
     public function index(Request $request): View
     {
-        $u = $request->user();
-        return view('profil.index', ['u' => $u, 'p' => $u->pegawai]);
+        $pengguna = $request->user();
+
+        // 'u' dan 'p' dipertahankan karena menjadi nama variabel di tampilan (profil/index).
+        return view('profil.index', ['u' => $pengguna, 'p' => $pengguna->pegawai]);
     }
 
+    /**
+     * Menyimpan data profil + data kepegawaian.
+     */
     public function simpan(Request $request): RedirectResponse
     {
-        $u = $request->user();
+        $pengguna = $request->user();
 
+        // ===== 1. VALIDASI INPUT =====
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'tempat_lahir' => ['nullable', 'string', 'max:100'],
@@ -42,28 +52,44 @@ class ProfilController extends Controller
             'tmt_jabatan' => ['nullable', 'date'],
         ]);
 
-        if ($u->name !== $data['name']) { $u->name = $data['name']; $u->save(); }
-        $isi = collect($data)->except('name')->filter(fn ($v) => $v !== null && $v !== '')->all();
-
-        $p = $u->pegawai;
-        if (! $p) {
-            if (! $u->nip) {
-                return back()->with('gagal', 'Akun Anda belum punya NIP — minta admin mengisinya lewat Admin ▸ Akun & Akses.');
-            }
-            $p = Pegawai::create(['nip' => $u->nip, 'nama' => $u->name, 'status' => 'aktif', 'id_bidang' => $u->id_bidang] + $isi);
-        } else {
-            if ($p->nama !== $u->name) { $p->nama = $u->name; }
-            $p->fill($isi)->save();
+        // ===== 2. SINKRONKAN NAMA AKUN =====
+        if ($pengguna->name !== $data['name']) {
+            $pengguna->name = $data['name'];
+            $pengguna->save();
         }
 
-        LogAktivitas::catat('perbarui profil', $u->nip ?: $u->name);
+        // Hanya kolom yang benar-benar diisi yang ditulis ke data kepegawaian.
+        $dataPegawai = collect($data)->except('name')->filter(fn ($nilai) => $nilai !== null && $nilai !== '')->all();
+
+        // ===== 3. TULIS KE DATA KEPEGAWAIAN =====
+        $pegawai = $pengguna->pegawai;
+        if (! $pegawai) {
+            // Belum ada baris pegawai: buat baru jika akun punya NIP.
+            if (! $pengguna->nip) {
+                return back()->with('gagal', 'Akun Anda belum punya NIP — minta admin mengisinya lewat Admin ▸ Akun & Akses.');
+            }
+            $pegawai = Pegawai::create(['nip' => $pengguna->nip, 'nama' => $pengguna->name, 'status' => 'aktif', 'id_bidang' => $pengguna->id_bidang] + $dataPegawai);
+        } else {
+            if ($pegawai->nama !== $pengguna->name) {
+                $pegawai->nama = $pengguna->name;
+            }
+            $pegawai->fill($dataPegawai)->save();
+        }
+
+        // ===== 4. CATAT LOG & RESPONS =====
+        LogAktivitas::catat('perbarui profil', $pengguna->nip ?: $pengguna->name);
+
         return back()->with('sukses', 'Profil tersimpan — data kepegawaian Anda ikut terisi dan masa kerja dihitung ulang otomatis.');
     }
 
+    /**
+     * Mengganti password sendiri.
+     */
     public function gantiPassword(Request $request): RedirectResponse
     {
-        $u = $request->user();
+        $pengguna = $request->user();
 
+        // ===== 1. VALIDASI INPUT =====
         $request->validate([
             'password_lama'  => ['required', 'string'],
             'password_baru'  => ['required', 'string', 'min:8', 'confirmed', Password::defaults()],
@@ -74,15 +100,19 @@ class ProfilController extends Controller
             'password_baru.confirmed'=> 'Konfirmasi password baru tidak cocok.',
         ]);
 
-        if (! Hash::check($request->password_lama, $u->password)) {
+        // ===== 2. COCOKKAN PASSWORD LAMA =====
+        if (! Hash::check($request->password_lama, $pengguna->password)) {
             return back()
                 ->withErrors(['password_lama' => 'Password lama yang Anda masukkan salah.'])
                 ->withInput();
         }
 
-        $u->update(['password' => $request->password_baru]);
+        // ===== 3. SIMPAN PASSWORD BARU =====
+        $pengguna->update(['password' => $request->password_baru]);
 
-        LogAktivitas::catat('ganti password', $u->nip ?: $u->name);
+        // ===== 4. CATAT LOG & RESPONS =====
+        LogAktivitas::catat('ganti password', $pengguna->nip ?: $pengguna->name);
+
         return back()->with('sukses_pw', 'Password berhasil diperbarui. Gunakan password baru Anda pada login berikutnya.');
     }
 }

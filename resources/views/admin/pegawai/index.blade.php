@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Data Pegawai — daftar, tambah/ubah/hapus, import Excel. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Pegawai')
@@ -9,7 +10,7 @@
 @section('content')
     <div class="space-y-6">
 
-        <!-- 1. Breadcrumbs Mikro -->
+        {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
         <nav class="flex items-center text-sm font-medium text-slate-400">
             <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
             <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
             <span class="text-slate-700 font-semibold">Kelola Pegawai</span>
         </nav>
 
-        <!-- 2. Header Halaman & Filter Toolbar -->
+        {{-- ===== BAGIAN: Header Halaman & Filter Toolbar ===== --}}
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
             <div>
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -39,7 +40,7 @@
                     bidang kerja.</p>
             </div>
 
-            <!-- Quick Actions & Tambah -->
+            {{-- ===== BAGIAN: AKSI CEPAT & TAMBAH ===== --}}
             <div class="flex flex-wrap items-center gap-2.5">
                 <button data-modal-open="modal-pegawai"
                     class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
@@ -49,7 +50,7 @@
             </div>
         </div>
 
-        <!-- 2b. Status Filter Tabs (sinkron Data Pegawai & Dashboard) -->
+        {{-- ===== BAGIAN: Status Filter Tabs (sinkron Data Pegawai & Dashboard) ===== --}}
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 @foreach (['' => 'Semua', 'aktif' => 'Aktif', 'nonaktif' => 'Non-Aktif', 'pensiun' => 'Pensiun'] as $sv => $slab)
@@ -68,7 +69,7 @@
             </div>
         </div>
 
-        <!-- Filter Form Toolbar -->
+        {{-- ===== BAGIAN: BILAH ALAT FILTER ===== --}}
         <form method="GET"
             class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             @if (request('belum'))<input type="hidden" name="belum" value="1">@endif
@@ -107,7 +108,7 @@
             </div>
         </form>
 
-        <!-- Pesan Peringatan Error -->
+        {{-- ===== BAGIAN: PESAN PERINGATAN ===== --}}
         @if ($errors->any())
             <div class="rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-rose-700 text-sm font-medium">
                 <div class="flex items-center gap-2">
@@ -120,9 +121,9 @@
             </div>
         @endif
 
-        <!-- 3. Grid Konten: Tabel Pegawai & Panel Impor -->
+        {{-- ===== BAGIAN: Grid Konten: Tabel Pegawai & Panel Impor ===== --}}
         <div class="grid lg:grid-cols-3 gap-5">
-            <!-- Kolom Kiri: Tabel Data Pegawai -->
+            {{-- ===== BAGIAN: KOLOM KIRI — tabel pegawai ===== --}}
             <div class="lg:col-span-2">
                 <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
                     <div class="overflow-x-auto thin-scroll">
@@ -422,7 +423,7 @@
                 </div>
             </div>
 
-            <!-- Kolom Kanan: Panel Impor & Catatan -->
+            {{-- ===== BAGIAN: KOLOM KANAN — impor & catatan ===== --}}
             <div class="space-y-4">
                 <x-import-card :action="route('admin.pegawai.import')" title="Impor Berkas Daftar Pegawai (Excel/CSV)"
                     desc="Format: kolom No., NAMA LENGKAP, N I P, tempat/tanggal lahir, pangkat, TMT CPNS, jabatan, dst. Data lama dengan NIP sama diperbarui secara otomatis; pegawai baru otomatis memperoleh akun akses login SIPARDIS." />
@@ -444,6 +445,7 @@
     </div>
 
     {{-- Modal Tambah Pegawai Manual --}}
+    {{-- ===== BAGIAN: MODAL TAMBAH/HAPUS PEGAWAI ===== --}}
     <div id="modal-pegawai"
         class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
         <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-2xl text-sm">

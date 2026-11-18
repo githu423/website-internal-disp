@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · tautan sidebar. ===== --}}
 @props(['href', 'label', 'icon', 'active' => false, 'badge' => null])
 <a href="{{ $href }}" title="{{ $label }}" data-label="{{ $label }}" @class([
     'nav-link group',

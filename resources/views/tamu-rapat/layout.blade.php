@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Rapat publik — kerangka halaman tamu. ===== --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -10,11 +11,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {{-- ===== BAGIAN: GAYA ===== --}}
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    {{-- ===== BAGIAN: KERANGKA HALAMAN ===== --}}
     <div class="flex min-h-screen flex-col">
         <header class="border-b border-slate-200 bg-white/90 shadow-sm">
             <div class="mx-auto flex max-w-5xl items-center gap-3 px-4 py-4 sm:px-6">

@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: PAD — daftar target & realisasi per kategori. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'PAD — Retribusi Daerah')
@@ -17,7 +18,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -26,7 +27,7 @@
         <span class="text-slate-700 font-semibold">PAD (Retribusi)</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -38,9 +39,9 @@
             <p class="text-sm text-slate-500 mt-1">Dikelola Dinas Pariwisata Kab. Ciamis · Realisasi penerimaan retribusi destinasi &amp; aset daerah.</p>
         </div>
 
-        <!-- Quick Actions Bar -->
+        {{-- ===== BAGIAN: Quick Actions Bar ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Pilihan Tahun (Segmented Pill) -->
+            {{-- ===== BAGIAN: Pilihan Tahun (Segmented Pill) ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 @foreach ($tahunList as $t)
                     <a href="{{ route('pad.index', ['tahun' => $t]) }}" 
@@ -50,7 +51,7 @@
                 @endforeach
             </div>
 
-            <!-- Tombol Utama (Hanya Admin: Kelola PAD) -->
+            {{-- ===== BAGIAN: Tombol Utama (Hanya Admin: Kelola PAD) ===== --}}
             @if($u->isAdmin())
             <a href="{{ route('admin.pad.index') }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
@@ -63,7 +64,7 @@
         </div>
     </div>
 
-    <!-- 3. Stat Cards Ringkasan Target & Realisasi -->
+    {{-- ===== BAGIAN: Stat Cards Ringkasan Target & Realisasi ===== --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center justify-between gap-3">
             <div class="min-w-0">
@@ -106,7 +107,7 @@
         </div>
     </div>
 
-    <!-- 4. Kontainer Tabel Data Retribusi -->
+    {{-- ===== BAGIAN: Kontainer Tabel Data Retribusi ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="overflow-x-auto thin-scroll">
             <table class="data w-full min-w-[880px]">
@@ -123,7 +124,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                 @forelse ($rows->groupBy('kategori') as $kat => $grup)
-                    <!-- Header Kelompok Kategori -->
+                    {{-- ===== BAGIAN: Header Kelompok Kategori ===== --}}
                     <tr class="bg-slate-100/60 border-t border-b border-slate-200/80">
                         <td colspan="7" class="py-2.5 px-4 font-extrabold text-xs uppercase tracking-wider text-purple-900 flex items-center gap-2">
                             <span class="h-2 w-2 rounded-full bg-purple-600"></span>

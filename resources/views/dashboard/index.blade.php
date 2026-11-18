@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Dashboard utama — dipakai bersama untuk semua peran (admin, bidang, pegawai). ===== --}}
 @extends('layouts.dashboard')
 @section('title', 'Dashboard Utama')
 @section('header_title')
@@ -7,12 +8,12 @@
 @section('content')
 @php $u = auth()->user(); @endphp
 
-<!-- Breadcrumbs Mikro -->
+{{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
 <div class="mb-1.5">
     <span class="text-gray-400 text-sm font-medium">SIPARDIS <span class="mx-1">/</span> <span class="text-gray-500">Dashboard Utama</span></span>
 </div>
 
-<!-- Toast Notification (global, muncul di pojok kanan bawah) -->
+{{-- ===== BAGIAN: Toast Notification (global, muncul di pojok kanan bawah) ===== --}}
 <div id="dash-toast" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-2.5 pointer-events-none"></div>
 
 <div class="flex flex-wrap items-center justify-between gap-4 mb-7">
@@ -21,7 +22,7 @@
         <p class="text-sm text-slate-500 mt-1">{{ $u->jabatan ?: 'Selamat datang di SIPARDIS' }} · {{ now()->translatedFormat('d F Y') }}</p>
     </div>
     
-    <!-- Quick Actions -->
+    {{-- ===== BAGIAN: Quick Actions ===== --}}
     <div class="flex items-center gap-3">
         <a href="{{ route('pad.index') }}" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -51,13 +52,13 @@
 </div>
 
 @if ($prestasiTerbaru->isNotEmpty())
-    <!-- ============ SLIDER PRESTASI & PENGHARGAAN DINAS (TOP SHOWCASE) ============ -->
+    {{-- ===== BAGIAN: SLIDER PRESTASI & PENGHARGAAN DINAS ===== --}}
     <div class="mb-5 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 text-purple-900 p-3 sm:p-4 shadow-md border border-purple-200 relative overflow-hidden" id="prestasi-slider-box">
-        <!-- Ambient Decorative Glow -->
+        {{-- ===== BAGIAN: Ambient Decorative Glow ===== --}}
         <div class="absolute -right-16 -top-16 w-60 h-60 bg-purple-200/50 rounded-full blur-3xl pointer-events-none"></div>
         <div class="absolute -left-16 -bottom-16 w-60 h-60 bg-fuchsia-200/50 rounded-full blur-3xl pointer-events-none"></div>
 
-        <!-- Slider Header -->
+        {{-- ===== BAGIAN: Slider Header ===== --}}
         <div class="flex flex-wrap items-center justify-between gap-3 mb-4 relative z-10">
             <div class="flex items-center gap-3">
                 <div class="h-11 w-11 rounded-xl bg-gradient-to-br from-purple-400 via-fuchsia-500 to-purple-600 flex items-center justify-center text-2xl shadow-lg shadow-purple-500/30 shrink-0 select-none">
@@ -97,13 +98,13 @@
             </div>
         </div>
 
-        <!-- Slider Content / Cards Track -->
+        {{-- ===== BAGIAN: Slider Content / Cards Track ===== --}}
         <div class="relative z-10 overflow-hidden">
             <div id="prestasi-track" class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory py-1 select-none" style="scrollbar-width: none; -ms-overflow-style: none;">
                 @foreach ($prestasiTerbaru as $index => $p)
                     <div class="prestasi-slide-item snap-start shrink-0 w-full flex flex-col justify-between transition-all duration-300 relative group min-h-[150px] px-2 py-1">
                         <div>
-                            <!-- Badges -->
+                            {{-- ===== BAGIAN: Badges ===== --}}
                             <div class="flex flex-wrap items-center justify-between gap-1.5 mb-2.5">
                                 <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-purple-200 text-purple-800 border border-purple-300">
@@ -126,13 +127,13 @@
                                 @endif
                             </div>
 
-                            <!-- Nama Penghargaan -->
+                            {{-- ===== BAGIAN: Nama Penghargaan ===== --}}
                             <h4 class="text-lg sm:text-xl font-extrabold text-purple-950 group-hover:text-purple-700 transition-colors leading-snug line-clamp-2 mb-3" title="{{ $p->nama_penghargaan }}">
                                 {{ $p->nama_penghargaan }}
                             </h4>
-                        <!-- Content Details Wrapper -->
+                        {{-- ===== BAGIAN: Content Details Wrapper ===== --}}
                         <div class="relative z-10">
-                            <!-- Penerima & Pemberi Penghargaan -->
+                            {{-- ===== BAGIAN: Penerima & Pemberi Penghargaan ===== --}}
                             <div class="mt-4 bg-white/60 backdrop-blur-sm p-3.5 rounded-xl border border-white/80 grid grid-cols-2 gap-4 text-xs shadow-sm">
                                 <div class="flex items-start gap-2.5 min-w-0">
                                     <span class="h-6 w-6 rounded-md bg-purple-100 text-purple-600 grid place-items-center shrink-0 shadow-sm border border-purple-200/50">
@@ -162,7 +163,7 @@
                             </div>
                         </div>
 
-                        <!-- Placeholder / Ilustrasi -->
+                        {{-- ===== BAGIAN: Placeholder / Ilustrasi ===== --}}
                         <div class="absolute right-0 bottom-0 pointer-events-none opacity-40 mix-blend-overlay">
                             <svg class="w-40 h-40 text-purple-600 translate-x-12 translate-y-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 3.99L19.53 19H4.47L12 5.99z"/></svg>
                         </div>
@@ -172,7 +173,7 @@
             </div>
         </div>
 
-        <!-- Dot Indicators -->
+        {{-- ===== BAGIAN: Dot Indicators ===== --}}
         <div class="flex items-center justify-center gap-1.5 mt-3.5 relative z-10" id="prestasi-dots"></div>
     </div>
 @endif

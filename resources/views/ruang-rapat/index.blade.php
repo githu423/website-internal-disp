@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Ruang Rapat — daftar + kartu status (aktif/kedaluwarsa/nonaktif). ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Ruang Rapat')
@@ -13,7 +14,7 @@
     @endphp
 
     <div class="space-y-6">
-        <!-- 1. Breadcrumbs -->
+        {{-- ===== BAGIAN: Breadcrumbs ===== --}}
         <nav class="flex items-center text-sm font-medium text-slate-400">
             <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
             <span class="mx-2 text-slate-300">/</span>
@@ -22,7 +23,7 @@
             <span class="text-slate-700 font-semibold">Ruang Rapat</span>
         </nav>
 
-        <!-- 2. Header Halaman -->
+        {{-- ===== BAGIAN: Header Halaman ===== --}}
         <div class="flex flex-col gap-4 border-b border-slate-200/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -60,7 +61,7 @@
             </div>
         @endif
 
-        <!-- 3. Unified Command Toolbar -->
+        {{-- ===== BAGIAN: Unified Command Toolbar ===== --}}
         <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             {{-- Kiri: Segmented Status Pills --}}
             @php
@@ -160,7 +161,7 @@
         </div>
 
         @if ($ruangRapats->count())
-            <!-- 4A. TAMPILAN GRID (KARTU) -->
+            {{-- ===== BAGIAN: TAMPILAN GRID (KARTU) ===== --}}
             <div id="container-grid-view" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @foreach ($ruangRapats as $ruangRapat)
                     @php
@@ -334,7 +335,7 @@
                 @endif
             </div>
 
-            <!-- 4B. TAMPILAN LIST / TABEL ARSIP (Sangat rapi mengisi layar secara penuh) -->
+            {{-- ===== BAGIAN: TAMPILAN DAFTAR / TABEL ARSIP ===== --}}
             <div id="container-list-view" class="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
@@ -522,6 +523,7 @@
     </div>
 
     {{-- Script Salin Tautan & View Switcher --}}
+{{-- ===== BAGIAN: SKRIP INTERAKTIF ===== --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             // 1. Salin Tautan

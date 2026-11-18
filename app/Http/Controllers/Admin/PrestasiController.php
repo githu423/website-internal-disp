@@ -10,8 +10,17 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Pengelolaan data prestasi/penghargaan oleh admin.
+ *
+ * Prestasi bertanda "featured" diprioritaskan tampil di dashboard;
+ * tanpa tanda, diputar otomatis setiap hari.
+ */
 class PrestasiController extends Controller
 {
+    /**
+     * Daftar prestasi.
+     */
     public function index(Request $request): View
     {
         return view('admin.prestasi.index', [
@@ -21,38 +30,45 @@ class PrestasiController extends Controller
         ]);
     }
 
-    /** Tambah satu prestasi secara manual (tanpa import file). */
+    /**
+     * Tambah satu prestasi secara manual (tanpa import file).
+     */
     public function store(Request $request): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'nama_penghargaan' => ['required', 'string', 'max:500'],
             'nama_penerima' => ['nullable', 'string', 'max:255'],
             'pemberi_penghargaan' => ['nullable', 'string', 'max:255'],
             'tahun' => ['required', 'integer', 'min:1900', 'max:2100'],
             'tingkat' => ['nullable', 'string', 'max:50'],
         ]);
-        $prestasi = Prestasi::create($d);
-        LogAktivitas::catat('tambah prestasi', $prestasi->nama_penghargaan . ' (' . $prestasi->tahun . ')');
+        $prestasi = Prestasi::create($data);
+        LogAktivitas::catat('tambah prestasi', $prestasi->nama_penghargaan.' ('.$prestasi->tahun.')');
 
-        return back()->with('sukses', 'Prestasi "' . $prestasi->nama_penghargaan . '" ditambahkan.');
+        return back()->with('sukses', 'Prestasi "'.$prestasi->nama_penghargaan.'" ditambahkan.');
     }
 
-    /** Ubah satu prestasi secara manual. */
+    /**
+     * Ubah satu prestasi secara manual.
+     */
     public function update(Request $request, Prestasi $prestasi): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'nama_penghargaan' => ['required', 'string', 'max:500'],
             'nama_penerima' => ['nullable', 'string', 'max:255'],
             'pemberi_penghargaan' => ['nullable', 'string', 'max:255'],
             'tahun' => ['required', 'integer', 'min:1900', 'max:2100'],
             'tingkat' => ['nullable', 'string', 'max:50'],
         ]);
-        $prestasi->update($d);
-        LogAktivitas::catat('ubah prestasi', $d['nama_penghargaan'] . ' (' . $d['tahun'] . ')');
+        $prestasi->update($data);
+        LogAktivitas::catat('ubah prestasi', $data['nama_penghargaan'].' ('.$data['tahun'].')');
 
-        return back()->with('sukses', 'Prestasi "' . $d['nama_penghargaan'] . '" diperbarui.');
+        return back()->with('sukses', 'Prestasi "'.$data['nama_penghargaan'].'" diperbarui.');
     }
 
+    /**
+     * Menandai / menghapus tanda "tampil di dashboard".
+     */
     public function toggleFeatured(Prestasi $prestasi): RedirectResponse
     {
         $prestasi->is_featured = ! $prestasi->is_featured;
@@ -67,6 +83,9 @@ class PrestasiController extends Controller
         return back()->with('sukses', $pesan);
     }
 
+    /**
+     * Menghapus semua tanda manual (kembali ke rotasi harian otomatis).
+     */
     public function resetFeatured(): RedirectResponse
     {
         Prestasi::where('is_featured', true)->update(['is_featured' => false]);
@@ -75,28 +94,39 @@ class PrestasiController extends Controller
         return back()->with('sukses', 'Semua pilihan manual direset. Prestasi di dashboard kini sepenuhnya dirotasi otomatis setiap hari.');
     }
 
+    /**
+     * Import prestasi dari Excel/CSV.
+     */
     public function import(Request $request): RedirectResponse
     {
+        // ===== 1. VALIDASI BERKAS =====
         $request->validate(['file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:10240']]);
-        $f = $request->file('file');
-        $path = $f->getRealPath();
-        $namaAsli = $f->getClientOriginalName();
+        $file = $request->file('file');
+        $pathSementara = $file->getRealPath();
+        $namaAsli = $file->getClientOriginalName();
+
+        // ===== 2. BACA & TERAPKAN =====
         try {
-            $rows = ImportService::rowsFrom($path, $namaAsli);
+            $rows = ImportService::rowsFrom($pathSementara, $namaAsli);
             $hasil = ImportService::applyPrestasi($rows);
-        } catch (\Throwable $e) {
-            return back()->with('gagal', 'File gagal dibaca: ' . $e->getMessage());
+        } catch (\Throwable $kesalahan) {
+            return back()->with('gagal', 'File gagal dibaca: '.$kesalahan->getMessage());
         }
         if ($hasil['imported'] === 0) {
             return back()->with('gagal', 'Tidak ada data prestasi yang dikenali. Gunakan format file dengan blok "TAHUN 20XX" dan kolom No, Nama Penghargaan, Nama Penerima, Pemberi Penghargaan, Tahun Penghargaan.');
         }
-        $yrs = implode(', ', $hasil['years']);
-        $pesan = "Import Prestasi: {$hasil['imported']} baris (tahun $yrs).";
+
+        // ===== 3. LOG & RESPONS =====
+        $daftarTahun = implode(', ', $hasil['years']);
+        $pesan = "Import Prestasi: {$hasil['imported']} baris (tahun $daftarTahun).";
         LogAktivitas::catat('import prestasi', $pesan);
 
         return back()->with('sukses', $pesan);
     }
 
+    /**
+     * Menghapus data prestasi.
+     */
     public function destroy(Prestasi $prestasi): RedirectResponse
     {
         $prestasi->delete();

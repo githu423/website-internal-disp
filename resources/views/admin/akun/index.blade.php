@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Akun & Akses — daftar akun: buat, ubah, hapus, sinkron peran. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Akun & Akses')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Akun &amp; Hak Akses</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -46,7 +47,7 @@
         </div>
     </div>
 
-    <!-- 3. Filter Toolbar -->
+    {{-- ===== BAGIAN: Filter Toolbar ===== --}}
     <form method="GET" class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div class="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div class="relative flex-1">
@@ -73,7 +74,7 @@
         </div>
     </form>
 
-    <!-- 4. Kontainer Tabel Data Akun -->
+    {{-- ===== BAGIAN: Kontainer Tabel Data Akun ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="overflow-x-auto thin-scroll">
             <table class="data w-full min-w-[760px]">
@@ -226,6 +227,7 @@
 </div>
 
 {{-- Modal Buat Akun Baru --}}
+{{-- ===== BAGIAN: MODAL AKUN ===== --}}
 <div id="modal-akun" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
     <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl text-sm">
         <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">

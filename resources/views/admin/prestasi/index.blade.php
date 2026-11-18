@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Prestasi — daftar, tandai tampil di dashboard, import. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Prestasi')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Kelola Prestasi</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -43,7 +44,7 @@
         </div>
     </div>
 
-    <!-- 3. Info Rotasi & Pengaturan Tampilan Dashboard -->
+    {{-- ===== BAGIAN: Info Rotasi & Pengaturan Tampilan Dashboard ===== --}}
     <div class="rounded-2xl border border-purple-200 bg-gradient-to-r from-purple-50/70 via-white to-purple-50/30 p-5 shadow-sm">
         <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div class="flex items-start gap-3.5">
@@ -83,7 +84,7 @@
         </div>
     </div>
 
-    <!-- 4. Card Impor Berkas Prestasi -->
+    {{-- ===== BAGIAN: Card Impor Berkas Prestasi ===== --}}
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
         <div class="flex items-start gap-3.5 mb-3">
             <span class="h-10 w-10 shrink-0 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 grid place-items-center">
@@ -108,7 +109,7 @@
         </form>
     </div>
 
-    <!-- 5. Kontainer Tabel Data Prestasi -->
+    {{-- ===== BAGIAN: Kontainer Tabel Data Prestasi ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="overflow-x-auto thin-scroll">
             <table class="data w-full min-w-[840px]">

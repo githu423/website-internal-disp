@@ -5,6 +5,11 @@ namespace App\Models;
 use App\Services\MasaKerjaService;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Data kepegawaian.
+ *
+ * Kelengkapan data diukur dari KOLOM_LENGKAP (sama dengan checklist halaman /profil).
+ */
 class Pegawai extends Model
 {
     protected $table = 'pegawai';
@@ -17,13 +22,19 @@ class Pegawai extends Model
     ];
     protected $casts = ['tanggal_lahir' => 'date', 'tmt_cpns' => 'date', 'tmt_sekarang' => 'date', 'tmt_jabatan' => 'date'];
 
-    public function bidang() { return $this->belongsTo(Bidang::class, 'id_bidang'); }
+    // ===== RELASI =====
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'id_bidang');
+    }
 
+    // ===== MASA KERJA (REAL-TIME) =====
     public function getMasaKerjaAttribute(): array
     {
         return MasaKerjaService::hitung($this->tmt_cpns ?: $this->tmt_sekarang);
     }
 
+    // ===== UMUR (REAL-TIME) =====
     /**
      * Umur dalam TAHUN, dihitung real-time dari tanggal lahir (konfirmasi Dinas
      * 11 Sep 2026 — identitas umur tampil di semua halaman data pegawai).
@@ -31,20 +42,19 @@ class Pegawai extends Model
      */
     public function getUmurAttribute(): ?int
     {
-        if (! $this->tanggal_lahir || $this->tanggal_lahir->isFuture()) return null;
+        if (! $this->tanggal_lahir || $this->tanggal_lahir->isFuture()) {
+            return null;
+        }
+
         return (int) $this->tanggal_lahir->diffInYears(now());
     }
 
+    // ===== DAFTAR KOLOM PENENTU "DATA LENGKAP" =====
     /**
-     * Pegawai yang datanya belum lengkap — kriteria SAMA dengan checklist
-     * halaman /profil (permintaan Ricky 7 Sep 2026, dipakai chip merah & filter).
+     * v21: acuan "lengkap" = 13 kolom yang ADA di file Excel kepegawaian resmi
+     * (urutan mengikuti file). Tempat/tanggal lahir tidak diwajibkan karena
+     * tidak selalu ada di file. Kolom diklat ikut dipantau tp tetap terlihat.
      */
-    /** v18: kolom INTI penentu "data lengkap" — disamakan dengan yang memang terisi
-     *  dari file Excel kepegawaian. unit_kerja & TMT jadi opsional (dulu membuat
-     *  hampir semua orang tercatat "belum lengkap" walau filenya tidak memuatnya). */
-    /** v21: acuan "lengkap" = 13 kolom yang ADA di file Excel kepegawaian resmi
-     *  (urutan mengikuti file). Tempat/tanggal lahir tidak diwajibkan karena
-     *  tidak selalu ada di file. Kolom diklat ikut dipantau tp tetap terlihat. */
     public const KOLOM_LENGKAP = [
         'pangkat_awal' => 'Pangkat/golongan awal',
         'tmt_cpns' => 'TMT CPNS',
@@ -64,35 +74,43 @@ class Pegawai extends Model
     /** Kolom yang bertipe DATE — MySQL strict menolak `= ''` untuk tipe ini. */
     public const KOLOM_DATE = ['tmt_cpns', 'tmt_sekarang', 'tmt_jabatan'];
 
-    public function scopeBelumLengkap($q)
+    // ===== SCOPE: YANG DATANYA BELUM LENGKAP =====
+    public function scopeBelumLengkap($query)
     {
-        return $q->where(function ($w) {
-            foreach (array_keys(self::KOLOM_LENGKAP) as $c) {
-                if (in_array($c, self::KOLOM_DATE, true)) {
-                    $w->orWhereNull($c);
+        return $query->where(function ($queryKurang) {
+            foreach (array_keys(self::KOLOM_LENGKAP) as $kolom) {
+                if (in_array($kolom, self::KOLOM_DATE, true)) {
+                    $queryKurang->orWhereNull($kolom);
                 } else {
-                    $w->orWhereNull($c)->orWhere($c, '');
+                    $queryKurang->orWhereNull($kolom)->orWhere($kolom, '');
                 }
             }
         });
     }
 
+    // ===== DAFTAR KOLOM YANG MASIH KOSONG =====
     /** Label kolom kelengkapan yang masih kosong — utk badge per baris (v18). */
     public function kolomKurang(): array
     {
-        $kurang = [];
-        foreach (self::KOLOM_LENGKAP as $c => $label) {
-            $v = $this->$c;
-            // Kolom DATE hanya cek NULL (MySQL tidak pernah menyimpan '' untuk DATE)
-            if (in_array($c, self::KOLOM_DATE, true)) {
-                if ($v === null) $kurang[] = $label;
+        $daftarKurang = [];
+        foreach (self::KOLOM_LENGKAP as $kolom => $label) {
+            $nilai = $this->$kolom;
+            // Kolom DATE hanya cek NULL (MySQL tidak pernah menyimpan '' untuk DATE).
+            if (in_array($kolom, self::KOLOM_DATE, true)) {
+                if ($nilai === null) {
+                    $daftarKurang[] = $label;
+                }
             } else {
-                if ($v === null || $v === '') $kurang[] = $label;
+                if ($nilai === null || $nilai === '') {
+                    $daftarKurang[] = $label;
+                }
             }
         }
-        return $kurang;
+
+        return $daftarKurang;
     }
 
+    // ===== RINGKASAN "BELUM LENGKAP" =====
     /**
      * Catatan singkat "belum lengkap: ..." utk baris tabel (v24): hanya beberapa
      * kolom pertama yang disebut, sisanya diringkas "+N kolom lain" supaya baris
@@ -100,12 +118,16 @@ class Pegawai extends Model
      */
     public function ringkasKurang(int $batas = 3): string
     {
-        $semua = $this->kolomKurang();
-        if (count($semua) <= $batas) return implode(', ', $semua);
-        return implode(', ', array_slice($semua, 0, $batas)) . ' +' . (count($semua) - $batas) . ' kolom lain';
+        $daftarKurang = $this->kolomKurang();
+        if (count($daftarKurang) <= $batas) {
+            return implode(', ', $daftarKurang);
+        }
+
+        return implode(', ', array_slice($daftarKurang, 0, $batas)).' +'.(count($daftarKurang) - $batas).' kolom lain';
     }
 
-        /**
+    // ===== PENCARIAN MENYELURUH =====
+    /**
      * Pencarian menyeluruh (konfirmasi Dinas 11 Sep 2026): kata kunci dicocokkan ke
      * SEMUA data yang tampil di halaman pegawai — nama, NIP, jabatan, pangkat,
      * pendidikan, unit kerja, status, tempat lahir — TERMASUK nama bidang tempat
@@ -114,42 +136,50 @@ class Pegawai extends Model
      * Singkatan sehari-hari dikenali (ekrab/ekraf → ekonomi kreatif). NIP boleh
      * diketik dengan spasi; angka 4 digit juga dicocokkan ke tahun TMT/tgl lahir.
      */
-    public function scopeCari($q, ?string $s)
+    public function scopeCari($query, ?string $kataKunci)
     {
-        if ($s) {
-            // padanan singkatan sehari-hari → nama resmi (mis. "ekrab"/"ekraf" → "ekonomi kreatif")
-            $varian = [$s];
-            foreach (['ekrab' => 'ekonomi kreatif', 'ekraf' => 'ekonomi kreatif'] as $singk => $resmi) {
-                if (stripos($s, $singk) !== false) $varian[] = $resmi;
+        if ($kataKunci) {
+            // Padanan singkatan sehari-hari → nama resmi (mis. "ekrab"/"ekraf" → "ekonomi kreatif").
+            $varianKata = [$kataKunci];
+            foreach (['ekrab' => 'ekonomi kreatif', 'ekraf' => 'ekonomi kreatif'] as $singkatan => $namaResmi) {
+                if (stripos($kataKunci, $singkatan) !== false) {
+                    $varianKata[] = $namaResmi;
+                }
             }
-            $nipRapat = preg_replace('/\s+/', '', $s);
-            $q->where(function ($w) use ($varian, $s, $nipRapat) {
-                foreach ($varian as $i => $k) {
-                    $grp = fn ($g) => $g->where('nama', 'like', "%$k%")
-                        ->orWhere('nip', 'like', "%$k%")
-                        ->orWhere('jabatan', 'like', "%$k%")
-                        ->orWhere('unit_kerja', 'like', "%$k%")
-                        ->orWhere('pangkat_golongan', 'like', "%$k%")
-                        ->orWhere('pangkat_awal', 'like', "%$k%")
-                        ->orWhere('pendidikan', 'like', "%$k%")
-                        ->orWhere('jenis_asn', 'like', "%$k%")
-                        ->orWhere('tempat_lahir', 'like', "%$k%")
-                        ->orWhere('status', 'like', "%$k%")
-                        ->orWhereHas('bidang', fn ($b) => $b->where('nama', 'like', "%$k%"));
-                    $i === 0 ? $w->where($grp) : $w->orWhere($grp);
+            $nipRapi = preg_replace('/\s+/', '', $kataKunci);
+
+            $query->where(function ($queryCari) use ($varianKata, $kataKunci, $nipRapi) {
+                foreach ($varianKata as $indeks => $kata) {
+                    $grupKondisi = fn ($queryGrup) => $queryGrup->where('nama', 'like', "%$kata%")
+                        ->orWhere('nip', 'like', "%$kata%")
+                        ->orWhere('jabatan', 'like', "%$kata%")
+                        ->orWhere('unit_kerja', 'like', "%$kata%")
+                        ->orWhere('pangkat_golongan', 'like', "%$kata%")
+                        ->orWhere('pangkat_awal', 'like', "%$kata%")
+                        ->orWhere('pendidikan', 'like', "%$kata%")
+                        ->orWhere('jenis_asn', 'like', "%$kata%")
+                        ->orWhere('tempat_lahir', 'like', "%$kata%")
+                        ->orWhere('status', 'like', "%$kata%")
+                        ->orWhereHas('bidang', fn ($queryBidang) => $queryBidang->where('nama', 'like', "%$kata%"));
+                    $indeks === 0 ? $queryCari->where($grupKondisi) : $queryCari->orWhere($grupKondisi);
                 }
-                if ($nipRapat !== '' && $nipRapat !== $s) {
-                    $w->orWhereRaw("REPLACE(nip, ' ', '') LIKE ?", ["%$nipRapat%"]);
+
+                // NIP yang diketik dengan spasi tetap dicocokkan.
+                if ($nipRapi !== '' && $nipRapi !== $kataKunci) {
+                    $queryCari->orWhereRaw("REPLACE(nip, ' ', '') LIKE ?", ["%$nipRapi%"]);
                 }
-                if (preg_match('/^\d{4}$/', $nipRapat)) {
-                    $t = (int) $nipRapat;
-                    $w->orWhere(fn ($y) => $y->whereYear('tmt_cpns', $t)
-                        ->orWhereYear('tmt_sekarang', $t)
-                        ->orWhereYear('tmt_jabatan', $t)
-                        ->orWhereYear('tanggal_lahir', $t));
+
+                // Angka 4 digit juga dicocokkan ke tahun TMT / tanggal lahir.
+                if (preg_match('/^\d{4}$/', $nipRapi)) {
+                    $tahun = (int) $nipRapi;
+                    $queryCari->orWhere(fn ($queryTahun) => $queryTahun->whereYear('tmt_cpns', $tahun)
+                        ->orWhereYear('tmt_sekarang', $tahun)
+                        ->orWhereYear('tmt_jabatan', $tahun)
+                        ->orWhereYear('tanggal_lahir', $tahun));
                 }
             });
         }
-        return $q;
+
+        return $query;
     }
 }

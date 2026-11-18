@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Ruang Rapat — detail, tautan publik, dan unggah notulen. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', $ruangRapat->judul)
@@ -70,6 +71,7 @@
                     <span class="grid h-9 w-9 place-items-center rounded-xl bg-purple-50 text-purple-600"><x-icon
                             name="admin" class="h-4 w-4" /></span>
                     <div>
+                        {{-- ===== BAGIAN: TAUTAN TAMU ===== --}}
                         <h2 class="text-sm font-extrabold text-slate-900">Tautan tamu</h2>
                         <p class="text-xs text-slate-500">Siapa pun dengan tautan ini dapat membuka paket selama masih
                             aktif.</p>
@@ -107,6 +109,7 @@
             @if (auth()->user()->isAdmin() || auth()->user()->isBidang())
             <section class="clean-card space-y-5 p-5 sm:p-6">
                 <div>
+                    {{-- ===== BAGIAN: INFORMASI & PENGATURAN AKSES ===== --}}
                     <h2 class="text-base font-extrabold text-slate-900">Informasi dan pengaturan akses</h2>
                     <p class="mt-1 text-xs text-slate-500">Kosongkan PIN untuk mempertahankan PIN saat ini; gunakan opsi
                         hapus untuk menonaktifkannya.</p>
@@ -234,6 +237,7 @@
             {{-- Tampilan Informasi Rapat untuk Pegawai Biasa (Read-Only) --}}
             <section class="clean-card space-y-5 p-5 sm:p-6">
                 <div>
+                    {{-- ===== BAGIAN: INFORMASI RAPAT ===== --}}
                     <h2 class="text-base font-extrabold text-slate-900">Informasi Rapat</h2>
                     <p class="mt-1 text-xs text-slate-500">Rincian agenda, lokasi, dan penyelenggara kegiatan rapat dinas.</p>
                 </div>
@@ -299,6 +303,7 @@
             <div class="space-y-5">
                 <section class="clean-card space-y-4 p-5 sm:p-6">
                     <div>
+                        {{-- ===== BAGIAN: DOKUMEN DALAM PAKET ===== --}}
                         <h2 class="text-base font-extrabold text-slate-900">Dokumen dalam paket</h2>
                         <p class="mt-1 text-xs text-slate-500">Semua dokumen di sini berstatus Publik.</p>
                     </div>
@@ -343,6 +348,7 @@
                 @if (auth()->user()->isAdmin() || auth()->user()->isBidang())
                 <section class="clean-card space-y-4 p-5 sm:p-6">
                     <div>
+                        {{-- ===== BAGIAN: UNGGAH NOTULEN ===== --}}
                         <h2 class="text-base font-extrabold text-slate-900">Unggah notulen</h2>
                         <p class="mt-1 text-xs text-slate-500">File baru disimpan sebagai dokumen Publik dan otomatis masuk
                             ke kelompok Notulen.</p>
@@ -381,6 +387,7 @@
                     <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-rose-50 text-rose-600"><x-icon
                             name="alert" class="h-4 w-4" /></span>
                     <div class="min-w-0 flex-1">
+                        {{-- ===== BAGIAN: MATIKAN TAUTAN TAMU ===== --}}
                         <h2 class="text-sm font-extrabold text-slate-900">Matikan tautan tamu</h2>
                         @if ($ruangRapat->status === 'nonaktif')
                             <p class="mt-1 text-xs text-slate-500">Tautan ini sudah dinonaktifkan secara manual.</p>
@@ -402,6 +409,7 @@
         </div>
     </div>
     
+{{-- ===== BAGIAN: SKRIP INTERAKTIF ===== --}}
     <script>
         document.getElementById('btn-salin-tautan')?.addEventListener('click', async function () {
             const input = document.getElementById('tautan-tamu');

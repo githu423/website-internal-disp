@@ -18,39 +18,52 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Throwable;
 
+/**
+ * Pengelolaan Ruang Rapat dan tautan publiknya.
+ *
+ * Ruang Rapat hanya dikelola admin atau pegawai bidang.
+ * Setiap ruang rapat punya tautan token yang bisa dibagikan ke tamu eksternal,
+ * dengan pilihan PIN dan batas kedaluwarsa.
+ */
 class RuangRapatController extends Controller
 {
+    /**
+     * Daftar ruang rapat + kartu ringkasan status (semua/aktif/kedaluwarsa/nonaktif).
+     */
     public function index(Request $request): View
     {
-        $user = $request->user();
+        $pengguna = $request->user();
+
+        // ===== 1. FILTER =====
         $status = (string) $request->query('status', 'semua');
-        $q = trim((string) $request->query('q', ''));
+        $kataKunci = trim((string) $request->query('q', ''));
         $idBidang = $request->query('id_bidang');
 
-        $baseQuery = RuangRapat::query();
+        $queryDasar = RuangRapat::query();
         if ($idBidang) {
-            $baseQuery->where('id_bidang', $idBidang);
+            $queryDasar->where('id_bidang', $idBidang);
         }
 
-        // Hitungan metrik untuk kartu ringkasan
-        $totalSemua = (clone $baseQuery)->count();
-        $totalAktif = (clone $baseQuery)->where('status', 'aktif')->whereDate('berlaku_sampai', '>=', today())->count();
-        $totalKedaluwarsa = (clone $baseQuery)->where('status', 'aktif')->whereDate('berlaku_sampai', '<', today())->count();
-        $totalNonaktif = (clone $baseQuery)->where('status', 'nonaktif')->count();
+        // ===== 2. HITUNG METRIK KARTU RINGKASAN =====
+        $totalSemua = (clone $queryDasar)->count();
+        $totalAktif = (clone $queryDasar)->where('status', 'aktif')->whereDate('berlaku_sampai', '>=', today())->count();
+        $totalKedaluwarsa = (clone $queryDasar)->where('status', 'aktif')->whereDate('berlaku_sampai', '<', today())->count();
+        $totalNonaktif = (clone $queryDasar)->where('status', 'nonaktif')->count();
 
-        $query = (clone $baseQuery)
+        // ===== 3. DAFTAR RUANG RAPAT =====
+        $query = (clone $queryDasar)
             ->with(['bidang', 'pembuat'])
             ->withCount('dokumen')
             ->latest();
 
-        if ($q !== '') {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('judul', 'like', "%{$q}%")
-                    ->orWhere('deskripsi', 'like', "%{$q}%")
-                    ->orWhere('lokasi', 'like', "%{$q}%")
-                    ->orWhere('pic_nama', 'like', "%{$q}%")
-                    ->orWhereHas('bidang', function ($bq) use ($q) {
-                        $bq->where('nama', 'like', "%{$q}%");
+        if ($kataKunci !== '') {
+            $query->where(function ($queryCari) use ($kataKunci) {
+                $queryCari->where('judul', 'like', "%{$kataKunci}%")
+                    ->orWhere('deskripsi', 'like', "%{$kataKunci}%")
+                    ->orWhere('lokasi', 'like', "%{$kataKunci}%")
+                    ->orWhere('pic_nama', 'like', "%{$kataKunci}%")
+                    ->orWhereHas('bidang', function ($queryBidang) use ($kataKunci) {
+                        $queryBidang->where('nama', 'like', "%{$kataKunci}%");
                     });
             });
         }
@@ -80,14 +93,19 @@ class RuangRapatController extends Controller
             'nonaktif' => $totalNonaktif,
         ];
 
+        // ===== 4. DATA PENDUKUNG & RESPONS =====
         $bidangs = Bidang::query()->orderBy('nama')->get();
 
-        return view('ruang-rapat.index', compact('ruangRapats', 'status', 'statusOptions', 'q', 'counts', 'bidangs', 'idBidang'));
+        // 'q' dipertahankan karena menjadi nama variabel di tampilan (ruang-rapat/index).
+        return view('ruang-rapat.index', ['ruangRapats' => $ruangRapats, 'status' => $status, 'statusOptions' => $statusOptions, 'q' => $kataKunci, 'counts' => $counts, 'bidangs' => $bidangs, 'idBidang' => $idBidang]);
     }
 
+    /**
+     * Form pembuatan ruang rapat (hanya dokumen publik yang bisa dipilih).
+     */
     public function create(Request $request): View
     {
-        $user = $this->pastikanPengelola($request);
+        $this->pastikanPengelola($request);
         $dokumen = Dokumen::query()
             ->with('bidang')
             ->where('visibility', 'publik')
@@ -98,9 +116,15 @@ class RuangRapatController extends Controller
         return view('ruang-rapat.create', compact('dokumen', 'bidangs'));
     }
 
+    /**
+     * Menyimpan ruang rapat baru beserta dokumen publiknya.
+     */
     public function store(Request $request): RedirectResponse
     {
-        $user = $this->pastikanPengelola($request);
+        // ===== 1. PEMERIKSAAN AKSES =====
+        $pengguna = $this->pastikanPengelola($request);
+
+        // ===== 2. VALIDASI INPUT =====
         $request->query->remove('pin');
         $pinInput = $request->input('pin');
         $request->merge(['pin' => null]);
@@ -122,24 +146,25 @@ class RuangRapatController extends Controller
             'izinkan_unduh' => ['nullable', 'array'],
             'izinkan_unduh.*' => ['nullable', 'in:0,1'],
         ]);
-        $pin = Validator::make(['pin' => $pinInput], [
+        $pinBaru = Validator::make(['pin' => $pinInput], [
             'pin' => ['nullable', 'string', 'min:4', 'max:32'],
         ])->validate()['pin'];
 
-        $dokumenIds = array_map('intval', $data['dokumen']);
-        $dokumenTerpilih = Dokumen::query()
-            ->whereIn('id', $dokumenIds)
+        // ===== 3. PASTIKAN SEMUA DOKUMEN PUBLIK =====
+        $idDokumen = array_map('intval', $data['dokumen']);
+        $dokumenPublik = Dokumen::query()
+            ->whereIn('id', $idDokumen)
             ->where('visibility', 'publik')
             ->get()
             ->keyBy('id');
 
-        if ($dokumenTerpilih->count() !== count(array_unique($dokumenIds))) {
+        if ($dokumenPublik->count() !== count(array_unique($idDokumen))) {
             throw ValidationException::withMessages([
                 'dokumen' => 'Ruang Rapat hanya dapat memuat dokumen dengan visibilitas Publik.',
             ]);
         }
 
-        foreach ($dokumenIds as $id) {
+        foreach ($idDokumen as $id) {
             if (! in_array($data['kelompok'][$id] ?? null, ['agenda', 'materi', 'pendukung', 'notulen'], true)) {
                 throw ValidationException::withMessages([
                     'kelompok' => 'Pilih kelompok yang valid untuk setiap dokumen terpilih.',
@@ -147,36 +172,37 @@ class RuangRapatController extends Controller
             }
         }
 
-        $ruangRapat = DB::transaction(function () use ($user, $data, $dokumenIds, $pin): RuangRapat {
+        // ===== 4. SIMPAN DALAM SATU TRANSAKSI =====
+        $ruangRapat = DB::transaction(function () use ($pengguna, $data, $idDokumen, $pinBaru): RuangRapat {
             $ruangRapat = RuangRapat::create([
                 'judul' => $data['judul'],
                 'deskripsi' => $data['deskripsi'] ?? null,
                 'tanggal_rapat' => $data['tanggal_rapat'] ?? null,
                 'lokasi' => $data['lokasi'] ?? null,
                 'link_virtual' => $data['link_virtual'] ?? null,
-                'id_bidang' => $data['id_bidang'] ?? ($user->id_bidang ?: null),
+                'id_bidang' => $data['id_bidang'] ?? ($pengguna->id_bidang ?: null),
                 'pic_nama' => $data['pic_nama'] ?? null,
                 'pic_kontak' => $data['pic_kontak'] ?? null,
                 'izinkan_unduh_default' => (bool) $data['izinkan_unduh_default'],
                 'berlaku_sampai' => $data['berlaku_sampai'],
                 'status' => 'aktif',
-                'dibuat_oleh' => $user->id,
+                'dibuat_oleh' => $pengguna->id,
             ]);
 
-            if (! empty($pin)) {
-                $ruangRapat->pin_hash = Hash::make($pin);
+            if (! empty($pinBaru)) {
+                $ruangRapat->pin_hash = Hash::make($pinBaru);
                 $ruangRapat->save();
             }
 
-            $pivot = [];
-            foreach ($dokumenIds as $id) {
+            $dataPivot = [];
+            foreach ($idDokumen as $id) {
                 $override = $data['izinkan_unduh'][$id] ?? null;
-                $pivot[$id] = [
+                $dataPivot[$id] = [
                     'kelompok' => $data['kelompok'][$id],
                     'izinkan_unduh' => $override === null || $override === '' ? null : (bool) $override,
                 ];
             }
-            $ruangRapat->dokumen()->attach($pivot);
+            $ruangRapat->dokumen()->attach($dataPivot);
 
             LogAktivitas::catat('buat ruang rapat', $ruangRapat->judul);
 
@@ -187,6 +213,9 @@ class RuangRapatController extends Controller
             ->with('sukses', 'Ruang Rapat berhasil dibuat. Tautan tamu siap dibagikan.');
     }
 
+    /**
+     * Detail satu ruang rapat + tautan publiknya.
+     */
     public function show(Request $request, RuangRapat $ruangRapat): View
     {
         $ruangRapat->load(['bidang', 'pembuat', 'dokumen' => fn ($query) => $query->orderBy('judul')]);
@@ -196,9 +225,15 @@ class RuangRapatController extends Controller
         return view('ruang-rapat.show', compact('ruangRapat', 'bidangs', 'tautanPublik'));
     }
 
+    /**
+     * Memperbarui pengaturan ruang rapat (termasuk PIN).
+     */
     public function update(Request $request, RuangRapat $ruangRapat): RedirectResponse
     {
-        $user = $this->pastikanPengelola($request, $ruangRapat);
+        // ===== 1. PEMERIKSAAN AKSES =====
+        $this->pastikanPengelola($request, $ruangRapat);
+
+        // ===== 2. VALIDASI INPUT =====
         $request->query->remove('pin');
         $pinInput = $request->input('pin');
         $request->merge(['pin' => null]);
@@ -215,33 +250,39 @@ class RuangRapatController extends Controller
             'izinkan_unduh_default' => ['required', 'boolean'],
             'berlaku_sampai' => ['required', 'date', 'after_or_equal:today'],
         ]);
-        $pin = Validator::make(['pin' => $pinInput], [
+        $pinBaru = Validator::make(['pin' => $pinInput], [
             'pin' => ['nullable', 'string', 'min:4', 'max:32'],
         ])->validate()['pin'];
 
-        $fields = [
+        // ===== 3. SIMPAN PERUBAHAN =====
+        $kolomDiperbarui = [
             'judul', 'deskripsi', 'tanggal_rapat', 'lokasi', 'link_virtual',
             'pic_nama', 'pic_kontak', 'izinkan_unduh_default', 'berlaku_sampai',
             'id_bidang',
         ];
 
-        $ruangRapat->fill(array_intersect_key($data, array_flip($fields)));
+        $ruangRapat->fill(array_intersect_key($data, array_flip($kolomDiperbarui)));
         $ruangRapat->izinkan_unduh_default = (bool) $data['izinkan_unduh_default'];
         $ruangRapat->save();
 
+        // ===== 4. ATUR PIN (HAPUS / GANTI) =====
         if ($request->boolean('hapus_pin')) {
             $ruangRapat->pin_hash = null;
             $ruangRapat->save();
-        } elseif (! empty($pin)) {
-            $ruangRapat->pin_hash = Hash::make($pin);
+        } elseif (! empty($pinBaru)) {
+            $ruangRapat->pin_hash = Hash::make($pinBaru);
             $ruangRapat->save();
         }
 
+        // ===== CATAT LOG & RESPONS =====
         LogAktivitas::catat('ubah pengaturan ruang rapat', $ruangRapat->judul);
 
         return back()->with('sukses', 'Pengaturan Ruang Rapat berhasil diperbarui.');
     }
 
+    /**
+     * Menonaktifkan tautan ruang rapat.
+     */
     public function nonaktifkan(Request $request, RuangRapat $ruangRapat): RedirectResponse
     {
         $this->pastikanPengelola($request, $ruangRapat);
@@ -251,15 +292,22 @@ class RuangRapatController extends Controller
         return back()->with('sukses', 'Tautan Ruang Rapat dinonaktifkan.');
     }
 
+    /**
+     * Mengunggah notulen rapat (otomatis menjadi dokumen publik).
+     * Batas ukuran berkas: 50 MB.
+     */
     public function uploadNotulen(Request $request, RuangRapat $ruangRapat): RedirectResponse
     {
-        $user = $this->pastikanPengelola($request, $ruangRapat);
+        // ===== 1. PEMERIKSAAN AKSES =====
+        $pengguna = $this->pastikanPengelola($request, $ruangRapat);
+
+        // ===== 2. VALIDASI INPUT =====
         $data = $request->validate([
             'file' => [
                 'required',
                 'file',
                 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,txt',
-                'max:51200',
+                'max:51200', // 50 MB (satuan KB)
                 function ($attribute, $value, $fail) {
                     $ext = strtolower($value->getClientOriginalExtension());
                     $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'txt'];
@@ -272,6 +320,7 @@ class RuangRapatController extends Controller
             'deskripsi' => ['nullable', 'string', 'max:1000'],
         ], ['file.max' => 'Ukuran dokumen maksimal 50 MB.']);
 
+        // ===== 3. PENYIMPANAN BERKAS =====
         $file = $request->file('file');
         $path = $file->storeAs(
             'dokumen',
@@ -279,9 +328,10 @@ class RuangRapatController extends Controller
             'public'
         );
 
+        // ===== 4. SIMPAN DOKUMEN + KAITKAN KE RUANG RAPAT =====
         try {
-            DB::transaction(function () use ($data, $file, $path, $user, $ruangRapat): void {
-                $dokumen = Dokumen::create([
+            DB::transaction(function () use ($data, $file, $path, $pengguna, $ruangRapat): void {
+                $dokumenBaru = Dokumen::create([
                     'judul' => ! empty($data['judul']) ? $data['judul'] : Str::limit(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 180, ''),
                     'deskripsi' => $data['deskripsi'] ?? null,
                     'kategori' => 'Notulen Rapat',
@@ -291,29 +341,33 @@ class RuangRapatController extends Controller
                     'file_name' => $file->getClientOriginalName(),
                     'file_size' => $file->getSize(),
                     'mime' => $file->getClientMimeType(),
-                    'uploaded_by' => $user->id,
+                    'uploaded_by' => $pengguna->id,
                 ]);
 
-                $ruangRapat->dokumen()->attach($dokumen->id, [
+                $ruangRapat->dokumen()->attach($dokumenBaru->id, [
                     'kelompok' => 'notulen',
                     'izinkan_unduh' => null,
                 ]);
 
-                LogAktivitas::catat('unggah notulen ruang rapat', Str::limit($ruangRapat->judul.' · '.$dokumen->judul, 255, ''));
+                LogAktivitas::catat('unggah notulen ruang rapat', Str::limit($ruangRapat->judul.' · '.$dokumenBaru->judul, 255, ''));
             });
-        } catch (Throwable $exception) {
+        } catch (Throwable $kesalahan) {
+            // Batalan: hapus berkas yang sudah terlanjur tersimpan.
             Storage::disk('public')->delete($path);
-            throw $exception;
+            throw $kesalahan;
         }
 
         return back()->with('sukses', 'Notulen berhasil diunggah dan ditambahkan ke Ruang Rapat.');
     }
 
+    /**
+     * Memastikan pengguna adalah admin atau pegawai bidang.
+     */
     private function pastikanPengelola(Request $request, ?RuangRapat $ruangRapat = null): User
     {
-        $user = $request->user();
-        abort_unless($user && ($user->isAdmin() || $user->isBidang()), 403, 'Ruang Rapat hanya dapat dikelola admin atau pegawai bidang.');
+        $pengguna = $request->user();
+        abort_unless($pengguna && ($pengguna->isAdmin() || $pengguna->isBidang()), 403, 'Ruang Rapat hanya dapat dikelola admin atau pegawai bidang.');
 
-        return $user;
+        return $pengguna;
     }
 }

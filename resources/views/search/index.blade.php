@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Pencarian global — hasil pegawai, agenda, dan dokumen. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', $q ? 'Hasil Pencarian: ' . $q : 'Pencarian Global')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -20,7 +21,7 @@
         @endif
     </nav>
 
-    <!-- 2. Header Halaman & Search Form -->
+    {{-- ===== BAGIAN: Header Halaman & Search Form ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -53,7 +54,7 @@
     </div>
 
     @if(!$q)
-        <!-- State Kosong Belum Input Query -->
+        {{-- ===== BAGIAN: State Kosong Belum Input Query ===== --}}
         <div class="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
             <div class="h-16 w-16 rounded-2xl bg-purple-50 text-purple-600 border border-purple-100 flex items-center justify-center mb-4 text-2xl shadow-sm">
                 <x-icon name="search" class="h-8 w-8" />
@@ -71,7 +72,7 @@
         </div>
 
     @elseif($total === 0)
-        <!-- Tidak Ada Hasil -->
+        {{-- ===== BAGIAN: Tidak Ada Hasil ===== --}}
         <div class="bg-white border border-slate-200 rounded-2xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
             <div class="h-16 w-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center mb-4 text-2xl shadow-sm">
                 🔍
@@ -84,7 +85,7 @@
         </div>
 
     @else
-        <!-- Ada Hasil Pencarian -->
+        {{-- ===== BAGIAN: Ada Hasil Pencarian ===== --}}
         <div class="space-y-6">
 
             {{-- 1. HASIL PEGAWAI --}}

@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · bilah progres. ===== --}}
 @props(['persen'])
 @php $p = max(0, min(100, (float) $persen)); @endphp
 <div {{ $attributes->merge(['class' => 'flex items-center gap-2.5']) }}>

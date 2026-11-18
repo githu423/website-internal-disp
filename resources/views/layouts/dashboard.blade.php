@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Layout — kerangka dashboard (sidebar + topbar + notifikasi). ===== --}}
 <!DOCTYPE html>
 <html lang="id">
 
@@ -45,7 +46,7 @@
 
     <div id="app" class="min-h-screen relative z-10">
 
-        <!-- ============ SIDEBAR ============ -->
+        {{-- ===== BAGIAN: SIDEBAR (menu utama) ===== --}}
         <aside id="sidebar"
             class="fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-slate-100 shadow-xl shadow-purple-900/5">
             <div class="flex items-center gap-2.5 px-4 h-16 border-b border-slate-100 shrink-0">
@@ -161,9 +162,9 @@
                 @endif
             </nav>
 
-            <!-- ============ SIDEBAR FOOTER (PROFIL & LOGOUT) ============ -->
+            {{-- ===== BAGIAN: SIDEBAR — profil & keluar ===== --}}
             <div class="border-t border-slate-100 p-2 shrink-0 space-y-1 relative z-30 bg-white">
-                <!-- Link Profil Pengguna -->
+                {{-- ===== BAGIAN: Link Profil Pengguna ===== --}}
                 <a href="{{ route('profil.index') }}" title="Profil saya — {{ $u->name }}" data-label="Profil saya"
                     class="nav-link group flex items-center gap-2.5 rounded-xl p-2 hover:bg-purple-50 transition min-w-0 {{ $r('profil.*') ? 'is-active bg-purple-50' : '' }}">
                     <div class="relative shrink-0 flex items-center justify-center">
@@ -185,7 +186,7 @@
                     </div>
                 </a>
 
-                <!-- Tombol Logout Khusus Sidebar -->
+                {{-- ===== BAGIAN: Tombol Logout Khusus Sidebar ===== --}}
                 <form method="POST" action="{{ route('logout') }}" id="sidebar-logout-form" class="w-full">
                     @csrf
                     <button type="submit" id="sidebar-logout-btn" title="Keluar / Logout dari Sistem" data-label="Keluar (Logout)"
@@ -202,11 +203,11 @@
         </aside>
         <div id="sb-overlay" class="fixed inset-0 z-40 bg-slate-900/50 hidden"></div>
 
-        <!-- ============ TOPBAR ============ -->
+        {{-- ===== BAGIAN: TOPBAR (judul, cari, notifikasi) ===== --}}
         <header
             class="topbar fixed inset-x-0 top-0 z-30 flex h-16 items-center justify-between gap-3 sm:gap-6 border-b border-slate-200/60 bg-white/90 backdrop-blur-xl px-3.5 sm:px-6">
             
-            <!-- Sisi Kiri: Menu Toggle (Mobile/Tablet) + Judul Header (Desktop) -->
+            {{-- ===== BAGIAN: Sisi Kiri: Menu Toggle (Mobile/Tablet) + Judul Header (Desktop) ===== --}}
             <div class="flex items-center gap-3 shrink-0">
                 <button data-sb-toggle title="Buka menu sidebar"
                     class="lg:hidden h-9 w-9 shrink-0 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
@@ -227,7 +228,7 @@
                 </div>
             </div>
 
-            <!-- Sisi Tengah: Global Search Box (Responsif di Seluruh Layar) -->
+            {{-- ===== BAGIAN: Sisi Tengah: Global Search Box (Responsif di Seluruh Layar) ===== --}}
             @unless (request()->routeIs('search'))
                 <div class="flex-1 min-w-0 max-w-md mx-2 sm:mx-4">
                     <form action="{{ route('search') }}" method="GET" class="relative w-full">
@@ -245,7 +246,7 @@
                 <div class="flex-1 min-w-0"></div>
             @endunless
 
-            <!-- Sisi Kanan: Role Badge, Notifikasi, Profile Avatar (Selalu Menempel Rapi di Kanan) -->
+            {{-- ===== BAGIAN: Sisi Kanan: Role Badge, Notifikasi, Profile Avatar (Selalu Menempel Rapi di Kanan) ===== --}}
             <div class="flex items-center gap-2 sm:gap-3 shrink-0 ml-auto">
                 <span
                     class="hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold max-w-[200px] {{ $u->isAdmin() ? 'bg-amber-50 text-amber-700 border-amber-200' : ($belumTertaut ? 'bg-orange-50 text-orange-700 border-orange-300' : ($u->isBidang() ? 'bg-sky-50 text-sky-700 border-sky-200' : 'bg-slate-50 text-slate-600 border-slate-200')) }}"
@@ -253,7 +254,7 @@
                     {{ $u->isAdmin() ? 'Admin' : ($bidangBadge ?? 'Bidang: belum tertentu') }}
                 </span>
 
-                <!-- Tombol Mode Gelap / Terang -->
+                {{-- ===== BAGIAN: Tombol Mode Gelap / Terang ===== --}}
                 <button id="tema-btn" type="button" title="Ganti mode gelap / terang"
                     aria-label="Ganti mode gelap atau terang"
                     class="h-9 w-9 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
@@ -269,7 +270,7 @@
                     </svg>
                 </button>
 
-                <!-- Bell Notification -->
+                {{-- ===== BAGIAN: Bell Notification ===== --}}
                 <div class="relative">
                     <button id="bell-btn" title="Notifikasi"
                         class="relative h-9 w-9 grid place-items-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-purple-600 active:scale-90 transition">
@@ -294,7 +295,7 @@
 
                 <div class="h-6 w-px bg-slate-200 hidden sm:block"></div>
 
-                <!-- User Avatar / Profile Dropdown -->
+                {{-- ===== BAGIAN: User Avatar / Profile Dropdown ===== --}}
                 <div class="relative" id="user-menu-root">
                     <button id="user-menu-btn" title="Menu Pengguna"
                         class="group shrink-0 inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 hover:border-purple-300 p-0.5 sm:pl-1.5 sm:pr-3 sm:py-1 transition active:scale-95 cursor-pointer">
@@ -316,7 +317,7 @@
                         </svg>
                     </button>
 
-                    <!-- Dropdown Panel -->
+                    {{-- ===== BAGIAN: Dropdown Panel ===== --}}
                     <div id="user-menu-panel" class="hidden absolute right-0 top-[52px] w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-1.5 z-[90] text-xs">
                         <div class="px-3.5 py-2.5 border-b border-slate-100">
                             <p class="font-extrabold text-slate-900 truncate">{{ $u->name }}</p>
@@ -336,7 +337,7 @@
             </div>
         </header>
 
-        <!-- ============ KONTEN ============ -->
+        {{-- ===== BAGIAN: KONTEN HALAMAN ===== --}}
         <main class="pt-16 min-h-screen">
             <div class="px-4 sm:px-6 py-4 max-w-[1400px] mx-auto">
                 @if (session('sukses') || session('gagal'))

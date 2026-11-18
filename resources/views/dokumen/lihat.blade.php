@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Dokumen — halaman pratinjau berkas. ===== --}}
 @extends('layouts.dashboard')
 @section('title', 'Pratinjau Dokumen')
 @section('content')
@@ -15,7 +16,7 @@
     $src = route('dokumen.lihat', $d);
 @endphp
 <div class="max-w-6xl mx-auto space-y-5">
-    <!-- Breadcrumb & Header -->
+    {{-- ===== BAGIAN: BREADCRUMB & TAJUK ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
             <div class="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">
@@ -38,7 +39,7 @@
             </p>
         </div>
 
-        <!-- Quick Actions -->
+        {{-- ===== BAGIAN: AKSI CEPAT ===== --}}
         <div class="flex items-center gap-2.5 flex-wrap">
             @if ($bisaRender)
             <button type="button" id="btn-fullscreen" title="Tampilkan pratinjau memenuhi layar (tekan Esc untuk keluar)"
@@ -70,7 +71,7 @@
         </div>
     </div>
 
-    <!-- Viewer Container -->
+    {{-- ===== BAGIAN: KONTAINER PRATINJAU ===== --}}
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden" id="preview-box">
         @if ($isPdf)
             <iframe src="{{ $src }}" class="w-full h-[78vh] bg-slate-50" title="{{ $d->judul }}"></iframe>
@@ -101,6 +102,7 @@
     <p class="text-[11px] text-slate-400 text-center mt-2.5">File disajikan <i>inline</i> — menghitung sebagai “dibaca”. Pembaca: {{ $d->dibaca_count }}×</p>
 </div>
 
+{{-- ===== BAGIAN: GAYA LAYAR PENUH ===== --}}
 <style>
     /* mode layar penuh: pratinjau memenuhi layar */
     #preview-box:fullscreen { border-radius: 0; border: none; background: #fff; overflow: auto; }
@@ -111,6 +113,7 @@
     #preview-box:fullscreen pre { max-height: none; min-height: 100vh; }
     #preview-box:fullscreen #office-host { max-height: none; }
 </style>
+{{-- ===== BAGIAN: SKRIP LAYAR PENUH ===== --}}
 <script>
     (function () {
         const btn = document.getElementById('btn-fullscreen');
