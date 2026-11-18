@@ -4,11 +4,12 @@
 
 @section('content')
 @php
-    $mime = (string) $dokumen->mime;
-    $isPdf = str_contains($mime, 'pdf');
-    $isImg = str_starts_with($mime, 'image');
-    $isText = str_starts_with($mime, 'text/') || in_array($mime, ['application/json', 'application/xml'], true);
+    $mime = (string) ($mime ?? $dokumen->mime);
     $ext = strtolower(pathinfo($dokumen->file_name, PATHINFO_EXTENSION));
+    $isOffice = in_array($ext, ['xlsx', 'xls', 'ods', 'docx', 'doc', 'pptx', 'ppt'], true);
+    $isPdf = ! $isOffice && str_contains($mime, 'pdf');
+    $isImg = ! $isOffice && str_starts_with($mime, 'image');
+    $isText = ! $isOffice && (str_starts_with($mime, 'text/') || in_array($mime, ['application/json', 'application/xml'], true));
     $isSheet = in_array($ext, ['xlsx', 'xls', 'ods'], true);
     $isDocx = in_array($ext, ['docx', 'doc'], true);
     $isPptx = in_array($ext, ['pptx', 'ppt'], true);
@@ -71,19 +72,19 @@
         @elseif ($isPptx && $ext === 'pptx')
             <div id="office-host" data-kind="pptx" data-src="{{ $src }}"
                  class="p-5 max-h-[78vh] overflow-y-auto thin-scroll">
-                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau PowerPoint … <span class="font-semibold">({{ number_format($dokumen->file_size / 1024) }} KB — dirender langsung di browser, file tidak meninggalkan server)</span></p>
+                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau PowerPoint … <span class="font-semibold">({{ number_format($dokumen->file_size / 1024) }} KB — dirender langsung di browser, tanpa layanan pihak ketiga)</span></p>
                 <p class="text-[12px] text-slate-400 mt-1">Gunakan tombol ‹ › di pratinjau untuk pindah slide, atau «⛶ Layar penuh» untuk mode presentasi.</p>
             </div>
         @elseif (($isSheet || $isDocx) && in_array($ext, ['xlsx', 'xls', 'ods', 'docx'], true))
             <div id="office-host" data-kind="{{ $isSheet ? 'xlsx' : 'docx' }}" data-src="{{ $src }}"
                  class="p-5 max-h-[78vh] overflow-y-auto thin-scroll">
-                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau {{ $isSheet ? 'spreadsheet' : 'Word' }} … <span class="font-semibold">({{ number_format($dokumen->file_size / 1024) }} KB — dirender langsung di browser, file tidak meninggalkan server)</span></p>
+                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau {{ $isSheet ? 'spreadsheet' : 'Word' }} … <span class="font-semibold">({{ number_format($dokumen->file_size / 1024) }} KB — dirender langsung di browser, tanpa layanan pihak ketiga)</span></p>
             </div>
         @else
             <div class="p-10 text-center">
                 <span class="mx-auto h-14 w-14 rounded-2xl bg-purple-50 text-purple-600 grid place-items-center mb-3 text-2xl font-black">{{ strtoupper($ext ?: '?') }}</span>
                 <p class="font-bold text-slate-700">Pratinjau langsung belum didukung untuk format .{{ $ext ?: '?' }}</p>
-                <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">Pratinjau otomatis tersedia untuk PDF, gambar, teks, .xlsx, .docx, dan .pptx.</p>
+                <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">Pratinjau otomatis tersedia untuk PDF, gambar, teks, .xls, .xlsx, .docx, dan .pptx. Untuk Word lama (.doc), minta penyelenggara menyimpan ulang sebagai .docx atau PDF. Tidak ada unduhan otomatis.</p>
                 @if ($bolehUnduh)
                     <a href="{{ route('rapat.unduh', ['token' => $ruangRapat->token, 'dokumen' => $dokumen->id]) }}"
                         class="inline-flex items-center gap-2 mt-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-4 py-2.5 hover:from-purple-700 hover:to-indigo-700 transition shadow-sm">

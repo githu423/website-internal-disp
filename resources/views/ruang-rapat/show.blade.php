@@ -362,9 +362,10 @@
                             <label for="file-notulen"
                                 class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-600">File notulen
                                 <span class="text-rose-500">*</span></label>
-                            <input id="file-notulen" name="file" type="file" required
+                            <input id="file-notulen" data-max-file-mb="50" name="file" type="file" required
                                 accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt"
                                 class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20">
+                            <p class="mt-1 text-xs text-slate-500">Ukuran dokumen maksimal 50 MB.</p>
                             @error('file')
                                 <span class="mt-1 block text-xs font-semibold text-rose-600">{{ $message }}</span>
                             @enderror

@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\TestWith;
 use Tests\TestCase;
 
 class RuangRapatTest extends TestCase
@@ -61,6 +62,28 @@ class RuangRapatTest extends TestCase
         ]);
 
         return $ruangRapat;
+    }
+
+    #[TestWith(['docx', 'docx', 'application/pdf'])]
+    #[TestWith(['xlsx', 'xlsx', 'text/plain'])]
+    #[TestWith(['xls', 'xlsx', 'application/octet-stream'])]
+    public function test_lihat_office_menampilkan_viewer_bukan_navigasi_file(string $ext, string $kind, string $mime): void
+    {
+        $user = $this->userBidang();
+        $dokumen = $this->buatDokumen($user);
+        $dokumen->update(['file_name' => 'materi.'.$ext, 'mime' => $mime]);
+        $ruang = $this->buatRuangRapat($user, $dokumen);
+        $ruang->update(['izinkan_unduh_default' => false]);
+        $params = ['token' => $ruang->token, 'dokumen' => $dokumen->id];
+
+        $this->get(route('rapat.lihat', $params))->assertOk()
+            ->assertHeader('content-type', 'text/html; charset=utf-8')
+            ->assertSee('data-kind="'.$kind.'"', false)
+            ->assertSee('data-src="'.route('rapat.raw', $params).'"', false)
+            ->assertDontSee('<iframe', false)->assertDontSee('Unduh Dokumen');
+        $this->get(route('rapat.raw', $params))->assertOk()
+            ->assertHeader('content-disposition', 'inline; filename="materi.'.$ext.'"');
+        $this->get(route('rapat.unduh', $params))->assertForbidden();
     }
 
     public function test_dokumen_rahasia_tidak_dapat_ditambahkan_ke_ruang_rapat(): void
