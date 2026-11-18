@@ -6,6 +6,10 @@ use App\Models\Agenda;
 use App\Models\Bidang;
 use App\Models\CapaianIndikator;
 use App\Models\CapaianSasaran;
+use App\Models\Dokumen;
+use App\Models\Pegawai;
+use App\Services\ImportService;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 /** Round 11 (notulen Ricky 2 Sep): agenda utk semua, role UPTD, badge bidang di capaian, preview office. */
@@ -96,26 +100,26 @@ class UpdateRickyTest extends TestCase
     public function test_pegawai_uptd_terkelompok_otomatis_di_bidangnya(): void
     {
         $this->buatKerangka();
-        \App\Models\Bidang::pastikanUptd();
-        $kawali = \App\Models\Bidang::where('nama', 'UPTD KAWALI')->firstOrFail();
-        \App\Models\Pegawai::create([
+        Bidang::pastikanUptd();
+        $kawali = Bidang::where('nama', 'UPTD KAWALI')->firstOrFail();
+        Pegawai::create([
             'nip' => '198101012006041002', 'nama' => 'PEGAWAI UPTD KAWALI',
             'jabatan' => 'Kepala UPTD Pengelolaan Objek Wisata Wilayah Kawali', 'status' => 'aktif',
         ]);
 
         // fallback tampilan: langsung tampil walau id_bidang belum diisi — bahkan saat rekan sebidangnya sudah tertaut
-        \App\Models\Pegawai::create([
+        Pegawai::create([
             'nip' => '198101012006041003', 'nama' => 'PEGAWAI KAWALI TERTAUT',
             'jabatan' => 'Staf UPTD Pengelolaan Objek Wisata Wilayah Kawali', 'status' => 'aktif', 'id_bidang' => $kawali->id,
         ]);
-        $this->actingAs($this->userAdmin())->get('/bidang/' . $kawali->id)
+        $this->actingAs($this->userAdmin())->get('/bidang/'.$kawali->id)
             ->assertOk()->assertSee('PEGAWAI UPTD KAWALI')->assertSee('PEGAWAI KAWALI TERTAUT');
 
         // sinkron mengisi database secara permanen lalu idempoten
-        $n = \App\Services\ImportService::sinkronBidangPegawai();
+        $n = ImportService::sinkronBidangPegawai();
         $this->assertGreaterThan(0, $n);
-        $this->assertSame((int) $kawali->id, (int) \App\Models\Pegawai::where('nip', '198101012006041002')->value('id_bidang'));
-        $this->assertSame(0, \App\Services\ImportService::sinkronBidangPegawai(), 'jalankan kedua kali tidak mengubah apa pun');
+        $this->assertSame((int) $kawali->id, (int) Pegawai::where('nip', '198101012006041002')->value('id_bidang'));
+        $this->assertSame(0, ImportService::sinkronBidangPegawai(), 'jalankan kedua kali tidak mengubah apa pun');
     }
 
     public function test_js_nama_file_tidak_memutus_input_dari_form(): void
@@ -126,14 +130,15 @@ class UpdateRickyTest extends TestCase
         $this->assertStringNotContainsString('wrap.appendChild(f)', $js, 'input file tidak boleh dipindah keluar DOM');
         $this->assertStringNotContainsString('::file-selector-button', $js, 'gaya tombol serahkan ke class file: Tailwind');
         $this->assertStringContainsString('input.fname-own{color:transparent}', $js);
-        $this->assertStringContainsString("import('docx-preview')", $js);
+        $this->assertStringContainsString("import './office-preview'", $js);
+        $this->assertStringContainsString("import('docx-preview')", file_get_contents(resource_path('js/office-preview.js')));
     }
 
     public function test_tata_letak_mobile_dan_pencarian_dokumen_di_halaman_bidang(): void
     {
         $this->buatKerangka();
         $u = $this->userAdmin();
-        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('renja.docx', 'isi');
+        $file = UploadedFile::fake()->createWithContent('renja.docx', 'isi');
         $this->actingAs($u)->post(route('bidang.dokumen', 2), ['judul' => 'Rencana Kerja Bidang', 'file' => $file])->assertRedirect();
 
         $html = $this->actingAs($u)->get('/bidang/2')->assertOk()->getContent();
@@ -155,9 +160,9 @@ class UpdateRickyTest extends TestCase
     {
         $this->buatKerangka();
         $u = $this->userAdmin();
-        $file = \Illuminate\Http\UploadedFile::fake()->createWithContent('laporan.xlsx', 'isi');
+        $file = UploadedFile::fake()->createWithContent('laporan.xlsx', 'isi');
         $path = $file->storeAs('dokumen', 'uji-xlsx.xlsx', 'public');
-        $d = \App\Models\Dokumen::create([
+        $d = Dokumen::create([
             'judul' => 'Laporan XLSX', 'visibility' => 'publik', 'file_path' => $path,
             'file_name' => 'laporan.xlsx', 'file_size' => 10, 'mime' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'uploaded_by' => $u->id,
@@ -166,9 +171,9 @@ class UpdateRickyTest extends TestCase
         $this->actingAs($u)->get(route('dokumen.show', $d))->assertOk()->assertSee('office-host', false)->assertSee('data-kind="xlsx"', false);
 
         // Word: host dirender dengan data-kind docx (docx-preview bekerja di browser)
-        $docx = \Illuminate\Http\UploadedFile::fake()->createWithContent('proposal.docx', 'isi');
+        $docx = UploadedFile::fake()->createWithContent('proposal.docx', 'isi');
         $path2 = $docx->storeAs('dokumen', 'uji-docx.docx', 'public');
-        $d2 = \App\Models\Dokumen::create([
+        $d2 = Dokumen::create([
             'judul' => 'Proposal Docx', 'visibility' => 'publik', 'file_path' => $path2,
             'file_name' => 'proposal.docx', 'file_size' => 10, 'mime' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             'uploaded_by' => $u->id,

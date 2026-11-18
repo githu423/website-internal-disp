@@ -1,3 +1,5 @@
+import './office-preview';
+import './upload-validation';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 window.Chart = Chart;
@@ -152,7 +154,11 @@ document.querySelectorAll('form[data-confirm]').forEach((f) => f.addEventListene
 }));
 
 /* ===== polling notifikasi + floating toast + Web Notification API (HANYA dijalankan bila user sudah login) ===== */
-const seen = JSON.parse(localStorage.getItem('sb-seen-notifs') || '[]');
+let seen = [];
+try {
+    const stored = JSON.parse(localStorage.getItem('sb-seen-notifs') || '[]');
+    if (Array.isArray(stored)) seen = stored;
+} catch (e) { /* Storage dapat diblokir atau berisi data lama yang tidak valid. */ }
 
 function playNotifSound() {
     try {
@@ -508,7 +514,7 @@ try {
 
 
 /* ===== form import: state saat submit ===== */
-document.querySelectorAll('form[data-import]').forEach((f) => f.addEventListener('submit', () => {
+document.querySelectorAll('form[data-import]').forEach((f) => f.addEventListener('submit', (event) => {
     const b = f.querySelector('[type=submit]'); if (!b) return;
     if (!f.querySelector('input[type=file]')?.files.length) { alert('Pilih file CSV/Excel dulu ya.'); event.preventDefault(); return; }
     b.disabled = true; b.textContent = 'Mengurai file…';
@@ -533,7 +539,7 @@ document.addEventListener('keydown', (e) => {
     document.getElementById('bell-panel')?.classList.add('hidden');
     document.getElementById('mobile-search-drawer')?.classList.add('hidden');
     document.querySelectorAll('.modal-shell:not(.hidden)').forEach((m) => m.classList.add('hidden'));
-    sidebar.classList.remove('sbx-open'); document.getElementById('sb-overlay')?.classList.remove('show');
+    sidebar?.classList.remove('sbx-open'); document.getElementById('sb-overlay')?.classList.remove('show');
 });
 
 /* ===== nama file tampil saat pilih file upload ===== */
@@ -551,97 +557,6 @@ document.querySelectorAll('input[type=file]').forEach((f) => {
 const fnameCss = document.createElement('style');
 fnameCss.textContent = 'input.fname-own{color:transparent}';
 document.head.appendChild(fnameCss);
-
-/* ===== pratinjau Excel, Word, PPTX langsung di browser ===== */
-const office = document.getElementById('office-host');
-if (office) {
-    const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-    (async () => {
-        try {
-            const res = await fetch(office.dataset.src);
-            if (!res.ok) throw new Error('HTTP ' + res.status);
-            const buf = await res.arrayBuffer();
-            if (office.dataset.kind === 'xlsx') {
-                const XLSX = await import('xlsx');
-                const wb = XLSX.read(buf, { type: 'array', cellStyles: true });
-                const names = wb.SheetNames.slice(0, 10);
-                const sheetHtml = (name) => {
-                    const ws = wb.Sheets[name];
-                    if (!ws || !ws['!ref']) return '<p class="text-slate-400 text-sm">Sheet kosong.</p>';
-                    const rg = XLSX.utils.decode_range(ws['!ref']);
-                    const maxR = Math.min(rg.e.r, 400), maxC = Math.min(rg.e.c, 40);
-                    const merges = ws['!merges'] || [], cov = {}, anc = {};
-                    merges.forEach((m) => {
-                        anc[m.s.r + '_' + m.s.c] = { rs: m.e.r - m.s.r + 1, cs: m.e.c - m.s.c + 1 };
-                        for (let r = m.s.r; r <= m.e.r; r++) for (let c = m.s.c; c <= m.e.c; c++) if (!(r === m.s.r && c === m.s.c)) cov[r + '_' + c] = 1;
-                    });
-                    const cols = ws['!cols'] || [];
-                    let colg = '<colgroup><col style="width:38px">';
-                    for (let c = rg.s.c; c <= maxC; c++) {
-                        const cc = cols[c] || {}; const px = cc.wpx || (cc.wch ? Math.round(cc.wch * 7.3) : 0);
-                        colg += '<col style="width:' + (px ? Math.min(Math.max(px, 56), 360) : 128) + 'px">';
-                    }
-                    colg += '</colgroup>';
-                    let h = '<table class="xls">' + colg + '<thead><tr><th class="rowhdr"></th>';
-                    for (let c = rg.s.c; c <= maxC; c++) h += '<th>' + XLSX.utils.encode_col(c) + '</th>';
-                    h += '</tr></thead><tbody>';
-                    for (let r = rg.s.r; r <= maxR; r++) {
-                        h += '<tr><th class="rowhdr">' + (r + 1) + '</th>';
-                        for (let c = rg.s.c; c <= maxC; c++) {
-                            const k = r + '_' + c; if (cov[k]) continue;
-                            const cell = ws[XLSX.utils.encode_cell({ r, c })];
-                            let txt = '', sty = '', cls = '';
-                            if (cell) {
-                                txt = cell.w !== undefined ? String(cell.w) : (cell.v !== undefined ? String(cell.v) : '');
-                                if (typeof cell.v === 'number') cls = 'num';
-                                const st = cell.s || {};
-                                if (st.font && st.font.bold) sty += 'font-weight:700;';
-                                if (st.fill && st.fill.fgColor && st.fill.fgColor.rgb && /^[0-9A-Fa-f]{6,8}$/.test(st.fill.fgColor.rgb)) sty += 'background-color:#' + st.fill.fgColor.rgb.slice(-6) + ';';
-                                if (st.alignment && st.alignment.horizontal) sty += 'text-align:' + (st.alignment.horizontal === 'center' ? 'center' : st.alignment.horizontal === 'right' ? 'right' : 'left') + ';';
-                            }
-                            const a = anc[k];
-                            h += '<td' + (cls ? ' class="' + cls + '"' : '') + (sty ? ' style="' + sty + '"' : '') + (a ? ' colspan="' + a.cs + '" rowspan="' + a.rs + '"' : '') + '>' + esc(txt) + '</td>';
-                        }
-                        h += '</tr>';
-                    }
-                    return h + '</tbody></table>';
-                };
-                let tabs = '<div class="mb-2 flex flex-wrap gap-1">';
-                names.forEach((n, ix) => { tabs += '<button data-i="' + ix + '" class="sheet-tab rounded-lg border px-2.5 py-1 text-[11.5px] font-bold ' + (ix ? 'border-slate-200 bg-white text-slate-500 hover:border-teal-400' : 'border-slate-900 bg-slate-900 text-white') + '">' + esc(n) + '</button>'; });
-                tabs += '</div><div class="sheet-body overflow-x-auto thin-scroll rounded-lg border border-slate-200 bg-white"></div>';
-                office.innerHTML = '<style>#office-host .xls{border-collapse:separate;border-spacing:0;font-size:12px;table-layout:fixed}#office-host .xls th,#office-host .xls td{border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0;padding:4px 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px;background:#fff}#office-host .xls thead th{position:sticky;top:0;z-index:2;background:#f1f5f9;color:#475569;font-weight:800;text-align:center;min-width:56px}#office-host .xls .rowhdr{position:sticky;left:0;z-index:1;background:#f1f5f9;color:#64748b;font-weight:700;text-align:center;min-width:38px}#office-host .xls td.num{text-align:right;font-variant-numeric:tabular-nums}#office-host .xls td{text-align:left}</style>' + tabs;
-                const body = office.querySelector('.sheet-body');
-                const show = (ix) => { body.innerHTML = sheetHtml(names[ix]); office.querySelectorAll('.sheet-tab').forEach((b, i2) => { const on = i2 === ix; b.className = b.className.replace(/border-slate-200 bg-white text-slate-500 hover:border-teal-400|border-slate-900 bg-slate-900 text-white/g, on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-teal-400'); }); };
-                office.querySelectorAll('.sheet-tab').forEach((b) => b.addEventListener('click', () => show(+b.dataset.i)));
-                show(0);
-            } else if (office.dataset.kind === 'pptx') {
-                const { init } = await import('pptx-preview');
-                const render = () => {
-                    office.innerHTML = '';
-                    const wrap = document.createElement('div');
-                    wrap.style.width = '100%';
-                    office.appendChild(wrap);
-                    const cw = Math.max(320, wrap.clientWidth || office.clientWidth || 960);
-                    const ch = Math.round(cw * 0.5625);
-                    const previewer = init(wrap, { width: cw, height: ch, mode: 'slide' });
-                    previewer.preview(buf);
-                };
-                render();
-                const box = document.getElementById('preview-box') || office;
-                let rT;
-                const rerender = () => { clearTimeout(rT); rT = setTimeout(render, 90); };
-                document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === box || !document.fullscreenElement) rerender(); });
-                document.addEventListener('webkitfullscreenchange', () => rerender());
-            } else {
-                const { renderAsync } = await import('docx-preview');
-                office.innerHTML = '<style>#office-host{background:#e2e8f0;padding:14px}#office-host .docx-wrapper{background:#e2e8f0;padding:0}#office-host .docx-wrapper>section.docx{box-shadow:0 4px 18px rgba(15,23,42,.14);margin-bottom:14px}</style><div id="docx-mount"></div>';
-                await renderAsync(buf, document.getElementById('docx-mount'), undefined, { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: false, renderHeaders: true, renderFooters: true, renderFootnotes: true, images: 'blob' });
-            }
-        } catch (e) {
-            office.innerHTML = '<p class="text-sm text-rose-600">Pratinjau gagal: ' + esc(e.message || e) + ' — silakan unduh file.</p>';
-        }
-    })();
-}
 
 /* ===== dropdown pilihan custom bertema (pengganti <select> native) ===== */
 (function () {

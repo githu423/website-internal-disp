@@ -472,11 +472,11 @@
                             <div class="bidang-field">
                                 <label class="bidang-label" for="bidang-dokumen-file">File dokumen <span
                                         aria-hidden="true">*</span></label>
-                                <input id="bidang-dokumen-file" type="file" name="file"
+                                <input id="bidang-dokumen-file" data-max-file-mb="50" type="file" name="file"
                                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.txt" required
                                     class="bidang-control bidang-file" aria-describedby="bidang-file-help bidang-file-name">
                                 <p id="bidang-file-help" class="bidang-help text-slate-500">PDF, Word, Excel, PowerPoint, JPG,
-                                    PNG, atau TXT. Maksimal 10 MB.</p>
+                                    PNG, atau TXT. Maksimal 50 MB.</p>
                                 <p id="bidang-file-name" class="bidang-file-name font-semibold text-purple-700" role="status"
                                     aria-live="polite">Belum ada file dipilih.</p>
                             </div>
@@ -640,8 +640,8 @@
                 let error = '';
                 if (!allowed.includes(extension)) {
                     error = 'Format file tidak didukung. Pilih PDF, Word, Excel, PowerPoint, JPG, PNG, atau TXT.';
-                } else if (file.size > 10 * 1024 * 1024) {
-                    error = 'Ukuran file melebihi 10 MB. Pilih file yang lebih kecil.';
+                } else if (file.size > 50 * 1024 * 1024) {
+                    error = 'Ukuran file melebihi 50 MB. Pilih file yang lebih kecil.';
                 }
                 input.setCustomValidity(error);
                 status.textContent = error || 'File dipilih: ' + file.name;

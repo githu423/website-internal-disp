@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Agenda;
 use App\Models\Bidang;
 use App\Models\Dokumen;
+use App\Models\KategoriDokumen;
 use App\Models\LogAktivitas;
 use App\Models\Pegawai;
 use App\Services\KategoriDokumenService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 /**
@@ -27,8 +29,8 @@ class BidangController extends Controller
         // penanda di Data Pegawai & halaman /profil (Pegawai::KOLOM_LENGKAP), supaya
         // angka di kartu bidang tidak pernah berbeda dengan tabelnya.
         // Kolom DATE (tmt_*) hanya cek IS NULL — MySQL strict menolak `= ''` untuk DATE.
-        $kurang = collect(array_keys(\App\Models\Pegawai::KOLOM_LENGKAP))
-            ->map(fn ($c) => in_array($c, \App\Models\Pegawai::KOLOM_DATE, true)
+        $kurang = collect(array_keys(Pegawai::KOLOM_LENGKAP))
+            ->map(fn ($c) => in_array($c, Pegawai::KOLOM_DATE, true)
                 ? "$c IS NULL"
                 : "$c IS NULL OR $c = ''")
             ->implode(' OR ');
@@ -45,6 +47,7 @@ class BidangController extends Controller
             ->map(function ($b) use ($u, $rek) {
                 $b->boleh_kelola = $u->isAdmin() || $u->id_bidang === $b->id;
                 $b->rek = $rek->get($b->id);
+
                 return $b;
             });
 
@@ -58,15 +61,16 @@ class BidangController extends Controller
      */
     private function anggotaBidang(Bidang $bidang)
     {
-        $adaUnit = \Illuminate\Support\Facades\Schema::hasColumn('pegawai', 'unit_kerja');
+        $adaUnit = Schema::hasColumn('pegawai', 'unit_kerja');
         $utama = Pegawai::where('id_bidang', $bidang->id)->orderBy('nama')->get();
         $tambahan = collect();
         foreach (Pegawai::whereNull('id_bidang')->get() as $p) {
-            if ((int) Bidang::tebakDariTeks(trim(((string) $p->jabatan) . ' ' . ($adaUnit ? (string) ($p->unit_kerja ?? '') : ''))) === (int) $bidang->id) {
+            if ((int) Bidang::tebakDariTeks(trim(((string) $p->jabatan).' '.($adaUnit ? (string) ($p->unit_kerja ?? '') : ''))) === (int) $bidang->id) {
                 $tambahan->push($p);
             }
         }
         $tambahan = $tambahan->sortBy('nama');
+
         return $utama->concat($tambahan)->values();
     }
 
@@ -77,7 +81,7 @@ class BidangController extends Controller
 
         $dq = Dokumen::where('id_bidang', $bidang->id)->with(['uploader', 'kategoriRel.induk.induk']);
         if ($anggota) {
-            $dq->where(fn($w) => $w->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $u->id));
+            $dq->where(fn ($w) => $w->whereIn('visibility', ['publik', 'bidang'])->orWhere('uploaded_by', $u->id));
         } else {
             $dq->where('visibility', 'publik');
         }
@@ -90,7 +94,7 @@ class BidangController extends Controller
             'l' => $pegawais->where('jenis_kelamin', 'L')->count(),
             'p' => $pegawais->where('jenis_kelamin', 'P')->count(),
             'pns' => $pegawais->where('jenis_asn', 'PNS')->count(),
-            'nonpns' => $pegawais->filter(fn($x) => $x->jenis_asn !== 'PNS')->count(),
+            'nonpns' => $pegawais->filter(fn ($x) => $x->jenis_asn !== 'PNS')->count(),
             // Konfirmasi Dinas 10 Sep: rekap anggota mencantumkan non-aktif & pensiun juga
             'nonaktif' => $pegawais->where('status', 'nonaktif')->count(),
             'pensiun' => $pegawais->where('status', 'pensiun')->count(),
@@ -104,7 +108,7 @@ class BidangController extends Controller
             'statistik' => $statistik,
             'dokumens' => $dq->latest()->limit(15)->get(),
             'agenda' => Agenda::where('id_bidang', $bidang->id)->orderByDesc('tanggal')->limit(6)->get(),
-            'kategoris' => \App\Models\KategoriDokumen::with('anak.anak')->orderBy('nama')->get(),
+            'kategoris' => KategoriDokumen::with('anak.anak')->orderBy('nama')->get(),
         ]);
     }
 
@@ -136,7 +140,7 @@ class BidangController extends Controller
             'kategori' => ['nullable', 'in:rapat,kegiatan,kunjungan,lainnya'],
         ]);
         $a = Agenda::create($d + ['id_bidang' => $bidang->id, 'created_by' => $u->id, 'status' => 'belum']);
-        LogAktivitas::catat('tambah agenda bidang', $a->judul . ' (' . $bidang->nama . ')');
+        LogAktivitas::catat('tambah agenda bidang', $a->judul.' ('.$bidang->nama.')');
 
         return back()->with('sukses', 'Agenda bidang ditambahkan dan tampil di halaman ini.');
     }
@@ -155,23 +159,23 @@ class BidangController extends Controller
                 'required',
                 'file',
                 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,txt',
-                'max:10240',
+                'max:51200',
                 function ($attribute, $value, $fail) {
                     $ext = strtolower($value->getClientOriginalExtension());
                     $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'txt'];
-                    if (!in_array($ext, $allowedExt, true)) {
+                    if (! in_array($ext, $allowedExt, true)) {
                         $fail('Ekstensi file tidak diizinkan. Hanya format PDF, Word, Excel, PowerPoint, Gambar, atau Teks (.txt) yang diperbolehkan.');
                     }
                 },
             ],
-        ]);
+        ], ['file.max' => 'Ukuran dokumen maksimal 50 MB.']);
         $file = $request->file('file');
-        $path = $file->storeAs('dokumen', time() . '_' . preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
+        $path = $file->storeAs('dokumen', time().'_'.preg_replace('/[^A-Za-z0-9._-]/', '_', $file->hashName()), 'public');
 
         // Prioritas: 1) kategori terpilih dari pohon; 2) teks kategori baru (berjenjang
         // dengan garis miring); 3) fallback 'Arsip Bidang'.
         $idKategori = isset($d['id_kategori']) && $d['id_kategori'] !== '' ? (int) $d['id_kategori'] : null;
-        if ($idKategori === null && !empty($d['kategori'])) {
+        if ($idKategori === null && ! empty($d['kategori'])) {
             $idKategori = KategoriDokumenService::dapatkanAtauBuatBerjenjang((string) $d['kategori'])->id;
         }
         if ($idKategori === null) {
@@ -191,7 +195,7 @@ class BidangController extends Controller
             'mime' => $file->getClientMimeType(),
             'uploaded_by' => $u->id,
         ]);
-        LogAktivitas::catat('unggah dokumen bidang', $d['judul'] . ' (' . $bidang->nama . ')');
+        LogAktivitas::catat('unggah dokumen bidang', $d['judul'].' ('.$bidang->nama.')');
 
         return back()->with('sukses', 'Dokumen tersimpan sebagai arsip privat bidang — hanya terlihat oleh rekan sebidang dan admin.');
     }

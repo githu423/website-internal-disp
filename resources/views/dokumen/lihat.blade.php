@@ -2,11 +2,12 @@
 @section('title', 'Pratinjau Dokumen')
 @section('content')
 @php
-    $mime = (string) $d->mime;
-    $isPdf = str_contains($mime, 'pdf');
-    $isImg = str_starts_with($mime, 'image');
-    $isText = str_starts_with($mime, 'text/') || in_array($mime, ['application/json', 'application/xml']);
+    $mime = (string) ($mime ?? $d->mime);
     $ext = strtolower(pathinfo($d->file_name, PATHINFO_EXTENSION));
+    $isOffice = in_array($ext, ['xlsx', 'xls', 'ods', 'docx', 'doc', 'pptx', 'ppt'], true);
+    $isPdf = ! $isOffice && str_contains($mime, 'pdf');
+    $isImg = ! $isOffice && str_starts_with($mime, 'image');
+    $isText = ! $isOffice && (str_starts_with($mime, 'text/') || in_array($mime, ['application/json', 'application/xml'], true));
     $isSheet = in_array($ext, ['xlsx', 'xls', 'ods'], true);
     $isDocx = $ext === 'docx';
     $isPptx = $ext === 'pptx';
@@ -80,13 +81,13 @@
         @elseif ($isPptx)
             <div id="office-host" data-kind="pptx" data-src="{{ $src }}"
                  class="p-5 max-h-[78vh] overflow-y-auto thin-scroll">
-                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau PowerPoint … <span class="font-semibold">({{ number_format($d->file_size / 1024) }} KB — dirender langsung di browser, file tidak meninggalkan server)</span></p>
+                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau PowerPoint … <span class="font-semibold">({{ number_format($d->file_size / 1024) }} KB — dirender langsung di browser, tanpa layanan pihak ketiga)</span></p>
                 <p class="text-[12px] text-slate-400 mt-1">Gunakan tombol ‹ › di pratinjau untuk pindah slide, atau «⛶ Layar penuh» untuk mode presentasi.</p>
             </div>
         @elseif ($isSheet || $isDocx)
             <div id="office-host" data-kind="{{ $isSheet ? 'xlsx' : 'docx' }}" data-src="{{ $src }}"
                  class="p-5 max-h-[78vh] overflow-y-auto thin-scroll">
-                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau {{ $isSheet ? 'spreadsheet' : 'Word' }} … <span class="font-semibold">({{ number_format($d->file_size / 1024) }} KB — dirender langsung di browser, file tidak meninggalkan server)</span></p>
+                <p class="text-sm text-slate-400 animate-pulse">Menyiapkan pratinjau {{ $isSheet ? 'spreadsheet' : 'Word' }} … <span class="font-semibold">({{ number_format($d->file_size / 1024) }} KB — dirender langsung di browser, tanpa layanan pihak ketiga)</span></p>
             </div>
         @else
             <div class="p-10 text-center">

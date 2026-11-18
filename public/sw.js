@@ -12,6 +12,3 @@ self.addEventListener('notificationclick', (e) => {
         return self.clients.openWindow(e.notification.data?.url || '/dashboard');
     }));
 });
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
-}

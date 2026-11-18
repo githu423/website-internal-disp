@@ -259,7 +259,7 @@ class RuangRapatController extends Controller
                 'required',
                 'file',
                 'mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,png,jpg,jpeg,txt',
-                'max:10240',
+                'max:51200',
                 function ($attribute, $value, $fail) {
                     $ext = strtolower($value->getClientOriginalExtension());
                     $allowedExt = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'png', 'jpg', 'jpeg', 'txt'];
@@ -270,7 +270,7 @@ class RuangRapatController extends Controller
             ],
             'judul' => ['nullable', 'string', 'max:180'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
-        ]);
+        ], ['file.max' => 'Ukuran dokumen maksimal 50 MB.']);
 
         $file = $request->file('file');
         $path = $file->storeAs(
