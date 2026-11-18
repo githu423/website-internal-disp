@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/** Nilai satu indikator untuk satu tahun: target, realisasi, persen (apa adanya dari berkas). */
+/**
+ * Nilai satu indikator untuk satu tahun: target, realisasi, persen (apa adanya dari berkas).
+ */
 class CapaianTahunan extends Model
 {
     public $timestamps = false;
@@ -12,31 +14,41 @@ class CapaianTahunan extends Model
     protected $table = 'capaian_tahunan';
     protected $fillable = ['indikator_id', 'tahun', 'target', 'realisasi', 'persen'];
 
+    // ===== RELASI =====
     public function indikator()
     {
         return $this->belongsTo(CapaianIndikator::class, 'indikator_id');
     }
 
-    /** v23: tingkat capaian keseluruhan per tahun = % indikator bernilai
-     *  yang mencapai target (>=100%). Dipakai halaman statistik capaian
-     *  DAN kartu dashboard, biar angkanya selalu sama. */
+    // ===== RINGKASAN TINGKAT CAPAIAN PER TAHUN =====
+    /**
+     * v23: tingkat capaian keseluruhan per tahun = % indikator bernilai
+     * yang mencapai target (>=100%). Dipakai halaman statistik capaian
+     * DAN kartu dashboard, biar angkanya selalu sama.
+     *
+     * @return array{0:int[],1:array<int,float|null>}
+     */
     public static function tingkatPerTahun(): array
     {
-        $years = self::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($t) => (int) $t)->all();
+        $daftarTahun = self::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($tahun) => (int) $tahun)->all();
         $pct = [];
-        foreach ($years as $y) {
-            $din = self::where('tahun', $y)->get()
-                ->filter(fn ($n) => CapaianIndikator::persenNum($n->persen) !== null);
-            $pct[] = $din->count()
-                ? round($din->filter(fn ($n) => CapaianIndikator::persenNum($n->persen) >= 100)->count() / $din->count() * 100, 1)
+
+        foreach ($daftarTahun as $tahun) {
+            $dinilai = self::where('tahun', $tahun)->get()
+                ->filter(fn ($nilai) => CapaianIndikator::persenNum($nilai->persen) !== null);
+            $pct[] = $dinilai->count()
+                ? round($dinilai->filter(fn ($nilai) => CapaianIndikator::persenNum($nilai->persen) >= 100)->count() / $dinilai->count() * 100, 1)
                 : null;
         }
-        return [$years, $pct];
+
+        return [$daftarTahun, $pct];
     }
 
+    // ===== APAKAH NILAI INI MENCAPAI TARGET =====
     public function getTercapaiAttribute(): ?bool
     {
-        $p = CapaianIndikator::persenNum($this->persen);
-        return $p === null ? null : $p >= 100;
+        $persenNum = CapaianIndikator::persenNum($this->persen);
+
+        return $persenNum === null ? null : $persenNum >= 100;
     }
 }

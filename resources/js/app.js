@@ -1,3 +1,17 @@
+/**
+ * Skrip utama aplikasi (bundle Vite).
+ *
+ * Urutan isi file:
+ *  1. Sidebar (mode tablet, pin, tooltip)
+ *  2. Laci pencarian mobile
+ *  3. Dropdown notifikasi & menu profil
+ *  4. Flash auto-dismiss & konfirmasi hapus
+ *  5. Polling notifikasi + toast + Web Notification
+ *  6. Grafik Chart.js adaptif tema
+ *  7. Form import, modal generik, service worker, tombol Esc
+ *  8. Label namafile upload & dropdown kustom
+ *  9. Mode gelap
+ */
 import './office-preview';
 import './upload-validation';
 import { Chart, registerables } from 'chart.js';
@@ -279,6 +293,7 @@ if (document.getElementById('bell-btn') || document.getElementById('sidebar')) {
 }
 
 /* ===== grafik — adaptif tema gelap/terang (ungu #150f23/#1e1533) ===== */
+/* Utilitas: deteksi tema, konversi warna, pemetaan warna dataset, skala & opsi. */
 const _sipardisCharts = [];
 window._sipardisCharts = _sipardisCharts;
 function _isDarkTheme() { return document.documentElement.classList.contains('dark'); }
@@ -559,6 +574,7 @@ fnameCss.textContent = 'input.fname-own{color:transparent}';
 document.head.appendChild(fnameCss);
 
 /* ===== dropdown pilihan custom bertema (pengganti <select> native) ===== */
+/* Setiap elemen [data-custom-select] punya trigger, menu, label, dan input tersembunyi. */
 (function () {
     const CHECK_SVG = '<svg class="h-4 w-4 shrink-0 text-purple-600 cs-check" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>';
 

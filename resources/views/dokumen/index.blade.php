@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Dokumen — daftar + filter pencarian/kategori/bidang + unggah. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Dokumen Dinas')
@@ -111,7 +112,7 @@
 
     <div class="space-y-6">
 
-        <!-- 1. Breadcrumbs Mikro -->
+        {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
         <nav class="flex items-center text-sm font-medium text-slate-400">
             <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
             <span class="mx-2 text-slate-300">/</span>
@@ -120,7 +121,7 @@
             <span class="text-slate-700 font-semibold">Dokumen Dinas</span>
         </nav>
 
-        <!-- 2. Header Halaman & Quick Actions -->
+        {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
             <div>
                 <div class="flex flex-wrap items-center gap-2.5">
@@ -134,7 +135,7 @@
                     hanya terlihat sebidang; <b>rahasia</b> hanya oleh pengunggah &amp; admin.</p>
             </div>
 
-            <!-- Quick Actions Bar -->
+            {{-- ===== BAGIAN: BILAH AKSI CEPAT ===== --}}
             <div class="flex items-center gap-2.5">
                 @if ($u->isBisaUnggah())
                     <button data-modal-open="modal-upload"
@@ -149,9 +150,9 @@
             </div>
         </div>
 
-        <!-- 3. Toolbar Filter Universal: Pencarian + Kategori + Filter Bidang Modern -->
+        {{-- ===== BAGIAN: Toolbar Filter Universal: Pencarian + Kategori + Filter Bidang Modern ===== --}}
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-            <!-- Form Filter Pencarian -->
+            {{-- ===== BAGIAN: FORM FILTER PENCARIAN ===== --}}
             <form method="GET" class="flex flex-wrap items-center gap-2.5">
                 <div class="relative flex-1 min-w-[240px]">
                     <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
@@ -193,7 +194,7 @@
                 @endif
             </form>
 
-            <!-- Navigasi Filter Bidang Modern (Pills Switcher Horisontal) -->
+            {{-- ===== BAGIAN: NAVIGASI FILTER BIDANG ===== --}}
             <div class="pt-3.5 border-t border-slate-100">
                 <div class="flex items-center justify-between gap-3 mb-2.5">
                     <span
@@ -214,7 +215,7 @@
                     @endif
                 </div>
 
-                <!-- Scrollable Pills Container -->
+                {{-- ===== BAGIAN: KONTAINER PILLS ===== --}}
                 <div class="flex items-center gap-2 overflow-x-auto thin-scroll pb-1.5 -mx-1 px-1">
                     @php $allMeta = $getBidangMeta(null); @endphp
 
@@ -252,7 +253,7 @@
             </div>
         </div>
 
-        <!-- 4. Grid Kartu Dokumen Modern -->
+        {{-- ===== BAGIAN: Grid Kartu Dokumen Modern ===== --}}
         <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
             @forelse ($dokumen as $d)
                 @php 
@@ -349,6 +350,7 @@
 
     {{-- Modal Unggah Dokumen --}}
     @if ($u->isBisaUnggah())
+{{-- ===== BAGIAN: MODAL UNGGAH DOKUMEN ===== --}}
         <div id="modal-upload"
             class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
             <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-lg p-6 shadow-2xl">

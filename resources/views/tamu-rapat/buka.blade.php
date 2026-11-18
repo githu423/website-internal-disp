@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Rapat publik — daftar dokumen untuk tamu (tanpa login). ===== --}}
 @extends('tamu-rapat.layout')
 
 @section('title', $ruangRapat->judul)
@@ -39,6 +40,7 @@
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
                 </span>
                 <div class="min-w-0 flex-1">
+                    {{-- ===== BAGIAN: INFORMASI RAPAT ===== --}}
                     <h2 class="text-sm font-extrabold text-slate-900">Informasi rapat</h2>
                     @if ($ruangRapat->deskripsi)
                         <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ $ruangRapat->deskripsi }}</p>
@@ -85,6 +87,7 @@
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div class="flex flex-col gap-2 border-b border-slate-100 pb-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
+                    {{-- ===== BAGIAN: DAFTAR DOKUMEN RAPAT ===== --}}
                     <h2 class="text-lg font-extrabold tracking-tight text-slate-900">Dokumen rapat</h2>
                     <p class="mt-1 text-xs text-slate-500">Dokumen hanya dapat dilihat. Unduhan tersedia jika diizinkan penyelenggara.</p>
                 </div>

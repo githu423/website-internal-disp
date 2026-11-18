@@ -20,11 +20,12 @@ class KategoriDokumenService
      */
     public static function cari(string $nama, ?int $indukId = null): ?KategoriDokumen
     {
+        // ===== CARI NAMA YANG PERSIS =====
         $nama = (string) Str::of($nama)->trim();
 
         return KategoriDokumen::query()
             ->where('nama', $nama)
-            ->where(fn ($q) => $indukId === null ? $q->whereNull('induk_id') : $q->where('induk_id', $indukId))
+            ->where(fn ($query) => $indukId === null ? $query->whereNull('induk_id') : $query->where('induk_id', $indukId))
             ->first();
     }
 
@@ -34,11 +35,12 @@ class KategoriDokumenService
      */
     public static function dapatkanAtauBuat(string $nama, ?int $indukId = null): KategoriDokumen
     {
+        // ===== PAKAI YANG SUDAH ADA, ATAU BUAT BARU =====
         $nama = (string) Str::of($nama)->trim()->limit(60, '');
 
-        $existing = static::cari($nama, $indukId);
-        if ($existing) {
-            return $existing;
+        $ada = static::cari($nama, $indukId);
+        if ($ada) {
+            return $ada;
         }
 
         return KategoriDokumen::create([
@@ -54,24 +56,26 @@ class KategoriDokumenService
      */
     public static function dapatkanAtauBuatBerjenjang(string $teks): KategoriDokumen
     {
+        // ===== URAI TEKS MENJADI SEGMEN =====
         $segmen = collect(explode('/', (string) Str::of($teks)->replace('\\', '/')))
-            ->map(fn ($s) => trim((string) $s))
+            ->map(fn ($bagian) => trim((string) $bagian))
             ->filter()
-            ->map(fn ($s) => Str::of($s)->trim()->limit(60, '')->__toString())
+            ->map(fn ($bagian) => Str::of($bagian)->trim()->limit(60, '')->__toString())
             ->values();
 
+        // ===== BANGUN / PAKAI KATEGORI PER SEGMEN =====
         $indukId = null;
-        $node = null;
-        foreach ($segmen as $seg) {
-            $existing = static::cari($seg, $indukId);
-            $node = $existing ?? KategoriDokumen::create(['nama' => $seg, 'induk_id' => $indukId]);
-            $indukId = $node->id;
+        $nodeAktif = null;
+        foreach ($segmen as $segmenSaatIni) {
+            $ada = static::cari($segmenSaatIni, $indukId);
+            $nodeAktif = $ada ?? KategoriDokumen::create(['nama' => $segmenSaatIni, 'induk_id' => $indukId]);
+            $indukId = $nodeAktif->id;
         }
 
-        if ($node === null) {
+        if ($nodeAktif === null) {
             throw new \InvalidArgumentException('Teks kategori kosong.');
         }
 
-        return $node;
+        return $nodeAktif;
     }
 }

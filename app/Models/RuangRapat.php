@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
+/**
+ * Ruang Rapat: tautan publik berbasis token untuk tamu eksternal.
+ *
+ * - token dibuat otomatis saat ruang rapat dibuat.
+ * - pin_hash opsional (PIN tamu).
+ * - berlaku_sampai menentukan kedaluwarsa.
+ * - status: aktif / nonaktif.
+ */
 class RuangRapat extends Model
 {
     protected $table = 'ruang_rapat';
@@ -26,6 +34,7 @@ class RuangRapat extends Model
         ];
     }
 
+    // ===== TOKEN OTOMATIS SAAT DIBUAT =====
     protected static function booted(): void
     {
         static::creating(function (self $ruangRapat): void {
@@ -41,6 +50,7 @@ class RuangRapat extends Model
         });
     }
 
+    // ===== RELASI =====
     public function bidang()
     {
         return $this->belongsTo(Bidang::class, 'id_bidang');
@@ -63,6 +73,7 @@ class RuangRapat extends Model
         return $this->hasMany(RuangRapatKehadiran::class, 'id_ruang_rapat');
     }
 
+    // ===== KEDALUWARSA =====
     public function sudahKedaluwarsa(): bool
     {
         if ($this->status === 'nonaktif') {
@@ -77,6 +88,7 @@ class RuangRapat extends Model
         return $this->berlaku_sampai->copy()->endOfDay()->isPast();
     }
 
+    // ===== VERIFIKASI PIN =====
     public function cekPin(string $input): bool
     {
         return $this->pin_hash !== null

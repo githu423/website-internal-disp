@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Bidang;
 use App\Models\CapaianIndikator;
 use App\Models\CapaianSasaran;
 use App\Models\CapaianTahunan;
@@ -16,55 +17,73 @@ use Illuminate\View\View;
 
 /**
  * Kelola matriks Capaian Kinerja (sasaran strategis + indikator + target/realisasi per tahun).
+ *
  * Sumber berkas: CAPAIAN KINERJA.csv — impor bersifat menggantikan seluruh data.
  */
 class CapaianKinerjaController extends Controller
 {
+    /**
+     * Matriks sasaran + indikator + nilai per tahun.
+     */
     public function index(Request $request): View
     {
         $sasarans = CapaianSasaran::with(['indikator.tahunan'])->orderBy('urut')->get();
-        $years = CapaianTahunan::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($t) => (int) $t)->all();
-        if (!$years) $years = [(int) now()->year - 1, (int) now()->year];
+        $years = CapaianTahunan::distinct()->orderBy('tahun')->pluck('tahun')->map(fn ($tahun) => (int) $tahun)->all();
+        if (! $years) {
+            $years = [(int) now()->year - 1, (int) now()->year];
+        }
 
         return view('admin.capaian-kinerja.index', [
             'sasarans' => $sasarans,
             'years' => $years,
             'tambahYears' => range((int) date('Y') + 3, 2015),
-            'bidangs' => \App\Models\Bidang::orderBy('kode')->get(),
+            'bidangs' => Bidang::orderBy('kode')->get(),
         ]);
     }
 
-    // ===== Sasaran =====
+    // ===== SASARAN =====
+
+    /**
+     * Menambah sasaran strategis.
+     */
     public function storeSasaran(Request $request): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'nomor' => ['nullable', 'integer', 'min:1', 'max:999'],
             'judul' => ['required', 'string', 'max:500'],
             'cakupan' => ['nullable', 'string', 'max:160'],
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);
-        $d['nomor'] = $d['nomor'] ?? ((int) CapaianSasaran::max('nomor') + 1);
-        if (! isset($d['id_bidang'])) $d['id_bidang'] = \App\Models\Bidang::tebakDariTeks($d['judul']);
-        $d['urut'] = (int) CapaianSasaran::max('urut') + 1;
-        CapaianSasaran::create($d);
-        LogAktivitas::catat('tambah sasaran kinerja', $d['judul']);
+        $data['nomor'] = $data['nomor'] ?? ((int) CapaianSasaran::max('nomor') + 1);
+        if (! isset($data['id_bidang'])) {
+            $data['id_bidang'] = Bidang::tebakDariTeks($data['judul']);
+        }
+        $data['urut'] = (int) CapaianSasaran::max('urut') + 1;
+        CapaianSasaran::create($data);
+        LogAktivitas::catat('tambah sasaran kinerja', $data['judul']);
 
         return back()->with('sukses', 'Sasaran ditambahkan.');
     }
 
+    /**
+     * Memperbarui sasaran strategis.
+     */
     public function updateSasaran(Request $request, CapaianSasaran $sasaran): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'nomor' => ['nullable', 'integer', 'min:1', 'max:999'],
             'judul' => ['required', 'string', 'max:500'],
             'cakupan' => ['nullable', 'string', 'max:160'],
             'id_bidang' => ['nullable', 'integer', 'exists:bidang,id'],
         ]);
-        $sasaran->update($d);
+        $sasaran->update($data);
 
         return back()->with('sukses', 'Sasaran diperbarui.');
     }
 
+    /**
+     * Menghapus sasaran beserta indikatornya.
+     */
     public function destroySasaran(CapaianSasaran $sasaran): RedirectResponse
     {
         $sasaran->delete();
@@ -73,31 +92,41 @@ class CapaianKinerjaController extends Controller
         return back()->with('sukses', 'Sasaran beserta indikatornya dihapus.');
     }
 
-    // ===== Indikator =====
+    // ===== INDIKATOR =====
+
+    /**
+     * Menambah indikator pada sebuah sasaran.
+     */
     public function storeIndikator(Request $request): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'sasaran_id' => ['required', 'integer', 'exists:capaian_sasaran,id'],
             'nama' => ['required', 'string', 'max:500'],
             'satuan' => ['nullable', 'string', 'max:80'],
         ]);
-        $d['urut'] = (int) CapaianIndikator::where('sasaran_id', $d['sasaran_id'])->max('urut') + 1;
-        CapaianIndikator::create($d);
+        $data['urut'] = (int) CapaianIndikator::where('sasaran_id', $data['sasaran_id'])->max('urut') + 1;
+        CapaianIndikator::create($data);
 
         return back()->with('sukses', 'Indikator ditambahkan.');
     }
 
+    /**
+     * Memperbarui indikator.
+     */
     public function updateIndikator(Request $request, CapaianIndikator $indikator): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'nama' => ['required', 'string', 'max:500'],
             'satuan' => ['nullable', 'string', 'max:80'],
         ]);
-        $indikator->update($d);
+        $indikator->update($data);
 
         return back()->with('sukses', 'Indikator diperbarui.');
     }
 
+    /**
+     * Menghapus indikator.
+     */
     public function destroyIndikator(CapaianIndikator $indikator): RedirectResponse
     {
         $indikator->delete();
@@ -105,10 +134,12 @@ class CapaianKinerjaController extends Controller
         return back()->with('sukses', 'Indikator dihapus.');
     }
 
-    /** Simpan/ubah nilai per tahun satu indikator; sel yang dikosongkan menghapus baris tahun tsb. */
+    /**
+     * Simpan/ubah nilai per tahun satu indikator; sel yang dikosongkan menghapus baris tahun tsb.
+     */
     public function simpanNilai(Request $request, CapaianIndikator $indikator): RedirectResponse
     {
-        $d = $request->validate([
+        $data = $request->validate([
             'nilai' => ['nullable', 'array'],
             'nilai.*.target' => ['nullable', 'string', 'max:120'],
             'nilai.*.realisasi' => ['nullable', 'string', 'max:120'],
@@ -120,57 +151,80 @@ class CapaianKinerjaController extends Controller
             'nama' => ['nullable', 'string', 'max:500'],
             'satuan' => ['nullable', 'string', 'max:80'],
         ]);
-        if ($d['nama'] ?? null) $indikator->update(['nama' => $d['nama'], 'satuan' => $d['satuan'] ?? null]);
+        if ($data['nama'] ?? null) {
+            $indikator->update(['nama' => $data['nama'], 'satuan' => $data['satuan'] ?? null]);
+        }
 
-        DB::transaction(function () use ($d, $indikator) {
-            foreach ($d['nilai'] ?? [] as $tahun => $n) {
-                $this->simpanBaris($indikator, (int) $tahun, $n['target'] ?? null, $n['realisasi'] ?? null, $n['persen'] ?? null);
+        DB::transaction(function () use ($data, $indikator) {
+            foreach ($data['nilai'] ?? [] as $tahun => $nilai) {
+                $this->simpanBaris($indikator, (int) $tahun, $nilai['target'] ?? null, $nilai['realisasi'] ?? null, $nilai['persen'] ?? null);
             }
-            if (! empty($d['t_tahun'])) {
-                $this->simpanBaris($indikator, (int) $d['t_tahun'], $d['t_target'] ?? null, $d['t_realisasi'] ?? null, $d['t_persen'] ?? null);
+            if (! empty($data['t_tahun'])) {
+                $this->simpanBaris($indikator, (int) $data['t_tahun'], $data['t_target'] ?? null, $data['t_realisasi'] ?? null, $data['t_persen'] ?? null);
             }
         });
 
         return back()->with('sukses', "Nilai indikator \"{$indikator->nama}\" disimpan.");
     }
 
-    private function simpanBaris(CapaianIndikator $indikator, int $tahun, ?string $t, ?string $r, ?string $p): void
+    /**
+     * Menyimpan satu baris nilai tahunan; jika semua kolom kosong, baris dihapus.
+     */
+    private function simpanBaris(CapaianIndikator $indikator, int $tahun, ?string $target, ?string $realisasi, ?string $persen): void
     {
-        $ko = fn (?string $v) => ($v = trim((string) $v)) === '' || strcasecmp($v, 'n/a') === 0 ? null : $v;
-        [$t, $r, $p] = array_map($ko, [$t, $r, $p]);
-        $row = CapaianTahunan::firstOrNew(['indikator_id' => $indikator->id, 'tahun' => $tahun]);
-        if ($t === null && $r === null && $p === null) {
-            if ($row->exists) $row->delete();
+        // Nilai kosong / "N/A" dianggap tidak diisi.
+        $bersihkan = fn (?string $nilai) => ($nilai = trim((string) $nilai)) === '' || strcasecmp($nilai, 'n/a') === 0 ? null : $nilai;
+        [$target, $realisasi, $persen] = array_map($bersihkan, [$target, $realisasi, $persen]);
+
+        $baris = CapaianTahunan::firstOrNew(['indikator_id' => $indikator->id, 'tahun' => $tahun]);
+        if ($target === null && $realisasi === null && $persen === null) {
+            if ($baris->exists) {
+                $baris->delete();
+            }
+
             return;
         }
-        $row->target = $t; $row->realisasi = $r; $row->persen = $p; $row->save();
+
+        $baris->target = $target;
+        $baris->realisasi = $realisasi;
+        $baris->persen = $persen;
+        $baris->save();
     }
 
-    // ===== Impor berkas =====
+    // ===== IMPOR BERKAS =====
+
+    /**
+     * Impor berkas capaian kinerja (mode: ganti seluruh data atau gabungkan).
+     */
     public function import(Request $request): RedirectResponse
     {
+        // ===== 1. VALIDASI BERKAS =====
         $request->validate([
             'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods,xlsb', 'max:20480'],
             'mode' => ['nullable', 'in:ganti,update'],
         ]);
         $mode = $request->input('mode', 'update');
-        $f = $request->file('file');
+        $file = $request->file('file');
+
+        // ===== 2. BACA & PARSE =====
         try {
-            $rows = ImportService::rowsFrom($f->getRealPath(), $f->getClientOriginalName());
-        } catch (\Throwable $e) {
-            return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
+            $rows = ImportService::rowsFrom($file->getRealPath(), $file->getClientOriginalName());
+        } catch (\Throwable $kesalahan) {
+            return back()->with('gagal', 'File gagal dibaca: '.$kesalahan->getMessage());
         }
         $data = ImportService::parseCapaian($rows);
-        if (!$data) {
+        if (! $data) {
             return back()->with('gagal', 'Format tidak dikenali. Butuh baris header "No. | Sasaran | Indikator Kinerja | Satuan" dan baris tahun dengan kolom Target/Realisasi/% per tahun.');
         }
+
+        // ===== 3. TERAPKAN & KABARI =====
         $res = ImportService::applyCapaian($data, $mode);
         $pesan = $mode === 'ganti'
             ? "Data diganti seluruhnya: {$res['sasaran_baru']} sasaran, {$res['indikator_baru']} indikator, {$res['nilai_baru']} nilai tahunan."
             : "Gabungkan selesai: {$res['nilai_baru']} nilai baru, {$res['nilai_ubah']} diperbarui, {$res['nilai_sama']} sudah sama (tidak diduplikat)"
-              . ($res['indikator_baru'] || $res['sasaran_baru'] ? "; {$res['sasaran_baru']} sasaran & {$res['indikator_baru']} indikator baru dibuat" : '') . '.';
+              .($res['indikator_baru'] || $res['sasaran_baru'] ? "; {$res['sasaran_baru']} sasaran & {$res['indikator_baru']} indikator baru dibuat" : '').'.';
         NotifikasiService::broadcast('Data capaian kinerja diperbarui', $pesan, 'import', route('admin.capaian.index'));
-        LogAktivitas::catat('impor capaian kinerja (' . $mode . ')', $pesan);
+        LogAktivitas::catat('impor capaian kinerja ('.$mode.')', $pesan);
 
         return back()->with('sukses', $pesan);
     }

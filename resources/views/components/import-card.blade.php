@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · kartu form import Excel. ===== --}}
 @props(['action', 'title' => 'Import dari file Excel/CSV', 'desc' => null])
 <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
     <div class="flex items-start gap-3.5">

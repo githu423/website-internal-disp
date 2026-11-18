@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Capaian — matriks capaian indikator per tahun. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Capaian Kinerja')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: BREADCRUMB ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Capaian Kinerja</span>
     </nav>
 
-    <!-- Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: TAJUK & AKSI CEPAT ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">

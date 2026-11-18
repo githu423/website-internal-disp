@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · Kartu agenda. ===== --}}
 {{-- kartu satu agenda (dipakai ulang di tiap kelompok agenda dinas / per bidang) --}}
 @php 
     $isHariIni = $a->tanggal->isToday();
@@ -13,7 +14,7 @@
      onclick="if(!event.target.closest('form') && !event.target.closest('button') && !event.target.closest('a')) openAgendaDetailModal({{ $a->id }})"
      class="bg-white border rounded-2xl p-4 sm:p-5 shadow-sm flex items-start gap-4 transition-all duration-150 hover:border-purple-300 hover:shadow cursor-pointer select-none {{ $a->status === 'selesai' ? 'opacity-65 border-slate-200' : ($isHariIni ? 'border-purple-300 ring-2 ring-purple-500/15 bg-purple-50/10' : ($lewat ? 'border-rose-200 bg-rose-50/15' : 'border-slate-200')) }}">
     
-    <!-- Kotak Tanggal -->
+    {{-- ===== BAGIAN: KOTAK TANGGAL ===== --}}
     <div class="h-12 w-12 shrink-0 rounded-2xl grid place-items-center text-center leading-none border {{ $isHariIni ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-500/20' : ($lewat ? 'bg-rose-50 text-rose-600 border-rose-100' : ($a->status === 'selesai' ? 'bg-slate-100 text-slate-500 border-slate-200' : 'bg-purple-50 text-purple-700 border-purple-100')) }}">
         <div>
             <p class="text-lg font-extrabold">{{ $a->tanggal->format('d') }}</p>
@@ -21,7 +22,7 @@
         </div>
     </div>
 
-    <!-- Informasi Detail Agenda -->
+    {{-- ===== BAGIAN: INFORMASI DETAIL ===== --}}
     <div class="flex-1 min-w-0">
         <div class="flex flex-wrap items-center gap-2">
             <h4 class="font-bold text-[14px] text-slate-900 leading-snug {{ $a->status === 'selesai' ? 'line-through text-slate-400' : '' }}">
@@ -79,7 +80,7 @@
         @endif
     </div>
 
-    <!-- Tombol Aksi (Admin / Pembuat / Pengelola Ruang Rapat) -->
+    {{-- ===== BAGIAN: TOMBOL AKSI ===== --}}
     <div class="flex flex-col sm:flex-row items-center gap-1.5 shrink-0">
         @if ($dariRuangRapat)
             <a href="{{ $a->url_kelola }}"

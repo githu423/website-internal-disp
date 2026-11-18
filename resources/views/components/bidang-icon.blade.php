@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · Ikon bidang. ===== --}}
 {{--
     Ikon identitas bidang — memakai set SVG & warna YANG SAMA dengan halaman
     Bidang (resources/views/bidang/index.blade.php & show.blade.php), supaya
@@ -18,6 +19,7 @@
     'dinas' => false,
 ])
 
+{{-- ===== BAGIAN: PENENTUAN IKON & WARNA ===== --}}
 @php
     $ukuran = [
         'mini' => ['box' => 'h-6 w-6 rounded-lg', 'icon' => 'h-3.5 w-3.5'],

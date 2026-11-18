@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · tautan navigasi responsif. ===== --}}
 @props(['active'])
 
 @php

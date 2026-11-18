@@ -5,6 +5,9 @@ namespace App\Providers;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * Provider utama: konfigurasi global aplikasi.
+ */
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -20,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // ===== PAKSA HTTPS SAAT DI AKSES LEWAT NGROK =====
         if (str_contains(request()->getHost(), 'ngrok')) {
             URL::forceScheme('https');
         }

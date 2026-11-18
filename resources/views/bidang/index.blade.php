@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Bidang — daftar bidang + rekap jumlah anggota. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Bidang Dinas')
@@ -75,7 +76,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -84,7 +85,7 @@
         <span class="text-slate-700 font-semibold">Bidang Dinas</span>
     </nav>
 
-    <!-- 2. Header Halaman -->
+    {{-- ===== BAGIAN: Header Halaman ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex items-center gap-2.5">
@@ -97,7 +98,7 @@
         </div>
     </div>
 
-    <!-- 3. Grid Kartu Bidang Modern -->
+    {{-- ===== BAGIAN: Grid Kartu Bidang Modern ===== --}}
     <div class="grid md:grid-cols-2 gap-5">
         @foreach ($bidangList as $b)
             @php 
@@ -107,7 +108,7 @@
             <a href="{{ route('bidang.show', $b) }}" 
                class="bg-white border rounded-2xl p-5 sm:p-6 shadow-sm hover:border-purple-300 hover:shadow-md transition-all duration-200 flex flex-col justify-between group {{ $isMine ? 'border-purple-300 ring-2 ring-purple-500/15 bg-purple-50/10' : 'border-slate-200' }}">
                 <div>
-                    <!-- Header Kartu: Ikon Vektor Presisi + Nama Bidang -->
+                    {{-- ===== BAGIAN: Header Kartu: Ikon Vektor Presisi + Nama Bidang ===== --}}
                     <div class="flex items-start gap-3.5 mb-3.5">
                         <div class="h-12 w-12 rounded-2xl {{ $meta['box'] }} flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
                             {!! $meta['svg'] !!}
@@ -129,13 +130,13 @@
                         </div>
                     </div>
 
-                    <!-- Uraian Tugas & Deskripsi -->
+                    {{-- ===== BAGIAN: Uraian Tugas & Deskripsi ===== --}}
                     <p class="text-[13px] text-slate-600 line-clamp-2 leading-relaxed min-h-[2.6rem]">
                         {{ $b->deskripsi ?: 'Unit kerja operasional dalam lingkungan Dinas Pariwisata Kabupaten Ciamis.' }}
                     </p>
                 </div>
 
-                <!-- Footer Kartu: Statistik & Link Buka -->
+                {{-- ===== BAGIAN: Footer Kartu: Statistik & Link Buka ===== --}}
                 <div class="mt-4 pt-3.5 border-t border-slate-100">
                     <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-600">
                         <span class="px-2.5 py-1 rounded-xl bg-slate-50 border border-slate-200/80">👥 {{ $b->pegawais_count }} Pegawai</span>

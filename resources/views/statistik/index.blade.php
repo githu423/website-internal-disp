@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Statistik — tabel indikator × tahun + grafik tren. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Statistik Pariwisata')
@@ -19,7 +20,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -28,7 +29,7 @@
         <span class="text-slate-700 font-semibold">Statistik Pariwisata</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -45,7 +46,7 @@
             <p class="text-sm text-slate-500 mt-1">Rekap resmi Dinas per tahun. Klik baris tabel untuk memvisualkan grafik tren indikator.</p>
         </div>
 
-        <!-- Quick Actions & Search -->
+        {{-- ===== BAGIAN: Quick Actions & Search ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
             <form method="GET" class="flex items-center gap-2">
                 @if ($selected && !request('q'))
@@ -89,7 +90,7 @@
             @endif
         </div>
     @else
-        <!-- Grafik Tren Indikator Terpilih -->
+        {{-- ===== BAGIAN: Grafik Tren Indikator Terpilih ===== --}}
         @if ($chart)
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-100">
@@ -115,7 +116,7 @@
             </div>
         @endif
 
-        <!-- Kontainer Tabel Data Indikator -->
+        {{-- ===== BAGIAN: Kontainer Tabel Data Indikator ===== --}}
         <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
             <div class="overflow-x-auto thin-scroll">
                 <table class="data w-full min-w-[860px]">

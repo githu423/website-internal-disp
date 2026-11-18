@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Statistik Pariwisata — grid indikator × tahun + import. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Statistik')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Kelola Statistik</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -42,7 +43,7 @@
         </div>
     </div>
 
-    <!-- 3. Card Impor Berkas Statistik -->
+    {{-- ===== BAGIAN: Card Impor Berkas Statistik ===== --}}
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
         <div class="flex items-start gap-3.5 mb-3">
             <span class="h-10 w-10 shrink-0 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 grid place-items-center">
@@ -67,7 +68,7 @@
         </form>
     </div>
 
-    <!-- 4. Card Edit & Entri Manual -->
+    {{-- ===== BAGIAN: Card Edit & Entri Manual ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/75 flex flex-wrap items-center justify-between gap-2">
             <div>

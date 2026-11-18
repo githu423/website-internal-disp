@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Ruang Rapat — form pembuatan tautan rapat publik. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Buat Ruang Rapat')
@@ -82,7 +83,7 @@
         <form method="POST" action="{{ route('ruang-rapat.store') }}" id="form-buat-rapat" class="grid gap-6 lg:grid-cols-12">
             @csrf
 
-            {{-- ==================== KOLOM KIRI (KONTEN FORM: INFORMASI & DOKUMEN) ==================== --}}
+            {{-- ===== BAGIAN: KOLOM KIRI — informasi & dokumen ===== --}}
             <div class="space-y-6 lg:col-span-8">
 
                 {{-- 1. INFORMASI ACARA & RAPAT --}}
@@ -414,7 +415,7 @@
                 </section>
             </div>
 
-            {{-- ==================== KOLOM KANAN (STICKY SIDEBAR: KEAMANAN & LIVE SUMMARY) ==================== --}}
+            {{-- ===== BAGIAN: KOLOM KANAN — keamanan & ringkasan ===== --}}
             <div class="space-y-5 lg:col-span-4 lg:sticky lg:top-6 self-start">
 
                 {{-- 3. KEAMANAN & MASA BERLAKU --}}

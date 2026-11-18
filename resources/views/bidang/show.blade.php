@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Bidang — detail profil, statistik, anggota, dokumen, dan agenda. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', $b->nama)
@@ -211,7 +212,7 @@
 
     <div class="space-y-6">
 
-        <!-- 1. Breadcrumbs Mikro -->
+        {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
         <nav class="flex items-center text-sm font-medium text-slate-400">
             <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
             <span class="mx-2 text-slate-300">/</span>
@@ -222,7 +223,7 @@
             <span class="text-slate-700 font-semibold truncate">{{ $b->nama }}</span>
         </nav>
 
-        <!-- 2. Navigasi Switcher Antar-Bidang (Pills Responsif) -->
+        {{-- ===== BAGIAN: Navigasi Switcher Antar-Bidang (Pills Responsif) ===== --}}
         <div class="flex items-center gap-2 overflow-x-auto thin-scroll pb-1">
             <a href="{{ route('bidang.index') }}"
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-purple-300 hover:text-purple-700 transition shadow-sm shrink-0">
@@ -246,7 +247,7 @@
             @endforeach
         </div>
 
-        <!-- 3. Hero Card Profil Bidang Modern -->
+        {{-- ===== BAGIAN: Hero Card Profil Bidang Modern ===== --}}
         <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
                 <div class="flex items-start gap-4">
@@ -309,10 +310,10 @@
             </div>
         </div>
 
-        <!-- 4. Agenda & Dokumen di Atas, Aparatur Bidang di Bawah -->
+        {{-- ===== BAGIAN: Agenda & Dokumen di Atas, Aparatur Bidang di Bawah ===== --}}
         <div class="bidang-grid grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
             <div class="space-y-4 bidang-aksi">
-                <!-- 1. Card Agenda Bidang -->
+                {{-- ===== BAGIAN: Card Agenda Bidang ===== --}}
                 <div class="min-w-0 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
                     <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
                         <h3 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
@@ -387,7 +388,7 @@
                     @endif
                 </div>
 
-                <!-- 2. Card Dokumen Bidang -->
+                {{-- ===== BAGIAN: Card Dokumen Bidang ===== --}}
                 <div class="min-w-0 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3.5">
                     <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
                         <div>
@@ -489,7 +490,7 @@
                 </div>
             </div>
 
-            <!-- Aparatur Bidang — tabel personel unit ini -->
+            {{-- ===== BAGIAN: APARATUR BIDANG ===== --}}
             <div class="card overflow-hidden lg:col-span-2 bidang-pegawai">
                 <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
@@ -562,7 +563,7 @@
                     </table>
                 </div>
 
-                <!-- Rekap Statistik Bawah Tabel -->
+                {{-- ===== BAGIAN: REKAP STATISTIK ===== --}}
                 <div
                     class="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-500 font-medium">
                     <span class="font-extrabold text-slate-800">Komposisi:</span>
@@ -581,6 +582,7 @@
 
     {{-- Modal Edit Profil Bidang --}}
     @if ($bolehKelola)
+{{-- ===== BAGIAN: MODAL UBAH BIDANG ===== --}}
         <div id="modal-edit-bidang"
             class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
             <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-md p-6 shadow-2xl text-sm">
@@ -621,6 +623,7 @@
         </div>
     @endif
 
+{{-- ===== BAGIAN: SKRIP INTERAKTIF ===== --}}
     <script>
         (function () {
             const input = document.getElementById('bidang-dokumen-file');

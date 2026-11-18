@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Notifikasi — daftar notifikasi pengguna. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Notifikasi')
@@ -14,7 +15,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -23,7 +24,7 @@
         <span class="text-slate-700 font-semibold">Kotak Notifikasi</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex items-center gap-2.5">
@@ -50,7 +51,7 @@
         @endif
     </div>
 
-    <!-- 3. Daftar Notifikasi -->
+    {{-- ===== BAGIAN: Daftar Notifikasi ===== --}}
     <div class="space-y-2.5">
         @forelse ($items as $n)
             @php $isBelum = ! $n->dibaca_at; @endphp

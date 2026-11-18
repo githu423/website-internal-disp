@@ -6,48 +6,73 @@ use App\Models\Pegawai;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * Data Pegawai.
+ *
+ * Penanda dan saringan "belum lengkap" hanya untuk admin.
+ * Kartu non-aktif / pensiun dari dashboard mengarah ke halaman ini
+ * dengan filter status yang sudah diset.
+ */
 class PegawaiController extends Controller
 {
-        public function index(Request $request): View
+    /**
+     * Daftar pegawai + strip rekap jumlah.
+     */
+    public function index(Request $request): View
     {
-        // v24: penanda & saringan "belum lengkap" KHUSUS admin (permintaan 7 Sep).
+        // ===== 1. HAK AKSES fitur "kelengkapan" =====
         $bolehKelengkapan = (bool) optional($request->user())->isAdmin();
+
+        // ===== 2. SARIKAN KATA KUNCI =====
         // v22: "belum lengkap" adalah FILTER, bukan teks cari biasa — dikenali juga dari kotak cari.
-        $cari = trim((string) $request->query('q', ''));
-        $kunci = strtolower(preg_replace('/\s+/', '', $cari));
-        $modeBelum = $bolehKelengkapan && ($kunci === 'belumlengkap' || (bool) $request->query('belum'));
+        $kataKunci = trim((string) $request->query('q', ''));
+        $kunciNormal = strtolower(preg_replace('/\s+/', '', $kataKunci));
+        $modeBelum = $bolehKelengkapan && ($kunciNormal === 'belumlengkap' || (bool) $request->query('belum'));
+
+        // ===== 3. FILTER STATUS (dari kartu dashboard) =====
         // Konfirmasi Dinas 10 Sep: kartu dashboard pegawai non-aktif / pensiun masuk ke sini
         // langsung terfilter sesuai kartunya (?status=nonaktif / ?status=pensiun).
-        $status = (string) $request->query('status', '');
-        if (! in_array($status, ['aktif', 'nonaktif', 'pensiun'], true)) $status = '';
-        $q = Pegawai::query()->with('bidang');
-        if ($kunci !== 'belumlengkap') $q->cari($cari ?: null);
-        if ($modeBelum) $q->belumLengkap(); // chip merah / kata kunci: hanya yang datanya bolong
-        if ($status !== '') $q->where('status', $status);
+        $statusFilter = (string) $request->query('status', '');
+        if (! in_array($statusFilter, ['aktif', 'nonaktif', 'pensiun'], true)) {
+            $statusFilter = '';
+        }
 
-        // Rekap jumlah untuk strip di bawah tabel (permintaan Ricky, 7 Sep 2026).
-        // Sengaja TIDAK ikut terfilter kotak cari: angka ini selalu kondisi seluruh data.
-        $semua = Pegawai::count();
-        $belum = Pegawai::belumLengkap()->count();
+        // ===== 4. DAFTAR PEGAWAI =====
+        $query = Pegawai::query()->with('bidang');
+        if ($kunciNormal !== 'belumlengkap') {
+            $query->cari($kataKunci ?: null);
+        }
+        if ($modeBelum) {
+            $query->belumLengkap(); // chip merah / kata kunci: hanya yang datanya bolong
+        }
+        if ($statusFilter !== '') {
+            $query->where('status', $statusFilter);
+        }
+
+        // ===== 5. REKAP JUMLAH (SELURUH DATA, TIDAK TERFILTER CARI) =====
+        // Permintaan Ricky, 7 Sep 2026: angka ini selalu kondisi seluruh data.
+        $totalSemua = Pegawai::count();
+        $totalBelum = Pegawai::belumLengkap()->count();
         $statistik = [
-            'semua'  => $semua,
+            'semua'  => $totalSemua,
             'l'      => Pegawai::where('jenis_kelamin', 'L')->count(),
             'p'      => Pegawai::where('jenis_kelamin', 'P')->count(),
             'pns'    => Pegawai::where('jenis_asn', 'PNS')->count(),
-            'nonpns' => Pegawai::where(fn ($w) => $w->where('jenis_asn', '!=', 'PNS')->orWhereNull('jenis_asn'))->count(),
-            'belum'  => $belum,
-            'lengkap' => $semua - $belum,
+            'nonpns' => Pegawai::where(fn ($query) => $query->where('jenis_asn', '!=', 'PNS')->orWhereNull('jenis_asn'))->count(),
+            'belum'  => $totalBelum,
+            'lengkap' => $totalSemua - $totalBelum,
             'aktif'  => Pegawai::where('status', 'aktif')->count(),
             'nonaktif' => Pegawai::where('status', 'nonaktif')->count(),
             'pensiun' => Pegawai::where('status', 'pensiun')->count(),
         ];
 
+        // ===== RESPONS =====
         return view('pegawai.index', [
-            'pegawai' => $q->orderBy('nama')->paginate(15)->withQueryString(),
+            'pegawai' => $query->orderBy('nama')->paginate(15)->withQueryString(),
             'statistik' => $statistik,
             'modeBelum' => $modeBelum,
             'bolehKelengkapan' => $bolehKelengkapan,
-            'statusFilter' => $status,
+            'statusFilter' => $statusFilter,
         ]);
     }
 }

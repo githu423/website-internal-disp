@@ -9,18 +9,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
+/**
+ * Pencarian global: pegawai, agenda, dan dokumen.
+ *
+ * - Toleransi salah ketik: kombinasi LIKE + SOUNDS LIKE (khusus MySQL/MariaDB).
+ * - Hasil dibatasi 5 per kategori agar halaman tidak membanjir.
+ * - Dokumen selalu difilter sesuai hak akses pengguna.
+ */
 class SearchController extends Controller
 {
     /**
-     * Global search: pegawai, agenda, dokumen.
-     * Toleransi typo: kombinasi LIKE + SOUNDS LIKE (MySQL SOUNDEX).
-     * Hasil: max 5 per kategori agar halaman tidak membanjir.
+     * Menampilkan hasil pencarian untuk satu kata kunci.
      */
     public function index(Request $request): View
     {
-        $q = trim((string) $request->query('q', ''));
+        $kataKunci = trim((string) $request->query('q', ''));
 
-        if ($q === '') {
+        // ===== KATA KUNCI KOSONG: LANGSUNG KEMBALIKAN HASIL KOSONG =====
+        if ($kataKunci === '') {
             return view('search.index', [
                 'q' => '',
                 'pegawai' => collect(),
@@ -30,72 +36,75 @@ class SearchController extends Controller
             ]);
         }
 
-        $fonetik = in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true);
+        // SOUNDS LIKE hanya tersedia di MySQL/MariaDB.
+        $pencarianFonetik = in_array(DB::connection()->getDriverName(), ['mysql', 'mariadb'], true);
 
-        // ─── PEGAWAI ──────────────────────────────────────────────────────
+        // ===== HASIL: PEGAWAI =====
         // Utama: scopeCari (LIKE) — sudah sangat komprehensif.
         // Tambahan: SOUNDS LIKE pada kolom nama untuk toleransi typo fonetik.
         $pegawai = Pegawai::with('bidang')
-            ->where(function ($w) use ($q, $fonetik) {
-                $w->cari($q);
-                if ($fonetik) {
-                    $w->orWhereRaw('nama SOUNDS LIKE ?', [$q])
-                        ->orWhereRaw('jabatan SOUNDS LIKE ?', [$q]);
+            ->where(function ($query) use ($kataKunci, $pencarianFonetik) {
+                $query->cari($kataKunci);
+                if ($pencarianFonetik) {
+                    $query->orWhereRaw('nama SOUNDS LIKE ?', [$kataKunci])
+                        ->orWhereRaw('jabatan SOUNDS LIKE ?', [$kataKunci]);
                 }
             })
             ->orderBy('nama')
             ->limit(5)
             ->get();
 
-        // ─── AGENDA ───────────────────────────────────────────────────────
+        // ===== HASIL: AGENDA =====
         $agenda = Agenda::with('bidang')
-            ->where(function ($w) use ($q, $fonetik) {
-                $w->where('judul', 'like', "%$q%")
-                    ->orWhere('lokasi', 'like', "%$q%")
-                    ->orWhere('deskripsi', 'like', "%$q%")
-                    ->orWhereHas('bidang', fn ($b) => $b->where('nama', 'like', "%$q%"));
-                if ($fonetik) {
-                    $w->orWhereRaw('judul SOUNDS LIKE ?', [$q]);
+            ->where(function ($query) use ($kataKunci, $pencarianFonetik) {
+                $query->where('judul', 'like', "%$kataKunci%")
+                    ->orWhere('lokasi', 'like', "%$kataKunci%")
+                    ->orWhere('deskripsi', 'like', "%$kataKunci%")
+                    ->orWhereHas('bidang', fn ($queryBidang) => $queryBidang->where('nama', 'like', "%$kataKunci%"));
+                if ($pencarianFonetik) {
+                    $query->orWhereRaw('judul SOUNDS LIKE ?', [$kataKunci]);
                 }
             })
             ->orderBy('tanggal', 'desc')
             ->limit(5)
             ->get();
 
-        // ─── DOKUMEN ──────────────────────────────────────────────────────
-        $user = $request->user();
+        // ===== HASIL: DOKUMEN (DIFILTER HAK AKSES) =====
+        $pengguna = $request->user();
         $dokumen = Dokumen::with(['kategoriRel.induk.induk'])
-            ->when(! $user->isAdmin(), function ($query) use ($user) {
-                $query->where(function ($akses) use ($user) {
-                    $akses->where('visibility', 'publik')
-                        ->orWhere('uploaded_by', $user->id)
-                        ->orWhere(function ($bidang) use ($user) {
-                            $bidang->where('visibility', 'bidang')
-                                ->where(function ($pemilik) use ($user) {
-                                    $pemilik->whereNull('id_bidang');
-                                    if ($user->id_bidang) {
-                                        $pemilik->orWhere('id_bidang', $user->id_bidang);
+            ->when(! $pengguna->isAdmin(), function ($query) use ($pengguna) {
+                $query->where(function ($queryAkses) use ($pengguna) {
+                    $queryAkses->where('visibility', 'publik')
+                        ->orWhere('uploaded_by', $pengguna->id)
+                        ->orWhere(function ($queryBidang) use ($pengguna) {
+                            $queryBidang->where('visibility', 'bidang')
+                                ->where(function ($queryPemilik) use ($pengguna) {
+                                    $queryPemilik->whereNull('id_bidang');
+                                    if ($pengguna->id_bidang) {
+                                        $queryPemilik->orWhere('id_bidang', $pengguna->id_bidang);
                                     }
                                 });
                         });
                 });
             })
-            ->where(function ($w) use ($q, $fonetik) {
-                $w->where('judul', 'like', "%$q%")
-                    ->orWhere('deskripsi', 'like', "%$q%")
-                    ->orWhere('kategori', 'like', "%$q%")
-                    ->orWhere('file_name', 'like', "%$q%")
-                    ->orWhereHas('kategoriRel', fn ($kk) => $kk->where('nama', 'like', "%$q%"));
-                if ($fonetik) {
-                    $w->orWhereRaw('judul SOUNDS LIKE ?', [$q]);
+            ->where(function ($query) use ($kataKunci, $pencarianFonetik) {
+                $query->where('judul', 'like', "%$kataKunci%")
+                    ->orWhere('deskripsi', 'like', "%$kataKunci%")
+                    ->orWhere('kategori', 'like', "%$kataKunci%")
+                    ->orWhere('file_name', 'like', "%$kataKunci%")
+                    ->orWhereHas('kategoriRel', fn ($queryKategori) => $queryKategori->where('nama', 'like', "%$kataKunci%"));
+                if ($pencarianFonetik) {
+                    $query->orWhereRaw('judul SOUNDS LIKE ?', [$kataKunci]);
                 }
             })
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();
 
+        // ===== TOTAL & RESPONS =====
         $total = $pegawai->count() + $agenda->count() + $dokumen->count();
 
-        return view('search.index', compact('q', 'pegawai', 'agenda', 'dokumen', 'total'));
+        // 'q' dipertahankan karena menjadi nama variabel di tampilan (search/index).
+        return view('search.index', ['q' => $kataKunci, 'pegawai' => $pegawai, 'agenda' => $agenda, 'dokumen' => $dokumen, 'total' => $total]);
     }
 }

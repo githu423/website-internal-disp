@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · pesan kesalahan input. ===== --}}
 @props(['messages'])
 
 @if ($messages)

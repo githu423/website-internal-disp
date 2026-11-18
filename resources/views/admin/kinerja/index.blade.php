@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Kinerja — daftar program/kegiatan + import Excel. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Kinerja & Kegiatan')
@@ -19,7 +20,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -28,7 +29,7 @@
         <span class="text-slate-700 font-semibold">Kelola Kinerja</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -40,9 +41,9 @@
             <p class="text-sm text-slate-500 mt-1">{{ $summary->total ?? 0 }} sub kegiatan · {{ $summary->tuntas ?? 0 }} tuntas · {{ $summary->lambat ?? 0 }} perlu perhatian — tampil di Dashboard &amp; modul publik.</p>
         </div>
 
-        <!-- Quick Actions -->
+        {{-- ===== BAGIAN: AKSI CEPAT ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Pilihan Tahun Anggaran (Segmented Pill) -->
+            {{-- ===== BAGIAN: PILIHAN TAHUN ANGGARAN ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 @foreach ($tahunList as $t)
                     <a href="{{ route('admin.kinerja.index', ['tahun' => $t]) }}" 
@@ -52,7 +53,7 @@
                 @endforeach
             </div>
 
-            <!-- Tombol Sekunder: Lihat Publik -->
+            {{-- ===== BAGIAN: Tombol Sekunder: Lihat Publik ===== --}}
             <a href="{{ route('kinerja.publik', ['tahun' => $tahun]) }}" 
                class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-50 hover:border-purple-300 hover:text-purple-600 active:scale-95 transition-all duration-150">
                 <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +63,7 @@
                 Lihat Publik
             </a>
 
-            <!-- Tombol Utama: Tambah Manual -->
+            {{-- ===== BAGIAN: Tombol Utama: Tambah Manual ===== --}}
             <button data-modal-open="modal-kinerja" 
                     class="cursor-pointer inline-flex items-center gap-2 px-4 py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl shadow-sm shadow-purple-500/30 hover:bg-purple-700 hover:shadow-purple-600/40 active:scale-95 transition-all duration-150">
                 <x-icon name="plus" class="h-4 w-4" />
@@ -71,7 +72,7 @@
         </div>
     </div>
 
-    <!-- 3. Stat Cards Ringkasan -->
+    {{-- ===== BAGIAN: Stat Cards Ringkasan ===== --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
         <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-sm flex items-center justify-between">
             <div>
@@ -107,12 +108,12 @@
         </div>
     </div>
 
-    <!-- 4. Konten Grid: Tabel Data & Panel Impor/Panduan -->
+    {{-- ===== BAGIAN: Konten Grid: Tabel Data & Panel Impor/Panduan ===== --}}
     <div class="grid lg:grid-cols-3 gap-5">
-        <!-- Kolom Kiri: Tabel Data Kinerja -->
+        {{-- ===== BAGIAN: KOLOM KIRI — tabel kinerja ===== --}}
         <div class="lg:col-span-2 space-y-4">
             <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
-                <!-- Toolbar Filter & Pencarian -->
+                {{-- ===== BAGIAN: BILAH ALAT FILTER & PENCARIAN ===== --}}
                 <div class="p-4 border-b border-slate-100 bg-slate-50/50">
                     <form method="GET" class="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
                         <input type="hidden" name="tahun" value="{{ $tahun }}">
@@ -144,7 +145,7 @@
                     </form>
                 </div>
 
-                <!-- Tabel Data -->
+                {{-- ===== BAGIAN: TABEL DATA ===== --}}
                 <div class="overflow-x-auto thin-scroll">
                     <table class="data w-full min-w-[760px]">
                         <thead>
@@ -344,9 +345,9 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Panel Impor & Panduan -->
+        {{-- ===== BAGIAN: KOLOM KANAN — impor & panduan ===== --}}
         <div class="space-y-4">
-            <!-- Card Impor Berkas -->
+            {{-- ===== BAGIAN: KARTU IMPOR BERKAS ===== --}}
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
                 <div class="flex items-start gap-3.5 mb-3">
                     <span class="h-10 w-10 shrink-0 rounded-xl bg-purple-50 text-purple-600 border border-purple-100 grid place-items-center">
@@ -389,7 +390,7 @@
                 </div>
             @endif
 
-            <!-- Panduan Cara Kerja -->
+            {{-- ===== BAGIAN: PANDUAN CARA KERJA ===== --}}
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm text-sm">
                 <h3 class="font-extrabold text-[14px] text-slate-900 mb-2.5 flex items-center gap-2">
                     <span>💡</span> Panduan &amp; Cara Kerja
@@ -407,6 +408,7 @@
 </div>
 
 {{-- Modal Tambah Kegiatan Manual --}}
+{{-- ===== BAGIAN: MODAL TAMBAH/HAPUS KINERJA ===== --}}
 <div id="modal-kinerja" class="modal-shell hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm p-4 grid place-items-center overflow-y-auto">
     <div class="bg-white border border-slate-200 rounded-2xl w-full max-w-xl p-6 shadow-2xl text-sm">
         <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">

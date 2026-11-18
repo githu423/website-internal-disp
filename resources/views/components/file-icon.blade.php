@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · Ikon jenis berkas. ===== --}}
 @props(['ext', 'mime' => ''])
 @php
     $ext = strtolower((string) $ext);

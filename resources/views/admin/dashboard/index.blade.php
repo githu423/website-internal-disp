@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Dashboard — ringkasan jumlah data + log aktivitas terbaru. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Ringkasan Admin')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Ringkasan Panel Admin</span>
     </nav>
 
-    <!-- 2. Header Halaman & Welcome Banner -->
+    {{-- ===== BAGIAN: Header Halaman & Welcome Banner ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -41,7 +42,7 @@
         </div>
     </div>
 
-    <!-- 3. Grid Statistik Admin -->
+    {{-- ===== BAGIAN: Grid Statistik Admin ===== --}}
     <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
         <x-stat label="Akun Pengguna" :value="$stats['users']" tone="purple" icon="akun" :href="route('admin.akun.index')" />
         <x-stat label="Data Pegawai" :value="$stats['pegawai']" tone="sky" icon="pegawai" :href="route('admin.pegawai.index')" />
@@ -51,7 +52,7 @@
         <x-stat label="Objek Retribusi PAD" :value="$stats['pad']" tone="rose" icon="pad" :href="route('admin.pad.index')" />
     </div>
 
-    <!-- 4. Tabel Log Aktivitas Terakhir -->
+    {{-- ===== BAGIAN: Tabel Log Aktivitas Terakhir ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2">

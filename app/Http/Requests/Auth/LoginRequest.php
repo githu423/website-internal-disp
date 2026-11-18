@@ -9,9 +9,16 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Permintaan login: validasi NIP + password, pembatasan percobaan (rate limit),
+ * dan pemblokiran akun non-aktif / pensiun.
+ */
 class LoginRequest extends FormRequest
 {
-    public function authorize(): bool { return true; }
+    public function authorize(): bool
+    {
+        return true;
+    }
 
     public function rules(): array
     {
@@ -26,10 +33,15 @@ class LoginRequest extends FormRequest
         return ['nip.required' => 'NIP / Username wajib diisi.', 'password.required' => 'Password wajib diisi.'];
     }
 
+    /**
+     * Memverifikasi kredensial lalu mengecek status akun.
+     */
     public function authenticate(): void
     {
+        // ===== 1. BATASI PERCOBAAN LOGIN =====
         $this->ensureIsNotRateLimited();
 
+        // ===== 2. COCOKKAN KREDENSIAL =====
         if (! Auth::attempt($this->only('nip', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
             throw ValidationException::withMessages([
@@ -37,7 +49,7 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        /** Blokir akun non-aktif & pensiun dengan pesan berbeda (cek User saja, sesuai konfirmasi). */
+        // ===== 3. BLOKIR AKUN NON-AKTIF & PENSIUN (PESAN BERBEDA) =====
         $user = Auth::user();
         if ($user && $user->status === 'nonaktif') {
             Auth::logout();
@@ -64,9 +76,14 @@ class LoginRequest extends FormRequest
         RateLimiter::clear($this->throttleKey());
     }
 
+    /**
+     * Pastikan belum melebihi batas percobaan login.
+     */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) return;
+        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+            return;
+        }
         event(new Lockout($this));
         $seconds = RateLimiter::availableIn($this->throttleKey());
         throw ValidationException::withMessages([
@@ -74,6 +91,9 @@ class LoginRequest extends FormRequest
         ]);
     }
 
+    /**
+     * Kunci rate-limit per NIP + IP.
+     */
     public function throttleKey(): string
     {
         return Str::transliterate(Str::lower($this->string('nip')).'|'.$this->ip());

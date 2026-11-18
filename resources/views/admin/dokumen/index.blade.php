@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Dokumen — daftar dokumen semua bidang. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Dokumen')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Kelola Dokumen</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -45,7 +46,7 @@
         </div>
     </div>
 
-    <!-- 3. Filter Toolbar -->
+    {{-- ===== BAGIAN: Filter Toolbar ===== --}}
     <form method="GET" class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div class="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <div class="relative flex-1">
@@ -71,7 +72,7 @@
         </div>
     </form>
 
-    <!-- 4. Kontainer Tabel Data Dokumen -->
+    {{-- ===== BAGIAN: Kontainer Tabel Data Dokumen ===== --}}
     <div class="bg-white border border-slate-200 shadow-sm rounded-xl overflow-hidden">
         <div class="overflow-x-auto thin-scroll">
             <table class="data w-full min-w-[760px]">

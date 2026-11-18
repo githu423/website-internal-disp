@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Agenda — daftar per bulan + agenda terdekat. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Agenda & Kegiatan')
@@ -172,7 +173,7 @@
 
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: BREADCRUMB ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -181,7 +182,7 @@
         <span class="text-slate-700 font-semibold">Agenda &amp; Kegiatan</span>
     </nav>
 
-    <!-- 2. Header Halaman & Navigasi Sortiran -->
+    {{-- ===== BAGIAN: TAJUK & NAVIGASI SORTIRAN ===== --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -193,9 +194,9 @@
             <p class="text-sm text-slate-500 mt-1">Kalender kegiatan resmi dinas dan program kerja lintas bidang.</p>
         </div>
 
-        <!-- Bulan Switcher, Shortcut Sortiran Hari Ini & Tombol Admin -->
+        {{-- ===== BAGIAN: PINDAH BULAN & SOROTAN CEPAT ===== --}}
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Navigasi Bulan -->
+            {{-- ===== BAGIAN: Navigasi Bulan ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm">
                 <a href="{{ route('agenda.index', ['bulan' => $bulanLalu]) }}" 
                    class="h-8 w-8 grid place-items-center rounded-xl text-slate-500 hover:text-purple-600 hover:bg-slate-50 active:scale-95 transition"
@@ -212,7 +213,7 @@
                 </a>
             </div>
 
-            <!-- Segmented Filter Shortcut: Semua Bulan Ini vs Hari Ini -->
+            {{-- ===== BAGIAN: Segmented Filter Shortcut: Semua Bulan Ini vs Hari Ini ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-2xl p-1 shadow-sm" id="agenda-filter-container">
                 <button type="button" 
                         data-filter-btn="semua"
@@ -253,11 +254,11 @@
         </div>
     </div>
 
-    <!-- 3. Toolbar Kontrol Baru: View Switcher (Kalender / List), Filter Kategori, & Search Bar -->
+    {{-- ===== BAGIAN: BILAH ALAT (tampilan, kategori, cari) ===== --}}
     <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3.5">
         <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             
-            <!-- View Switcher (Kalender Bulanan vs Daftar Kegiatan) -->
+            {{-- ===== BAGIAN: View Switcher (Kalender Bulanan vs Daftar Kegiatan) ===== --}}
             <div class="inline-flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 self-start md:self-auto shrink-0">
                 <button type="button" 
                         id="view-toggle-calendar"
@@ -279,7 +280,7 @@
                 </button>
             </div>
 
-            <!-- Input Pencarian Real-Time -->
+            {{-- ===== BAGIAN: Input Pencarian Real-Time ===== --}}
             <div class="relative flex-1 max-w-md">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -299,7 +300,7 @@
             </div>
         </div>
 
-        <!-- Filter Pill Kategori -->
+        {{-- ===== BAGIAN: Filter Pill Kategori ===== --}}
         <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs">
             <span class="font-bold text-slate-400 uppercase tracking-wider text-[11px] mr-1">Kategori:</span>
             <button type="button" 
@@ -335,12 +336,12 @@
         </div>
     </div>
 
-    <!-- 4. Konten Utama: Kalender / List (Kiri) & Form / Terdekat (Kanan) -->
+    {{-- ===== BAGIAN: KONTEN UTAMA ===== --}}
     <div class="grid lg:grid-cols-3 gap-5">
-        <!-- Kolom Kiri: Kalender Grid atau Daftar Kartu -->
+        {{-- ===== BAGIAN: KOLOM KIRI — kalender / daftar ===== --}}
         <div class="lg:col-span-2 space-y-4">
 
-            <!-- Banner Info Filter Aktif Hari Ini -->
+            {{-- ===== BAGIAN: Banner Info Filter Aktif Hari Ini ===== --}}
             <div id="filter-today-notice" class="bg-purple-50/80 border border-purple-200/80 rounded-2xl p-3.5 flex items-center justify-between text-xs text-purple-800 {{ $activeFilter === 'hari-ini' ? '' : 'hidden' }}">
                 <div class="flex items-center gap-2">
                     <span class="text-base">📅</span>
@@ -351,7 +352,7 @@
                 </button>
             </div>
 
-            <!-- Empty State Khusus Shortcut "Hari Ini" -->
+            {{-- ===== BAGIAN: Empty State Khusus Shortcut "Hari Ini" ===== --}}
             <div id="empty-today-state" class="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm {{ ($activeFilter === 'hari-ini' && $totalHariIni === 0) ? '' : 'hidden' }}">
                 <div class="h-14 w-14 rounded-2xl bg-purple-50 text-purple-600 border border-purple-200/80 flex items-center justify-center mx-auto mb-3 shadow-sm shadow-purple-500/10">
                     <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
@@ -367,7 +368,7 @@
                 </button>
             </div>
 
-            <!-- Empty State Jika Hasil Pencarian / Filter Kosong -->
+            {{-- ===== BAGIAN: Empty State Jika Hasil Pencarian / Filter Kosong ===== --}}
             <div id="agenda-empty-search" class="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm hidden">
                 <div class="h-12 w-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -376,10 +377,10 @@
                 <p class="text-xs text-slate-500 mt-1">Coba sesuaikan kata kunci pencarian atau ubah filter kategori.</p>
             </div>
 
-            <!-- ==================== VIEW 1: TAMPILAN KALENDER BULANAN ==================== -->
+            {{-- ===== BAGIAN: TAMPILAN KALENDER BULANAN ===== --}}
             <div id="agenda-calendar-view" class="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
                 
-                <!-- Keterangan Nama Bulan & Petunjuk -->
+                {{-- ===== BAGIAN: Keterangan Nama Bulan & Petunjuk ===== --}}
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div>
                         <h2 class="text-base sm:text-lg font-extrabold text-slate-900 capitalize">
@@ -392,7 +393,7 @@
                     </span>
                 </div>
 
-                <!-- Header Hari Kalender (7 Kolom) -->
+                {{-- ===== BAGIAN: Header Hari Kalender (7 Kolom) ===== --}}
                 <div class="grid grid-cols-7 gap-1 text-center font-bold text-[11px] sm:text-xs uppercase tracking-wider text-slate-400 py-1 border-b border-slate-100">
                     <span class="text-rose-500">Min</span>
                     <span>Sen</span>
@@ -403,14 +404,14 @@
                     <span>Sab</span>
                 </div>
 
-                <!-- Grid Sel Hari -->
+                {{-- ===== BAGIAN: Grid Sel Hari ===== --}}
                 <div class="grid grid-cols-7 gap-1 sm:gap-1.5" id="calendar-grid-container">
                     @foreach ($calendarCells as $cell)
                         <div class="min-h-[85px] sm:min-h-[110px] p-1.5 sm:p-2 rounded-xl border flex flex-col justify-between transition group {{ !$cell['isCurrentMonth'] ? 'bg-slate-50/40 text-slate-300 border-transparent select-none' : ($cell['isToday'] ? 'ring-2 ring-purple-600 bg-purple-50/20 border-purple-300 shadow-sm' : 'bg-white border-slate-100 hover:border-purple-200 hover:shadow-xs') }}"
                              data-cal-cell
                              data-date="{{ $cell['dateStr'] }}">
                             
-                            <!-- Header Sel: Nomor Tanggal & Indikator Hari Ini -->
+                            {{-- ===== BAGIAN: Header Sel: Nomor Tanggal & Indikator Hari Ini ===== --}}
                             <div class="flex items-center justify-between">
                                 <span class="text-xs sm:text-sm font-bold inline-flex items-center justify-center w-6 h-6 rounded-full {{ $cell['isToday'] ? 'bg-purple-600 text-white shadow-sm' : ($cell['isCurrentMonth'] ? 'text-slate-700' : 'text-slate-300') }}">
                                     {{ $cell['day'] }}
@@ -423,7 +424,7 @@
                                 @endif
                             </div>
 
-                            <!-- List Mini Event dalam Sel Kalender -->
+                            {{-- ===== BAGIAN: List Mini Event dalam Sel Kalender ===== --}}
                             <div class="space-y-1 mt-1 overflow-hidden" data-cal-events-wrap>
                                 @foreach ($cell['events']->take(3) as $ev)
                                     @php
@@ -458,7 +459,7 @@
                     @endforeach
                 </div>
 
-                <!-- Legenda Kategori -->
+                {{-- ===== BAGIAN: Legenda Kategori ===== --}}
                 <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-slate-500">
                     <span class="font-bold text-slate-400 text-[11px] uppercase tracking-wider">Keterangan:</span>
                     <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span> Rapat</span>
@@ -468,7 +469,7 @@
                 </div>
             </div>
 
-            <!-- ==================== VIEW 2: TAMPILAN DAFTAR KEGIATAN (LIST VIEW) ==================== -->
+            {{-- ===== BAGIAN: TAMPILAN DAFTAR KEGIATAN ===== --}}
             <div id="agenda-list-view" class="space-y-4 hidden">
                 @if ($items->isEmpty())
                     <div class="bg-white border border-slate-200 rounded-2xl p-10 text-center shadow-sm">
@@ -476,7 +477,7 @@
                     </div>
                 @endif
 
-                <!-- Bagian 1: Agenda Dinas (Umum) -->
+                {{-- ===== BAGIAN: Bagian 1: Agenda Dinas (Umum) ===== --}}
                 @if ($dinas->isNotEmpty())
                     <div data-agenda-group="dinas" class="space-y-2.5">
                         <div class="flex items-center gap-3 pt-1 pb-1">
@@ -496,7 +497,7 @@
                     </div>
                 @endif
 
-                <!-- Bagian 2: Agenda Per Bidang -->
+                {{-- ===== BAGIAN: Bagian 2: Agenda Per Bidang ===== --}}
                 @foreach ($perBidang as $nama => $grup)
                     <div data-agenda-group="bidang-{{ $loop->index }}" class="space-y-2.5 pt-2">
                         <div class="flex items-center gap-3 pt-2 pb-1 border-t border-slate-200/60">
@@ -519,7 +520,7 @@
 
         </div>
 
-        <!-- Kolom Kanan: Tambah Agenda (Admin) & Pengingat 14 Hari -->
+        {{-- ===== BAGIAN: KOLOM KANAN — formulir & pengingat ===== --}}
         <div class="space-y-4">
             @if ($u->isAdmin())
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
@@ -589,7 +590,7 @@
             </div>
             @endif
 
-            <!-- Card 14 Hari ke Depan -->
+            {{-- ===== BAGIAN: PENGINGAT 14 HARI ===== --}}
             <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
                 <h3 class="font-extrabold text-[15px] text-slate-900 mb-3 flex items-center gap-2">
                     <span>📅</span> Agenda 14 Hari ke Depan
@@ -619,10 +620,10 @@
 
 </div>
 
-<!-- ==================== MODAL DETAIL AGENDA ==================== -->
+{{-- ===== BAGIAN: MODAL DETAIL AGENDA ===== --}}
 <div id="agenda-detail-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div id="agenda-modal-box" class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all duration-200 scale-95 opacity-0">
-        <!-- Header Modal -->
+        {{-- ===== BAGIAN: Header Modal ===== --}}
         <div class="p-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-4">
             <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -639,9 +640,9 @@
             </button>
         </div>
 
-        <!-- Body Modal -->
+        {{-- ===== BAGIAN: Body Modal ===== --}}
         <div class="p-6 space-y-3.5 text-sm text-slate-600 max-h-[70vh] overflow-y-auto">
-            <!-- Jadwal Pelaksanaan -->
+            {{-- ===== BAGIAN: Jadwal Pelaksanaan ===== --}}
             <div class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                 <div class="p-2 bg-purple-100 text-purple-700 rounded-xl shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -653,7 +654,7 @@
                 </div>
             </div>
 
-            <!-- Lokasi Kegiatan -->
+            {{-- ===== BAGIAN: Lokasi Kegiatan ===== --}}
             <div class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                 <div class="p-2 bg-emerald-100 text-emerald-700 rounded-xl shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -664,7 +665,7 @@
                 </div>
             </div>
 
-            <!-- Bidang / Penyelenggara -->
+            {{-- ===== BAGIAN: Bidang / Penyelenggara ===== --}}
             <div class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                 <div class="p-2 bg-sky-100 text-sky-700 rounded-xl shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -675,14 +676,14 @@
                 </div>
             </div>
 
-            <!-- Catatan / Deskripsi -->
+            {{-- ===== BAGIAN: Catatan / Deskripsi ===== --}}
             <div class="pt-1">
                 <div class="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Catatan / Uraian Kegiatan</div>
                 <div id="modal-deskripsi" class="text-xs sm:text-sm text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-2xl border border-slate-100 whitespace-pre-line"></div>
             </div>
         </div>
 
-        <!-- Footer Modal: Aksi Selesai / Hapus / Tutup -->
+        {{-- ===== BAGIAN: Footer Modal: Aksi Selesai / Hapus / Tutup ===== --}}
         <div class="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
             <div id="modal-actions-container" class="flex items-center gap-2"></div>
             <button type="button" 
@@ -694,7 +695,7 @@
     </div>
 </div>
 
-<!-- ==================== SCRIPT INTERAKTIF AGENDA ==================== -->
+{{-- ===== BAGIAN: SKRIP INTERAKTIF ===== --}}
 <script>
 // Data Master Agenda dalam format JSON
 window.AGENDA_ITEMS_MAP = {!! json_encode($itemsJsonData) !!};

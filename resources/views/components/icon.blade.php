@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Komponen · Ikon generik. ===== --}}
 @props(['name', 'class' => 'h-5 w-5'])
 @php
 $paths = [

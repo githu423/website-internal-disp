@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Rapat publik — pratinjau dokumen (Word/Excel dirender di browser). ===== --}}
 @extends('tamu-rapat.layout')
 
 @section('title', 'Pratinjau Dokumen · ' . $dokumen->judul)
@@ -18,7 +19,7 @@
 @endphp
 
 <div class="space-y-5">
-    <!-- Breadcrumb & Header -->
+    {{-- ===== BAGIAN: BREADCRUMB & TAJUK ===== --}}
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <nav class="mb-2 flex items-center text-xs font-medium text-slate-400">
@@ -59,7 +60,7 @@
         </div>
     </div>
 
-    <!-- Viewer Container -->
+    {{-- ===== BAGIAN: KONTAINER PRATINJAU ===== --}}
     <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" id="preview-box">
         @if ($isPdf)
             <iframe src="{{ $src }}" class="w-full h-[78vh] bg-slate-50 border-0" title="{{ $dokumen->judul }}"></iframe>
@@ -98,6 +99,7 @@
     </div>
 </div>
 
+{{-- ===== BAGIAN: GAYA LAYAR PENUH ===== --}}
 <style>
     #preview-box:fullscreen { border-radius: 0; border: none; background: #fff; overflow: auto; }
     #preview-box:-webkit-full-screen { border-radius: 0; border: none; background: #fff; overflow: auto; }
@@ -107,6 +109,7 @@
     #preview-box:fullscreen pre { max-height: none; min-height: 100vh; }
     #preview-box:fullscreen #office-host { max-height: none; }
 </style>
+{{-- ===== BAGIAN: SKRIP LAYAR PENUH ===== --}}
 <script>
     (function () {
         const btn = document.getElementById('btn-fullscreen');

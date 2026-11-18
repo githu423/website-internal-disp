@@ -15,20 +15,30 @@ use Illuminate\View\View;
 
 /**
  * Kinerja Fisik Sedinas — program/kegiatan/kegiatan rutin dinas.
+ *
  * Dipakai sebagai info + pengingat kegiatan di Dashboard Utama.
  */
 class KinerjaController extends Controller
 {
+    /**
+     * Daftar kegiatan per tahun + ringkasan tuntas/lambat.
+     */
     public function index(Request $request): View
     {
+        // ===== 1. FILTER =====
         $tahunList = CapaianProgram::tahunTersedia();
         $tahun = (int) ($request->query('tahun') ?: ($tahunList[0] ?? now()->year));
-        $q = CapaianProgram::where('tahun', $tahun)->with('bidang')->orderBy('urutan');
-        if ($l = $request->query('level')) $q->where('level', $l);
-        if ($s = trim((string) $request->query('q'))) $q->where('nama', 'like', "%$s%");
+        $query = CapaianProgram::where('tahun', $tahun)->with('bidang')->orderBy('urutan');
+        if ($filterLevel = $request->query('level')) {
+            $query->where('level', $filterLevel);
+        }
+        if ($kataKunci = trim((string) $request->query('q'))) {
+            $query->where('nama', 'like', "%$kataKunci%");
+        }
 
+        // ===== 2. RESPONS =====
         return view('admin.kinerja.index', [
-            'items' => $q->paginate(25)->withQueryString(),
+            'items' => $query->paginate(25)->withQueryString(),
             'tahunList' => $tahunList,
             'tahun' => $tahun,
             'bidangs' => Bidang::orderBy('id')->get(),
@@ -40,21 +50,29 @@ class KinerjaController extends Controller
         ]);
     }
 
+    /**
+     * Menambah kegiatan.
+     */
     public function store(Request $request): RedirectResponse
     {
-        $d = $this->validateData($request);
-        $d['level'] = $d['level'] ?: 'sub_kegiatan';
-        $d['urutan'] = (int) CapaianProgram::where('tahun', $d['tahun'])->max('urutan') + 1;
-        CapaianProgram::create($d);
-        LogAktivitas::catat('tambah kinerja', $d['nama']);
+        $data = $this->validateData($request);
+        $data['level'] = $data['level'] ?: 'sub_kegiatan';
+        $data['urutan'] = (int) CapaianProgram::where('tahun', $data['tahun'])->max('urutan') + 1;
+        CapaianProgram::create($data);
+        LogAktivitas::catat('tambah kinerja', $data['nama']);
+
         return back()->with('sukses', 'Kegiatan ditambahkan.');
     }
 
+    /**
+     * Memperbarui kegiatan.
+     *
+     * 9 Sep 2026: dulu form edit modal hanya mengirim nama/target/satuan/capaian/persen/pagu/catatan,
+     * padahal validasi menuntut "tahun" & "level" — update SELALU gagal validasi tanpa pesan (bug).
+     * Sekarang: kolom yang tidak ikut dikirim otomatis diambil dari data lama.
+     */
     public function update(Request $request, CapaianProgram $kinerja): RedirectResponse
     {
-        // 9 Sep 2026: dulu form edit modal hanya mengirim nama/target/satuan/capaian/persen/pagu/catatan,
-        // padahal validasi menuntut "tahun" & "level" — update SELALU gagal validasi tanpa pesan (bug).
-        // Sekarang: kolom yang tidak ikut dikirim otomatis diambil dari data lama.
         $request->mergeIfMissing([
             'tahun' => $kinerja->tahun,
             'level' => $kinerja->level,
@@ -63,49 +81,68 @@ class KinerjaController extends Controller
             'satuan' => $kinerja->satuan,
             'id_bidang' => $kinerja->id_bidang,
         ]);
-        $d = $this->validateData($request, $kinerja->id);
-        $kinerja->update($d);
-        LogAktivitas::catat('ubah kinerja', $d['nama']);
-        return back()->with('sukses', 'Data kinerja «'.$d['nama'].'» diperbarui.');
+        $data = $this->validateData($request, $kinerja->id);
+        $kinerja->update($data);
+        LogAktivitas::catat('ubah kinerja', $data['nama']);
+
+        return back()->with('sukses', 'Data kinerja «'.$data['nama'].'» diperbarui.');
     }
 
+    /**
+     * Menghapus kegiatan.
+     */
     public function destroy(CapaianProgram $kinerja): RedirectResponse
     {
         $kinerja->delete();
         LogAktivitas::catat('hapus kinerja', $kinerja->nama);
+
         return back()->with('sukses', 'Data dihapus.');
     }
 
-    /** Import massal dari file Excel/CSV (Kinerja Fisik / DATA PARIWISATA format) */
+    /**
+     * Import massal dari file Excel/CSV (Kinerja Fisik / DATA PARIWISATA format).
+     */
     public function import(Request $request): RedirectResponse
     {
+        // ===== 1. VALIDASI BERKAS =====
         $request->validate([
             'file' => ['required', 'file', 'mimes:csv,txt,xlsx,xls,ods', 'max:20480'],
             'ganti_tahun' => ['nullable', 'boolean'],
         ]);
-        $f = $request->file('file');
-        $path = $f->getRealPath();
-        $namaAsli = $f->getClientOriginalName();
+        $file = $request->file('file');
+        $pathSementara = $file->getRealPath();
+        $namaAsli = $file->getClientOriginalName();
+
+        // ===== 2. BACA & TERAPKAN =====
         try {
-            $rows = ImportService::rowsFrom($path, $namaAsli);
+            $rows = ImportService::rowsFrom($pathSementara, $namaAsli);
             $hasil = ImportService::applyKinerja($rows, $request->boolean('ganti_tahun'));
-        } catch (\Throwable $e) {
-            return back()->with('gagal', 'File gagal dibaca: '.$e->getMessage());
+        } catch (\Throwable $kesalahan) {
+            return back()->with('gagal', 'File gagal dibaca: '.$kesalahan->getMessage());
         }
         if ($hasil['imported'] === 0) {
             return back()->with('gagal', 'Tidak ada data kinerja yang dikenali (file terbaca '.count($rows).' baris). '
                 .'Pastikan file memuat baris "TAHUN <tahun>" (boleh "TAHUN ANGGARAN <tahun>" / rata tengah seperti di Excel), '
                 .'lalu baris data dengan kolom PROGRAM / KEGIATAN / SUB KEGIATAN, Sumber Dana, Pagu, Target, Satuan, dan Total Capaian.');
         }
-        $yrs = implode(', ', $hasil['years']);
-        $ganti = $request->boolean('ganti_tahun');
-        $pesan = "Import kinerja: {$hasil['dibuat']} baru, {$hasil['diperbarui']} diperbarui (tahun $yrs)"
-            . ($ganti ? ' — data tahun tersebut diganti total.' : ' — data manual & tahun lain tetap aman.');
+
+        // ===== 3. NOTIFIKASI & LOG =====
+        $daftarTahun = implode(', ', $hasil['years']);
+        $gantiTahun = $request->boolean('ganti_tahun');
+        $pesan = "Import kinerja: {$hasil['dibuat']} baru, {$hasil['diperbarui']} diperbarui (tahun $daftarTahun)"
+            .($gantiTahun ? ' — data tahun tersebut diganti total.' : ' — data manual & tahun lain tetap aman.');
         NotifikasiService::broadcast('Data kinerja diperbarui', $pesan, 'import', route('admin.kinerja.index'));
-        LogAktivitas::catat('import kinerja', "rows={$hasil['imported']} baru={$hasil['dibuat']} ubah={$hasil['diperbarui']} years=$yrs mode={$hasil['mode']}");
+        LogAktivitas::catat('import kinerja', "rows={$hasil['imported']} baru={$hasil['dibuat']} ubah={$hasil['diperbarui']} years=$daftarTahun mode={$hasil['mode']}");
+
         return back()->with('sukses', $pesan);
     }
 
+    /**
+     * Aturan validasi data kegiatan.
+     *
+     * Catatan: pemanggil update() mengirim argumen kedua ($exceptId) yang saat ini
+     * belum dipakai; argumen itu diabaikan agar tetap kompatibel.
+     */
     private function validateData(Request $request): array
     {
         return $request->validate([

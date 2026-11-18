@@ -10,6 +10,7 @@ if (office) {
                 throw new Error('Akses dokumen berubah. Kembali ke ruang rapat atau masuk ulang.');
             }
             const buf = await res.arrayBuffer();
+            // ===== PRATINJAU XLSX / XLS =====
             if (office.dataset.kind === 'xlsx') {
                 const XLSX = await import('xlsx');
                 const wb = XLSX.read(buf, { type: 'array', cellStyles: true, sheetRows: 401 });
@@ -66,6 +67,7 @@ if (office) {
                 const show = (ix) => { body.innerHTML = sheetHtml(names[ix]); office.querySelectorAll('.sheet-tab').forEach((b, i2) => { const on = i2 === ix; b.className = b.className.replace(/border-slate-200 bg-white text-slate-500 hover:border-teal-400|border-slate-900 bg-slate-900 text-white/g, on ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white text-slate-500 hover:border-teal-400'); }); };
                 office.querySelectorAll('.sheet-tab').forEach((b) => b.addEventListener('click', () => show(+b.dataset.i)));
                 show(0);
+            // ===== PRATINJAU PPTX =====
             } else if (office.dataset.kind === 'pptx') {
                 const { init } = await import('pptx-preview');
                 const render = () => {
@@ -84,12 +86,14 @@ if (office) {
                 const rerender = () => { clearTimeout(rT); rT = setTimeout(render, 90); };
                 document.addEventListener('fullscreenchange', () => { if (document.fullscreenElement === box || !document.fullscreenElement) rerender(); });
                 document.addEventListener('webkitfullscreenchange', () => rerender());
+            // ===== PRATINJAU DOCX =====
             } else {
                 const { renderAsync } = await import('docx-preview');
                 office.innerHTML = '<style>#office-host{background:#e2e8f0;padding:14px}#office-host .docx-wrapper{background:#e2e8f0;padding:0}#office-host .docx-wrapper>section.docx{box-shadow:0 4px 18px rgba(15,23,42,.14);margin-bottom:14px}</style><div id="docx-mount"></div>';
                 await renderAsync(buf, document.getElementById('docx-mount'), undefined, { inWrapper: true, breakPages: true, ignoreLastRenderedPageBreak: false, renderHeaders: true, renderFooters: true, renderFootnotes: true, images: 'blob' });
             }
         } catch (e) {
+            // ===== PRATINJAU GAGAL: BERI PESAN, JANGAN PAKSA UNDUH =====
             office.innerHTML = '<p class="text-sm text-rose-600">Pratinjau gagal: ' + esc(e.message || e) + ' Dokumen tidak diunduh otomatis. Coba muat ulang atau hubungi penyelenggara untuk versi PDF.</p>';
         }
     })();

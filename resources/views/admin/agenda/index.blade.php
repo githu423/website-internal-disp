@@ -1,3 +1,4 @@
+{{-- ===== HALAMAN: Admin · Agenda — daftar agenda dinas: tambah, ubah status, hapus. ===== --}}
 @extends('layouts.dashboard')
 
 @section('title', 'Kelola Agenda')
@@ -9,7 +10,7 @@
 @section('content')
 <div class="space-y-6">
 
-    <!-- 1. Breadcrumbs Mikro -->
+    {{-- ===== BAGIAN: Breadcrumbs Mikro ===== --}}
     <nav class="flex items-center text-sm font-medium text-slate-400">
         <a href="{{ route('dashboard') }}" class="hover:text-purple-600 transition">SIPARDIS</a>
         <span class="mx-2 text-slate-300">/</span>
@@ -18,7 +19,7 @@
         <span class="text-slate-700 font-semibold">Kelola Agenda</span>
     </nav>
 
-    <!-- 2. Header Halaman & Quick Actions -->
+    {{-- ===== BAGIAN: Header Halaman & Quick Actions ===== --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-slate-200/60">
         <div>
             <div class="flex flex-wrap items-center gap-2.5">
@@ -42,11 +43,11 @@
         </div>
     </div>
 
-    <!-- 3. Grid Konten: Tabel Agenda & Form Tambah -->
+    {{-- ===== BAGIAN: Grid Konten: Tabel Agenda & Form Tambah ===== --}}
     <div class="grid lg:grid-cols-3 gap-5">
-        <!-- Kolom Kiri: Tabel Data Agenda -->
+        {{-- ===== BAGIAN: Kolom Kiri: Tabel Data Agenda ===== --}}
         <div class="lg:col-span-2 space-y-4">
-            <!-- Filter Status Tab -->
+            {{-- ===== BAGIAN: Filter Status Tab ===== --}}
             <div class="inline-flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
                 @foreach (['' => 'Semua Agenda', 'belum' => 'Mendatang / Belum', 'selesai' => 'Selesai'] as $kv => $lab)
                     <a href="{{ route('admin.agenda.index', $kv ? ['status' => $kv] : []) }}" 
@@ -133,7 +134,7 @@
             </div>
         </div>
 
-        <!-- Kolom Kanan: Form Tambah Agenda Baru -->
+        {{-- ===== BAGIAN: Kolom Kanan: Form Tambah Agenda Baru ===== --}}
         <div>
             <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-4">
                 <div class="flex items-start gap-3 pb-3 border-b border-slate-100">

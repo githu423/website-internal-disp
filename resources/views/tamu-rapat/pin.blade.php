@@ -1,9 +1,11 @@
+{{-- ===== HALAMAN: Rapat publik — form PIN. ===== --}}
 @extends('tamu-rapat.layout')
 
 @section('title', 'Masukkan PIN')
 
 @section('content')
     <div class="mx-auto max-w-lg">
+        {{-- ===== BAGIAN: TAJUK ===== --}}
         <div class="mb-5 text-center">
             <span class="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-purple-100 bg-purple-50 text-purple-600 shadow-sm">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -17,6 +19,7 @@
         </div>
 
         <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+            {{-- ===== BAGIAN: PANDUAN PIN ===== --}}
             <div class="mb-5 rounded-xl border border-purple-100 bg-purple-50/60 p-4">
                 <p class="text-[10px] font-extrabold uppercase tracking-wide text-purple-600">Ruang Rapat</p>
                 <h2 class="mt-1 text-sm font-bold text-slate-900">{{ $ruangRapat->judul }}</h2>
