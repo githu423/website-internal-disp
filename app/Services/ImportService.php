@@ -285,9 +285,9 @@ class ImportService
 
             // data bulanan hanya untuk baris sub yang punya angka per bulan
             if ($level === 'sub_kegiatan') {
-                foreach ($mCols as $i => $col) {
-                    $v = self::num($r[$col]);
-                    if ($v != 0.0 || trim((string) $r[$col]) !== '') {
+                foreach ($mCols as $i => $indeksKolom) {
+                    $v = self::num($r[$indeksKolom]);
+                    if ($v != 0.0 || trim((string) $r[$indeksKolom]) !== '') {
                         $bulanan[$tahun][$i + 1] = ($bulanan[$tahun][$i + 1] ?? 0) + $v;
                     }
                 }
@@ -465,7 +465,7 @@ class ImportService
             if (! $nip) continue;
 
             $jk = null;
-            $jkv = strtoupper($at($r, $col('jenis_kelamin', -1)));
+            $jkv = strtoupper($sel($r, $kolom('jenis_kelamin', -1)));
             if ($jkv !== '') $jk = str_starts_with($jkv, 'L') ? 'L' : (str_starts_with($jkv, 'P') ? 'P' : null);
             if (! $jk) {
                 foreach ($r as $cell) {
@@ -484,21 +484,21 @@ class ImportService
             $out[] = [
                 'nip' => $nip,
                 'nama' => trim($r[1]),
-                'tempat_lahir' => $at($r, $col('tempat_lahir', 3)) ?: null,
-                'tanggal_lahir' => self::tgl((string) ($r[$col('tanggal_lahir', 4)] ?? '')),
+                'tempat_lahir' => $sel($r, $kolom('tempat_lahir', 3)) ?: null,
+                'tanggal_lahir' => self::tgl((string) ($r[$kolom('tanggal_lahir', 4)] ?? '')),
                 'jenis_kelamin' => $jk,
                 'jabatan' => $jabatan ?: null,
                 'unit_kerja' => $unit ?: null,
-                'pangkat_awal' => $pgAwal !== null ? ($at($r, $pgAwal) ?: null) : (trim($r[5]) ?: null),
-                'pangkat_golongan' => $at($r, $pgAkhir) ?: trim($r[7]) ?: null,
-                'jenis_asn' => $at($r, $col('jenis_asn', 8)) ?: null,
-                'tmt_cpns' => self::tgl((string) ($r[$col('tmt_cpns', 6)] ?? '')),
-                'tmt_sekarang' => self::tgl((string) ($r[$col('tmt_sekarang', 9)] ?? '')),
-                'tmt_jabatan' => self::tgl((string) ($r[$col('tmt_jabatan', 11)] ?? '')),
+                'pangkat_awal' => $pgAwal !== null ? ($sel($r, $pgAwal) ?: null) : (trim($r[5]) ?: null),
+                'pangkat_golongan' => $sel($r, $pgAkhir) ?: trim($r[7]) ?: null,
+                'jenis_asn' => $sel($r, $kolom('jenis_asn', 8)) ?: null,
+                'tmt_cpns' => self::tgl((string) ($r[$kolom('tmt_cpns', 6)] ?? '')),
+                'tmt_sekarang' => self::tgl((string) ($r[$kolom('tmt_sekarang', 9)] ?? '')),
+                'tmt_jabatan' => self::tgl((string) ($r[$kolom('tmt_jabatan', 11)] ?? '')),
                 'pendidikan' => $pendidikan ?: null,
-                'diklat_struktural' => $at($r, $col('diklat_struktural', -1)) ?: null,
-                'diklat_fungsional' => $at($r, $col('diklat_fungsional', -1)) ?: null,
-                'diklat_teknis' => $at($r, $col('diklat_teknis', -1)) ?: null,
+                'diklat_struktural' => $sel($r, $kolom('diklat_struktural', -1)) ?: null,
+                'diklat_fungsional' => $sel($r, $kolom('diklat_fungsional', -1)) ?: null,
+                'diklat_teknis' => $sel($r, $kolom('diklat_teknis', -1)) ?: null,
                 'status' => 'aktif',
                 'id_bidang' => null, // diisi setelah seluruh baris terkumpul (penempatan berurutan, lihat bawah)
             ];
@@ -883,7 +883,7 @@ class ImportService
     }
 
     /** Upsert per nama indikator (toleran besar/kecil & spasi ganda); tahun yang tidak disebut file dibiarkan. */
-    public static function applyStatistik(array $p): array
+    public static function applyStatistik(array $data): array
     {
         $dibuat = 0; $diperbarui = 0; $jumlahSel = 0;
         foreach ($data as $baris) {
